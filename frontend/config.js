@@ -1,8 +1,17 @@
 // Set this to the deployed statistics API URL, e.g. https://your-api.example.com
 window.APP_CONFIG={API_BASE:''};
 
-// Security Knowledge Challenge access points
+// Security Knowledge Challenge — mandatory first visit before entering the website
 window.addEventListener('DOMContentLoaded',function(){
+  var isHome=location.pathname.endsWith('/index.html') || location.pathname.endsWith('/');
+  var challengeDone=localStorage.getItem('securityKnowledgeChallengeCompleted')==='true';
+
+  if(isHome && !challengeDone){
+    location.replace('challenge.html');
+    return;
+  }
+
+  // Challenge access point in the main navigation
   var nav=document.querySelector('.topbar nav');
   if(nav && !nav.querySelector('a[href="challenge.html"]')){
     var link=document.createElement('a');
@@ -13,6 +22,7 @@ window.addEventListener('DOMContentLoaded',function(){
     if(courses && courses.nextSibling) nav.insertBefore(link,courses.nextSibling); else nav.appendChild(link);
   }
 
+  // Prominent challenge section after the hero
   var hero=document.getElementById('home');
   if(hero && !document.getElementById('securityChallengePromo')){
     var section=document.createElement('section');
