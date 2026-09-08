@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SECURITY KNOWLEDGE CHALLENGE | قِس معلوماتك الأمنية</title>
+<meta name="description" content="A bilingual general security awareness challenge with 10 random questions.">
+<style>
+:root{--navy:#0B1F33;--navy2:#102A43;--gray:#9AA6B2;--light:#F1F4F7;--white:#fff;--gold:#c8a96b;--line:#294158}
+*{box-sizing:border-box}body{margin:0;background:var(--navy);color:var(--white);font-family:Arial,Helvetica,sans-serif;min-height:100vh}.wrap{width:min(980px,92%);margin:auto;padding:28px 0 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid var(--line);padding-bottom:18px}.brand{font-weight:800;letter-spacing:.08em}.back{color:var(--white);text-decoration:none;border:1px solid var(--gray);padding:9px 14px}.hero{text-align:center;padding:42px 10px 24px}.eyebrow{color:var(--gold);font-size:13px;letter-spacing:.12em;font-weight:700}.hero h1{font-size:clamp(30px,5vw,54px);margin:12px 0 4px}.hero h1 small{display:block;font-size:.55em;color:#dbe2e8;margin-top:8px;letter-spacing:0}.hero p{color:#cbd5df;line-height:1.7;max-width:720px;margin:18px auto}.levels{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:18px 0}.levels span{border:1px solid var(--line);padding:8px 12px;font-size:13px}.btn{border:0;background:var(--gold);color:#101820;font-weight:800;padding:13px 22px;cursor:pointer;font-size:16px}.btn:hover{filter:brightness(1.06)}.card{background:var(--navy2);border:1px solid var(--line);padding:28px;margin-top:24px}.progress{display:flex;justify-content:space-between;color:#cbd5df;font-size:14px;margin-bottom:18px}.q{font-size:22px;line-height:1.45;margin:8px 0 8px}.ar{direction:rtl;text-align:right}.q-ar{font-size:21px;color:#e7edf2;margin:8px 0 22px;line-height:1.7}.options{display:grid;gap:11px}.option{width:100%;text-align:left;background:#0d2439;color:white;border:1px solid #36516a;padding:14px 16px;cursor:pointer;font-size:16px;line-height:1.4}.option:hover{border-color:var(--gold)}.option.selected{border-color:var(--gold);background:#18334d}.option.correct{border-color:#7fb58a}.option.wrong{border-color:#c77b7b}.next{margin-top:20px;display:flex;justify-content:flex-end}.feedback{min-height:26px;margin-top:12px;color:#dbe2e8}.result{text-align:center;padding:35px 20px}.score{font-size:68px;font-weight:900;color:var(--gold);margin:12px 0}.level{font-size:24px;margin-bottom:8px}.breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0}.breakdown div{border:1px solid var(--line);padding:14px}.muted{color:#aebbc7}.hidden{display:none}@media(max-width:650px){.top{align-items:flex-start}.q,.q-ar{font-size:18px}.breakdown{grid-template-columns:1fr}.wrap{width:94%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand">SI &nbsp; SECURITY INSTRUCTOR</div><a class="back" href="./index.html">← Back to Website / العودة للموقع</a></header>
+<section class="hero" id="intro">
+<div class="eyebrow">SECURITY AWARENESS • PRACTICAL SITUATIONS</div>
+<h1>SECURITY KNOWLEDGE CHALLENGE<small>قِس معلوماتك الأمنية</small></h1>
+<p>Test your general security awareness. Each attempt contains 10 randomly selected questions from the question bank.<br><span class="ar">اختبر معلوماتك الأمنية العامة. كل محاولة تتضمن 10 أسئلة يتم اختيارها عشوائيًا من بنك الأسئلة.</span></p>
+<div class="levels"><span>🟢 Intermediate / متوسط</span><span>🔵 Good / جيد</span><span>🟣 Very Good / جيد جدًا</span></div>
+<button class="btn" id="start">Start Challenge / ابدأ التحدي</button>
+</section>
+<section id="app"></section>
+</div>
+<script src="challenge-data.js"></script>
+<script>
+(function(){
+const bank=SECURITY_CHALLENGE_QUESTIONS;
+const start=document.getElementById('start'),intro=document.getElementById('intro'),app=document.getElementById('app');
+let questions=[],index=0,score=0,answered=false,by={intermediate:0,good:0,'very-good':0};
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function selectQuestions(){
+ const groups={intermediate:shuffle(bank.filter(q=>q.level==='intermediate')),good:shuffle(bank.filter(q=>q.level==='good')),'very-good':shuffle(bank.filter(q=>q.level==='very-good'))};
+ let chosen=[...groups.intermediate.slice(0,4),...groups.good.slice(0,4),...groups['very-good'].slice(0,2)];
+ if(chosen.length<10) chosen=shuffle(bank).slice(0,10); else chosen=shuffle(chosen);
+ return chosen;
+}
+function render(){
+ answered=false; const q=questions[index];
+ app.innerHTML='<div class="card"><div class="progress"><span>Question '+(index+1)+' of 10 / السؤال '+(index+1)+' من 10</span><span>'+q.level.replace('-',' ')+'</span></div><div class="q">'+q.question.en+'</div><div class="q-ar ar">'+q.question.ar+'</div><div class="options">'+q.options.en.map((x,i)=>'<button class="option" data-i="'+i+'">'+String.fromCharCode(65+i)+'. '+x+'</button>').join('')+'</div><div id="feedback" class="feedback"></div><div class="next"><button class="btn hidden" id="next">'+(index===9?'Show Result / عرض النتيجة':'Next Question / السؤال التالي')+'</button></div></div>';
+ app.querySelectorAll('.option').forEach(b=>b.onclick=()=>answer(+b.dataset.i));
+}
+function answer(choice){if(answered)return;answered=true;const q=questions[index],ok=choice===q.correctAnswer;if(ok){score++;by[q.level]++}app.querySelectorAll('.option').forEach((b,i)=>{b.disabled=true;if(i===q.correctAnswer)b.classList.add('correct');if(i===choice&&!ok)b.classList.add('wrong')});document.getElementById('feedback').innerHTML=ok?'✓ Correct / إجابة صحيحة':'✗ Not correct / إجابة غير صحيحة';document.getElementById('next').classList.remove('hidden');}
+function result(){let level=score>=9?'Excellent / ممتاز':score>=7?'Very Good / جيد جدًا':score>=5?'Good / جيد':'Developing / في طور التطور';app.innerHTML='<div class="card result"><div class="muted">Your Score / نتيجتك</div><div class="score">'+score+' / 10</div><div class="level">'+level+'</div><div class="breakdown"><div>Intermediate<br><b>'+by.intermediate+'/4</b></div><div>Good<br><b>'+by.good+'/4</b></div><div>Very Good<br><b>'+by['very-good']+'/2</b></div></div><p class="muted">This is a general security-awareness challenge, not a formal certification exam.<br><span class="ar">هذا تحدٍ عام لقياس الوعي والمعرفة الأمنية، وليس اختبار اعتماد أو شهادة مهنية رسمية.</span></p><button class="btn" id="again">Try Again / محاولة أخرى</button></div>';document.getElementById('again').onclick=startChallenge;}
+function startChallenge(){questions=selectQuestions();index=0;score=0;by={intermediate:0,good:0,'very-good':0};intro.classList.add('hidden');render();window.scrollTo({top:0,behavior:'smooth'})}
+start.onclick=startChallenge;
+app.addEventListener('click',e=>{if(e.target.id==='next'){if(!answered)return;if(index===9)result();else{index++;render()}}});
+})();
+</script>
+</body>
+</html>
