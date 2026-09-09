@@ -9,12 +9,16 @@ Tracks, per course:
 - Average rating
 - Rating count
 
-The API stores the values in MongoDB and exposes only the three course slugs used by the PPTX materials:
+The API stores the values in MongoDB and supports all five available course slugs:
 - traffic-management-vehicle-control
 - crowd-management-event-security
 - fire-safety-emergency-response
+- vehicle-search-security-inspection
+- person-search-security-screening
 
 ## Deploy
 Set `MONGODB_URI` and `FRONTEND_URL`, then run `npm install` and `npm start` on a Node.js host such as Render or Railway.
 
 After deployment, put the API base URL in `frontend/config.js` as `window.APP_CONFIG={API_BASE:'https://YOUR-API-URL'};`.
+
+Health check: `/health`
