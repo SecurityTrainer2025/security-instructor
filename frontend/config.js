@@ -1,5 +1,5 @@
-// Set this to the deployed statistics API URL, e.g. https://your-api.example.com
-window.APP_CONFIG={API_BASE:''};
+// Deployed statistics API
+window.APP_CONFIG={API_BASE:'https://security-instructor.onrender.com'};
 
 window.addEventListener('DOMContentLoaded',function(){
   var isHome=location.pathname.endsWith('/index.html') || location.pathname.endsWith('/');
