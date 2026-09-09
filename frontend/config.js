@@ -15,8 +15,9 @@ window.addEventListener('DOMContentLoaded',function(){
   document.addEventListener('click',function(e){
     var button=e.target.closest('[data-course]'); if(!button)return; var slug=button.getAttribute('data-course'); if(!slug)return;
     e.preventDefault(); e.stopImmediatePropagation();
-    if(slug==='vehicle-search-security-inspection'||slug==='person-search-security-screening') location.href='course-ready.html?course='+encodeURIComponent(slug);
-    else location.href='course-details.html?course='+encodeURIComponent(slug);
+    // All five courses use the same bilingual course-details template so typography,
+    // responsive layout, assessments and live statistics remain consistent.
+    location.href='course-details.html?course='+encodeURIComponent(slug);
   },true);
 
   var slugs=['traffic-management-vehicle-control','crowd-management-event-security','fire-safety-emergency-response','vehicle-search-security-inspection','person-search-security-screening'];
