@@ -25,7 +25,7 @@ window.addEventListener('DOMContentLoaded',function(){
     if(!trigger || document.querySelector('[data-course-assessment="'+slug+'"]'))return;
     var a=document.createElement('a');
     a.setAttribute('data-course-assessment',slug);
-    a.href=(slug==='traffic-management-vehicle-control'?'traffic-initial-assessment.html':'course-assessment.html')+'?course='+encodeURIComponent(slug);
+    a.href='course-assessment-v2.html?course='+encodeURIComponent(slug);
     a.innerHTML='Initial Course Assessment / التقييم المبدئي للدورة';
     a.style.cssText='display:inline-block;margin:10px 8px 0 0;padding:11px 16px;border:1px solid #c8a96b;color:#c8a96b;background:transparent;text-decoration:none;font-weight:800;';
     trigger.insertAdjacentElement('afterend',a);
