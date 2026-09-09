@@ -14,7 +14,9 @@ window.addEventListener('DOMContentLoaded',function(){
 
   document.addEventListener('click',function(e){
     var button=e.target.closest('[data-course]'); if(!button)return; var slug=button.getAttribute('data-course'); if(!slug)return;
-    e.preventDefault(); e.stopImmediatePropagation(); location.href='course-details.html?course='+encodeURIComponent(slug);
+    e.preventDefault(); e.stopImmediatePropagation();
+    if(slug==='vehicle-search-security-inspection'||slug==='person-search-security-screening') location.href='course-ready.html?course='+encodeURIComponent(slug);
+    else location.href='course-details.html?course='+encodeURIComponent(slug);
   },true);
 
   var slugs=['traffic-management-vehicle-control','crowd-management-event-security','fire-safety-emergency-response','vehicle-search-security-inspection','person-search-security-screening'];
@@ -36,4 +38,23 @@ window.addEventListener('DOMContentLoaded',function(){
     section.innerHTML='<div style="max-width:1180px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap"><div style="flex:1;min-width:280px"><div style="font-size:13px;letter-spacing:.12em;font-weight:700;color:#c8a96b;margin-bottom:8px">SECURITY AWARENESS • PRACTICAL SITUATIONS</div><h2 style="margin:0 0 8px;font-size:clamp(24px,3vw,38px);color:#fff">🛡️ SECURITY KNOWLEDGE CHALLENGE</h2><div style="font-size:22px;font-weight:700;color:#dbe2e8;margin-bottom:10px;direction:rtl;text-align:left">اختبر معلوماتك الأمنية</div><p style="margin:0;color:#cbd5df;line-height:1.7;max-width:760px">Test your general security awareness with 10 randomly selected questions.<br><span style="direction:rtl;display:inline-block">اختبر معلوماتك الأمنية العامة من خلال أسئلة عشوائية.</span></p></div><div style="flex:0 0 auto"><a href="challenge.html" style="display:inline-block;background:#c8a96b;color:#101820;text-decoration:none;font-weight:800;padding:15px 24px;border:1px solid #c8a96b">Start Challenge / ابدأ التحدي</a></div></div>';
     hero.insertAdjacentElement('afterend',section);
   }
+
+  setTimeout(function(){
+    var adminCourseBtn=document.getElementById('adminCourseBtn');
+    if(adminCourseBtn){
+      adminCourseBtn.dataset.en='Available Courses';
+      adminCourseBtn.dataset.ar='الدورات المتاحة';
+      adminCourseBtn.textContent='Available Courses';
+    }
+    ['vehicle-search-security-inspection','person-search-security-screening'].forEach(function(slug){
+      var card=document.querySelector('[data-course="'+slug+'"]');
+      if(!card)return;
+      var article=card.closest('.course-card');
+      if(article){
+        var badge=article.querySelector('.course-card-media span');
+        if(badge)badge.textContent='Available / متاحة';
+        card.textContent='View Course / عرض الدورة';
+      }
+    });
+  },0);
 });
