@@ -22,6 +22,17 @@ window.addEventListener('DOMContentLoaded',function(){
     if(courses && courses.nextSibling) nav.insertBefore(link,courses.nextSibling); else nav.appendChild(link);
   }
 
+  // Course cards now open the dedicated bilingual Course Details page.
+  document.addEventListener('click',function(e){
+    var button=e.target.closest('[data-course]');
+    if(!button)return;
+    var slug=button.getAttribute('data-course');
+    if(!slug)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    location.href='course-details.html?course='+encodeURIComponent(slug);
+  },true);
+
   // Prominent challenge section after the hero
   var hero=document.getElementById('home');
   if(hero && !document.getElementById('securityChallengePromo')){
