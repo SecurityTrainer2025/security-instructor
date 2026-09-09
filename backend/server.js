@@ -15,7 +15,7 @@ app.use(rateLimit({windowMs:60*1000,max:120,standardHeaders:true,legacyHeaders:f
 
 const StatSchema=new mongoose.Schema({slug:{type:String,unique:true,index:true},views:{type:Number,default:0},entries:{type:Number,default:0},positiveRatings:{type:Number,default:0},ratingSum:{type:Number,default:0},ratingCount:{type:Number,default:0}},{timestamps:true});
 const Stat=mongoose.model('CourseStat',StatSchema);
-const allowed=new Set(['traffic-management-vehicle-control','crowd-management-event-security','fire-safety-emergency-response']);
+const allowed=new Set(['traffic-management-vehicle-control','crowd-management-event-security','fire-safety-emergency-response','vehicle-search-security-inspection','person-search-security-screening']);
 function validSlug(req,res,next){if(!allowed.has(req.params.slug))return res.status(404).json({message:'Course not found'});next()}
 function publicStats(s){return {slug:s.slug,views:s.views,entries:s.entries,positiveRatings:s.ratingCount?Math.round((s.positiveRatings/s.ratingCount)*100):0,ratingCount:s.ratingCount,averageRating:s.ratingCount?Math.round((s.ratingSum/s.ratingCount)*10)/10:0}}
 app.get('/health',(req,res)=>res.json({ok:true}));
