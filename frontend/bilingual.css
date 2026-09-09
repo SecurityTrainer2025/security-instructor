@@ -6,7 +6,10 @@
 
 @media(max-width:800px){.objectives-grid{grid-template-columns:1fr}.detail-title .bi-en{font-size:25px}.detail-title .bi-ar{font-size:22px}.hero-highlights{grid-template-columns:repeat(2,1fr)}}
 
-/* Course details readability: dark text on the light objective panels */
-body .panel li{color:#0B1F33!important}
-body .panel.ar li{color:#0B1F33!important}
-body .panel h3{color:#183B56!important}
+/* Course details readability: objectives are dark cards, so both languages must be light */
+body .panel li{color:#FFFFFF!important}
+body .panel.ar li{color:#FFFFFF!important}
+body .panel h3{color:#c8a96b!important}
+body .panel{color:#FFFFFF!important}
+body .module,.module span,.module .en,.module .ar{color:#FFFFFF!important}
+body .section-title,body .section-title small{color:#FFFFFF!important}
