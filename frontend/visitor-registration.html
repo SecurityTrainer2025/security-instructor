@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visitor Registration | تسجيل الزائر</title>
+<style>
+:root{--navy:#0B1F33;--navy2:#102A43;--gold:#c8a96b;--white:#fff;--muted:#cbd5df;--line:#294158}
+*{box-sizing:border-box}body{margin:0;background:var(--navy);color:var(--white);font-family:Arial,Helvetica,sans-serif}.wrap{width:min(900px,94%);margin:auto;padding:28px 0 50px}.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:16px}.brand{font-weight:800;letter-spacing:.08em;color:var(--gold)}.back{color:#fff;border:1px solid var(--line);padding:9px 14px;text-decoration:none}.hero{text-align:center;padding:38px 10px 24px}.eyebrow{color:var(--gold);font-weight:800;letter-spacing:.1em;font-size:13px}.hero h1{font-size:clamp(30px,5vw,48px);margin:8px 0;line-height:1.1}.hero h1 small{display:block;font-size:.5em;color:#e7edf2;margin-top:8px}.hero p{color:var(--muted);line-height:1.7}.form-card{background:var(--navy2);border:1px solid var(--line);padding:28px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{font-weight:700}.field label span{color:var(--gold);font-size:13px;font-weight:600}.field input{width:100%;padding:13px 14px;border:1px solid #52677a;background:#0d2439;color:#fff;font-size:15px;outline:none}.field input:focus{border-color:var(--gold)}.optional{color:#9aa6b2;font-size:12px}.consent{margin:22px 0;color:#dbe2e8;line-height:1.6;font-size:13px}.consent label{display:flex;gap:9px;align-items:flex-start}.consent input{margin-top:4px;accent-color:var(--gold)}.privacy{color:#9aa6b2;font-size:12px;margin-top:7px}.btn{border:0;background:var(--gold);color:#101820;font-weight:800;padding:14px 25px;cursor:pointer;font-size:16px}.actions{text-align:center}.error{display:none;margin:14px 0;padding:11px;border:1px solid #9a5d5d;background:#3a1d22;color:#fff}.note{text-align:center;color:#9aa6b2;font-size:12px;margin-top:18px}.ar{direction:rtl;text-align:right}@media(max-width:700px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.top{gap:10px;flex-wrap:wrap}.form-card{padding:20px}.hero{padding-top:28px}}
+</style></head>
+<body><div class="wrap">
+<header class="top"><div class="brand">SECURITY INSTRUCTOR</div><a class="back" href="index.html">← Website / الموقع</a></header>
+<section class="hero"><div class="eyebrow">BEFORE YOU START</div><h1>Visitor Registration<small>تسجيل الزائر</small></h1><p>Register before starting the Security Knowledge Challenge. Your information helps us understand visitor participation and challenge results.</p><p class="ar">يرجى التسجيل قبل بدء تحدي المعلومات الأمنية. تساعدنا هذه البيانات على فهم مشاركة الزوار ونتائج التحدي.</p></section>
+<section class="form-card"><form id="registration">
+<div class="grid">
+<div class="field"><label for="name">Name <span>/ الاسم</span></label><input id="name" name="name" required maxlength="120" autocomplete="name"></div>
+<div class="field"><label for="email">Email <span>/ البريد الإلكتروني</span></label><input id="email" name="email" type="email" required maxlength="180" autocomplete="email"></div>
+<div class="field"><label for="egyptPhone">Egypt Phone <span>/ رقم الهاتف في مصر</span></label><input id="egyptPhone" name="egyptPhone" type="tel" maxlength="30" autocomplete="tel" placeholder="+20 ..."><div class="optional">Optional / اختياري</div></div>
+<div class="field"><label for="outlookEmail">Outlook Email <span>/ بريد Outlook</span></label><input id="outlookEmail" name="outlookEmail" type="email" maxlength="180" autocomplete="email"><div class="optional">Optional / اختياري</div></div>
+<div class="field full"><label for="linkedin">LinkedIn <span>/ لينكدإن</span></label><input id="linkedin" name="linkedin" type="url" maxlength="300" placeholder="https://www.linkedin.com/in/..." autocomplete="url"><div class="optional">Optional / اختياري</div></div>
+</div>
+<div class="consent"><label><input id="consent" type="checkbox" required><span>I agree that SECURITY INSTRUCTOR may store the information I provide for visitor participation, challenge tracking and internal training-site analytics.<br><span class="ar">أوافق على قيام SECURITY INSTRUCTOR بحفظ البيانات التي أقدمها لأغراض مشاركة الزوار، وتتبع التحدي، وتحليلات الموقع التدريبية الداخلية.</span></span></label><div class="privacy">Please do not enter sensitive or confidential information.</div></div>
+<div id="error" class="error"></div><div class="actions"><button class="btn" type="submit">Continue to Challenge / المتابعة إلى التحدي</button></div>
+</form></section><div class="note">Your registration date and challenge start/completion times will be recorded automatically.</div>
+</div>
+<script>
+const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';
+function id(){let v=localStorage.getItem('securityVisitorId');if(!v){v=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));localStorage.setItem('securityVisitorId',v)}return v}
+const form=document.getElementById('registration'),err=document.getElementById('error');
+form.addEventListener('submit',async e=>{e.preventDefault();err.style.display='none';const body={visitorId:id(),name:document.getElementById('name').value,email:document.getElementById('email').value,egyptPhone:document.getElementById('egyptPhone').value,outlookEmail:document.getElementById('outlookEmail').value,linkedin:document.getElementById('linkedin').value,consent:document.getElementById('consent').checked};try{const r=await fetch(API+'/api/visitor/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.message||'Registration failed');localStorage.setItem('securityVisitorRegistered','true');location.href='challenge.html'}catch(e){err.textContent=e.message||'Unable to register. Please try again.';err.style.display='block'}});
+</script></body></html>
