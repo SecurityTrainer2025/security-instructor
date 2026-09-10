@@ -13,3 +13,64 @@ body .panel h3{color:#c8a96b!important}
 body .panel{color:#FFFFFF!important}
 body .module,.module span,.module .en,.module .ar{color:#FFFFFF!important}
 body .section-title,body .section-title small{color:#FFFFFF!important}
+
+/* Professional responsive course-details refresh */
+body .details-wrap{max-width:1280px;padding:24px 3.5% 56px}
+body .course-hero{grid-template-columns:minmax(360px,1fr) minmax(420px,1.05fr);gap:34px;align-items:center;padding:18px 0 30px}
+body .course-image{height:390px;max-height:46vw;object-fit:cover;border-radius:2px}
+body .title-en{font-size:clamp(34px,3.5vw,52px)!important;line-height:1.08!important;letter-spacing:-.02em;max-width:720px}
+body .title-ar{font-size:clamp(24px,2.5vw,34px)!important;line-height:1.45!important;max-width:720px}
+body .intro{font-size:16px!important;line-height:1.7!important;max-width:720px}
+body .section-block{margin-top:30px;padding:28px 0 4px}
+body .section-title{font-size:27px!important;margin-bottom:16px!important;color:#0B1F33!important;display:flex;justify-content:space-between;align-items:baseline;gap:18px;border-bottom:1px solid #cfd6dd;padding-bottom:10px}
+body .section-title small{font-size:21px!important;color:#0B1F33!important;white-space:nowrap}
+body .objectives-grid{gap:16px!important;margin-top:0!important}
+body .panel{padding:22px!important;background:#102A43!important;border-color:#294158!important;min-height:250px}
+body .panel h3{font-size:17px!important;margin-bottom:14px!important}
+body .panel li{font-size:15px!important;line-height:1.55!important;margin-bottom:10px!important}
+body .modules{gap:10px!important;align-items:stretch}
+body .module{min-height:175px!important;padding:16px 13px!important;display:flex;flex-direction:column;justify-content:flex-start}
+body .module b{font-size:12px!important;margin-bottom:10px!important}
+body .module .en,.module .ar{font-size:14px!important;line-height:1.5!important}
+body .practical{padding:20px!important;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center}
+body .practical p{font-size:15px!important;line-height:1.65!important}
+body .notice{margin-top:14px!important;padding:11px 16px!important;font-size:14px!important}
+body .stats{margin-top:30px!important;padding:20px!important}
+body .stats-grid{grid-template-columns:repeat(4,1fr)!important;gap:10px!important}
+body .stats-grid .stat:nth-child(3){display:none!important}
+body .stat{padding:14px 8px!important}
+body .stat .value{font-size:25px!important}
+body .rating-box{margin-top:18px!important;padding-top:16px!important}
+body .footer-actions{margin-top:22px!important;justify-content:center}
+body .action{padding:12px 18px!important}
+
+@media(max-width:900px){
+ body .details-wrap{padding:20px 20px 48px}
+ body .course-hero{grid-template-columns:1fr;gap:22px;padding-bottom:20px}
+ body .course-image{height:auto;max-height:none;aspect-ratio:16/10}
+ body .title-en{font-size:clamp(32px,7vw,46px)!important}
+ body .title-ar{font-size:clamp(23px,5vw,32px)!important}
+ body .practical{grid-template-columns:1fr}
+ body .stats-grid{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:560px){
+ body .details-wrap{padding:16px 14px 40px}
+ body .details-top{gap:10px;margin-bottom:18px}
+ body .back-link{padding:9px 11px;font-size:13px}
+ body .course-image{aspect-ratio:4/3}
+ body .section-block{margin-top:22px;padding-top:20px}
+ body .section-title{font-size:23px!important;flex-direction:column;align-items:flex-start;gap:3px}
+ body .section-title small{font-size:18px!important;align-self:flex-end}
+ body .objectives-grid{grid-template-columns:1fr!important}
+ body .panel{min-height:0;padding:18px!important}
+ body .panel li{font-size:14px!important;line-height:1.55!important}
+ body .modules{grid-template-columns:1fr!important}
+ body .module{min-height:0!important}
+ body .stats-grid{grid-template-columns:repeat(2,1fr)!important}
+ body .stat .value{font-size:23px!important}
+ body .rating-box{padding-top:14px!important}
+ body .stars{gap:6px!important}
+ body .star-btn{padding:8px 11px!important}
+ body .footer-actions{flex-direction:column!important}
+ body .action{text-align:center;width:100%}
+}
