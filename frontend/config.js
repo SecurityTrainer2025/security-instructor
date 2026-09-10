@@ -38,6 +38,16 @@ window.addEventListener('DOMContentLoaded',function(){
     hero.insertAdjacentElement('afterend',section);
   }
 
+  /* Owner contact details: explicitly supplied by the site owner. */
+  var contact=document.getElementById('contact');
+  if(contact && !document.getElementById('ownerContactDetails')){
+    var box=document.createElement('div');
+    box.id='ownerContactDetails';
+    box.style.cssText='margin-top:28px;padding:22px 24px;background:#102A43;border:1px solid #294158;border-left:3px solid #c8a96b;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;';
+    box.innerHTML='<div><strong style="display:block;color:#c8a96b;margin-bottom:6px">Egypt Phone 1 / رقم مصر 1</strong><a href="tel:+201555424683" style="color:#fff;text-decoration:none">+20 15 55424683</a></div><div><strong style="display:block;color:#c8a96b;margin-bottom:6px">Egypt Phone 2 / رقم مصر 2</strong><a href="tel:+201100286646" style="color:#fff;text-decoration:none">+20 11 00286646</a></div><div><strong style="display:block;color:#c8a96b;margin-bottom:6px">Alternate Outlook Email / بريد Outlook البديل</strong><a href="mailto:Abdallah-Shalaby1@outlook.com" style="color:#fff;text-decoration:none;overflow-wrap:anywhere">Abdallah-Shalaby1@outlook.com</a></div>';
+    contact.appendChild(box);
+  }
+
   setTimeout(function(){
     var adminCourseBtn=document.getElementById('adminCourseBtn');
     if(adminCourseBtn){
