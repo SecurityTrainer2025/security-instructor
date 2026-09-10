@@ -15,7 +15,7 @@ window.addEventListener('DOMContentLoaded',function(){
   document.addEventListener('click',function(e){
     var button=e.target.closest('[data-course]'); if(!button)return; var slug=button.getAttribute('data-course'); if(!slug)return;
     e.preventDefault(); e.stopImmediatePropagation();
-    location.href='course-details-mobile.html?course='+encodeURIComponent(slug);
+    location.href='course-details.html?course='+encodeURIComponent(slug);
   },true);
 
   var slugs=['traffic-management-vehicle-control','crowd-management-event-security','fire-safety-emergency-response','vehicle-search-security-inspection','person-search-security-screening'];
