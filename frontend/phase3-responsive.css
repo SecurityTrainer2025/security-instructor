@@ -1,0 +1,98 @@
+/* Phase 3 — Mobile, Tablet, Laptop & Desktop responsive QA
+   Unified responsive layer for the public SECURITY INSTRUCTOR site. */
+
+html{overflow-x:hidden}
+body{overflow-x:hidden}
+img{max-width:100%;height:auto}
+button,a{touch-action:manipulation}
+
+/* Desktop / large desktop */
+@media (min-width:1200px){
+  .course-grid,.courses-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* Laptop */
+@media (min-width:901px) and (max-width:1199px){
+  .course-grid,.courses-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .course-card{min-width:0}
+  .course-card img,.course-card .course-image{height:auto;aspect-ratio:16/10;object-fit:cover}
+}
+
+/* Tablet */
+@media (max-width:900px){
+  .sitebar,.navbar,.nav-wrap{flex-wrap:wrap}
+  .nav,.nav-links{flex-wrap:wrap;gap:10px}
+  .hero,.hero-grid,.about-grid,.contact-grid{grid-template-columns:1fr!important}
+  .course-grid,.courses-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .course-card{min-width:0}
+  .course-card img,.course-card .course-image{height:auto;aspect-ratio:16/10;object-fit:cover}
+  .course-card h3,.course-card .title{font-size:clamp(18px,3vw,24px)}
+  .course-card p{overflow-wrap:anywhere}
+  .details-wrap .course-hero{grid-template-columns:1fr!important}
+  .details-wrap .course-image{width:100%;height:auto!important;aspect-ratio:16/10;object-fit:cover}
+  .details-wrap .objectives-grid{grid-template-columns:1fr!important}
+  .details-wrap .modules{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .details-wrap .stats-content{grid-template-columns:1fr!important}
+  .details-wrap .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .details-wrap .rating-box{border-left:0!important;border-top:1px solid #718191!important;padding:18px 0 0!important}
+}
+
+/* Mobile */
+@media (max-width:600px){
+  .sitebar,.navbar,.nav-wrap{padding-left:12px!important;padding-right:12px!important}
+  .nav,.nav-links{width:100%;justify-content:center}
+  .nav a,.nav-links a{font-size:13px}
+  .course-grid,.courses-grid{grid-template-columns:1fr!important}
+  .course-card img,.course-card .course-image{aspect-ratio:16/10}
+  .course-card{padding:14px!important}
+  .course-card h3,.course-card .title{font-size:21px!important;line-height:1.2!important}
+  .course-card .course-actions,.course-card .actions{display:flex;flex-direction:column;gap:8px}
+  .course-card .course-actions a,.course-card .actions a,.course-card button{width:100%;min-height:44px}
+  .details-wrap{width:100%;max-width:100%;padding-left:12px!important;padding-right:12px!important}
+  .details-wrap .course-hero{gap:18px!important;padding:14px 0 20px!important}
+  .details-wrap .course-image{aspect-ratio:4/3!important}
+  .details-wrap .title-en{font-size:clamp(28px,8vw,38px)!important;line-height:1.08!important;overflow-wrap:anywhere}
+  .details-wrap .title-ar{font-size:clamp(21px,6vw,29px)!important;line-height:1.4!important}
+  .details-wrap .section-block{padding:16px 13px!important}
+  .details-wrap .section-head{gap:8px!important}
+  .details-wrap .section-title{font-size:21px!important}
+  .details-wrap .section-title small{font-size:17px!important;white-space:normal!important}
+  .details-wrap .panel{padding:15px!important}
+  .details-wrap .panel li{font-size:13.5px!important;line-height:1.55!important}
+  .details-wrap .modules{grid-template-columns:1fr!important}
+  .details-wrap .module{min-height:0!important}
+  .details-wrap .practical{grid-template-columns:1fr!important}
+  .details-wrap .practical img{height:auto!important;aspect-ratio:16/9;object-fit:cover}
+  .details-wrap .stats{padding:15px!important}
+  .details-wrap .stats-head{display:block!important}
+  .details-wrap .stats h2{font-size:22px!important}
+  .details-wrap .stats h2 small{font-size:18px!important}
+  .details-wrap .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .details-wrap .stats-grid .stat{min-height:130px!important;padding:13px 7px!important}
+  .details-wrap .stat .icon{font-size:26px!important}
+  .details-wrap .stat .value{font-size:26px!important}
+  .details-wrap .rating-box{gap:9px!important}
+  .details-wrap .stars{gap:6px!important;flex-wrap:wrap!important}
+  .details-wrap .star-btn{width:48px!important;height:48px!important}
+  .details-wrap .feedback-input{min-height:90px!important;font-size:14px!important}
+  .details-wrap .footer-actions{grid-template-columns:1fr!important}
+  .details-wrap .action{width:100%!important;min-height:46px!important}
+  /* Prevent horizontal overflow from bilingual blocks */
+  .details-wrap .bi,.details-wrap .bi-en,.details-wrap .bi-ar,
+  .details-wrap .panel,.details-wrap .module,.details-wrap .stats,
+  .details-wrap .rating-box{min-width:0!important;max-width:100%!important;overflow-wrap:anywhere}
+}
+
+/* Very small phones */
+@media (max-width:380px){
+  .details-wrap .stats-grid{grid-template-columns:1fr!important}
+  .details-wrap .star-btn{width:44px!important;height:44px!important}
+  .details-wrap .title-en{font-size:27px!important}
+  .details-wrap .title-ar{font-size:21px!important}
+}
+
+/* RTL safety */
+[dir="rtl"] .nav,[dir="rtl"] .nav-links{direction:rtl}
+[dir="rtl"] .details-wrap .panel.ar,
+[dir="rtl"] .details-wrap .module .ar,
+[dir="rtl"] .details-wrap .intro.ar{direction:rtl;text-align:right}
