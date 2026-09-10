@@ -1,0 +1,1 @@
+Phase 3 responsive QA layer: phase3.js is intended to be loaded on public HTML pages. It adds mobile/tablet breakpoints while preserving existing desktop identity, bilingual RTL/LTR behavior, course-card actions, challenge layout and course-details statistics.
