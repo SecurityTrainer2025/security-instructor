@@ -6,7 +6,6 @@ permissions:
   contents: write
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, 'Randomize assessment answer order') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +29,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git rm .github/workflows/randomize-assessment-answers.yml
           git add frontend/course-assessment-v2.html
-          git commit -m "Randomize assessment answer order"
+          git rm .github/workflows/randomize-assessment-answers.yml
+          git commit -m "Apply assessment answer randomization"
           git push
