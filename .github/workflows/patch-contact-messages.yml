@@ -1,0 +1,80 @@
+name: Add Contact Messages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-contact-messages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch contact messaging
+        shell: python
+        run: |
+          from pathlib import Path
+
+          backend = Path('backend/server.js')
+          text = backend.read_text(encoding='utf-8')
+
+          if 'const ContactMessageSchema=' not in text:
+              anchor = "const Feedback=mongoose.model('CourseFeedback',FeedbackSchema);"
+              insert = """\nconst ContactMessageSchema=new mongoose.Schema({\n  name:{type:String,required:true,trim:true,maxlength:120},\n  email:{type:String,required:true,trim:true,lowercase:true,maxlength:180},\n  message:{type:String,required:true,trim:true,maxlength:5000},\n  status:{type:String,enum:['new','replied','closed'],default:'new',index:true},\n  repliedAt:{type:Date,default:null},\n  createdAt:{type:Date,default:Date.now}\n},{timestamps:true});\nconst ContactMessage=mongoose.model('ContactMessage',ContactMessageSchema);"""
+              text = text.replace(anchor, anchor + insert, 1)
+
+          if "app.post('/api/contact-messages'" not in text:
+              anchor = "app.post('/api/course-feedback/:slug'"
+              start = text.find(anchor)
+              if start < 0:
+                  raise SystemExit('Contact patch anchor not found for contact endpoint')
+              line_end = text.find('\n', start)
+              endpoint = """\napp.post('/api/contact-messages',async(req,res)=>{try{const name=clean(req.body?.name,120),email=clean(req.body?.email,180).toLowerCase(),message=clean(req.body?.message,5000);if(name.length<2)return res.status(400).json({message:'Please enter your name'});if(!validEmail(email))return res.status(400).json({message:'Please enter a valid email'});if(message.length<2)return res.status(400).json({message:'Please enter your message'});const row=await ContactMessage.create({name,email,message});res.status(201).json({ok:true,id:row._id,createdAt:row.createdAt,status:row.status});}catch(e){console.error(e);res.status(500).json({message:'Unable to save contact message'})}});"""
+              text = text[:line_end] + endpoint + text[line_end:]
+
+          if "app.get('/api/admin/contact-messages'" not in text:
+              anchor = "app.get('/api/admin/feedback'"
+              start = text.find(anchor)
+              if start < 0:
+                  raise SystemExit('Contact admin anchor not found')
+              line_end = text.find('\n', start)
+              admin_routes = """\napp.get('/api/admin/contact-messages',requireAdmin,async(req,res)=>{try{const rows=await ContactMessage.find().sort({createdAt:-1}).limit(500).lean();res.json(rows.map(x=>({id:String(x._id),name:x.name,email:x.email,message:x.message,status:x.status,repliedAt:x.repliedAt,createdAt:x.createdAt})))}catch(e){res.status(500).json({message:'Unable to load contact messages'})}});\napp.patch('/api/admin/contact-messages/:id/status',requireAdmin,async(req,res)=>{try{const status=clean(req.body?.status,20);if(!['new','replied','closed'].includes(status))return res.status(400).json({message:'Invalid status'});const row=await ContactMessage.findByIdAndUpdate(req.params.id,{$set:{status,repliedAt:status==='replied'?new Date():null}},{new:true});if(!row)return res.status(404).json({message:'Contact message not found'});res.json({ok:true,id:String(row._id),status:row.status,repliedAt:row.repliedAt})}catch(e){res.status(500).json({message:'Unable to update contact message'})}});"""
+              text = text[:line_end] + admin_routes + text[line_end:]
+
+          backend.write_text(text,encoding='utf-8')
+
+          handler = Path('frontend/contact-handler.js')
+          handler.write_text("""(function(){\n  function init(){\n    var section=document.querySelector('#contact');\n    if(!section || section.dataset.contactHandler==='1') return;\n    var form=section.querySelector('form');\n    if(!form) return;\n    var fields=form.querySelectorAll('input,textarea');\n    var nameField=form.querySelector('input[name*=name i]') || fields[0];\n    var emailField=form.querySelector('input[type=email]') || fields[1];\n    var messageField=form.querySelector('textarea') || fields[2];\n    section.dataset.contactHandler='1';\n    form.addEventListener('submit',async function(e){\n      e.preventDefault();\n      var submit=form.querySelector('button[type=submit],button,input[type=submit]');\n      var messageBox=document.getElementById('contactMessageStatus');\n      if(!messageBox){messageBox=document.createElement('div');messageBox.id='contactMessageStatus';messageBox.style.cssText='margin-top:14px;padding:12px;border:1px solid #294158;background:#102A43;color:#cbd5df;line-height:1.7;';form.appendChild(messageBox);}\n      var name=(nameField&&nameField.value||'').trim(),email=(emailField&&emailField.value||'').trim(),message=(messageField&&messageField.value||'').trim();\n      if(!name||!email||!message){messageBox.textContent='Please complete all fields. / يرجى تعبئة جميع الحقول.';return;}\n      if(submit)submit.disabled=true;\n      messageBox.textContent='Sending… / جارٍ الإرسال…';\n      try{\n        var api=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';\n        var r=await fetch(api+'/api/contact-messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,email:email,message:message})});\n        var out=await r.json();\n        if(!r.ok)throw new Error(out.message||'Unable to send');\n        messageBox.textContent='Thank you. Your message has been sent successfully. / شكرًا لك، تم إرسال رسالتك بنجاح.';\n        form.reset();\n      }catch(err){messageBox.textContent=err.message+' / تعذر إرسال الرسالة حاليًا.';}\n      finally{if(submit)submit.disabled=false;}\n    });\n  }\n  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();\n  setTimeout(init,1200);\n})();\n""",encoding='utf-8')
+
+          admin = Path('frontend/contact-admin.js')
+          admin.write_text("""(function(){\n  function init(){\n    var tabs=document.querySelector('.tabs');\n    var dashboard=document.querySelector('#dashboard');\n    if(!tabs||!dashboard||document.querySelector('[data-tab=contact-messages]'))return;\n    var tab=document.createElement('button');tab.className='tab';tab.dataset.tab='contact-messages';tab.textContent='رسائل التواصل / Contact Messages';tabs.appendChild(tab);\n    var pane=document.createElement('div');pane.id='contact-messages';pane.className='tabpane hidden';\n    pane.innerHTML='<div class="toolbar"><button class="btn alt" id="contactMessageRefresh">تحديث</button></div><div class="table-wrap"><table><thead><tr><th>الاسم</th><th>البريد</th><th>الرسالة</th><th>الحالة</th><th>التاريخ</th><th>الرد</th></tr></thead><tbody id="contactMessageRows"></tbody></table></div>';\n    tabs.parentElement.appendChild(pane);\n    var api='https://security-instructor.onrender.com';\n    var tokenKey='securityInstructorAdminToken';\n    function escapeHtml(s){return String(s??'').replace(/[&<>\\\"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','\\"':'&quot;'}[m]})}\n    async function load(){\n      var token=localStorage.getItem(tokenKey)||'';\n      var tbody=document.getElementById('contactMessageRows');\n      try{\n        var r=await fetch(api+'/api/admin/contact-messages',{headers:{Authorization:'Bearer '+token}});\n        var rows=await r.json();\n        if(!r.ok)throw new Error(rows.message||'Unable to load messages');\n        tbody.innerHTML=rows.length?rows.map(function(x){var subject=encodeURIComponent('Re: SECURITY INSTRUCTOR contact message');var body=encodeURIComponent('Dear '+x.name+',\\n\\nThank you for contacting SECURITY INSTRUCTOR.\\n\\nYour message:\\n'+x.message+'\\n\\nBest regards,\\nAbdallah Abdelaziz Shalaby\\nSECURITY INSTRUCTOR');return '<tr><td>'+escapeHtml(x.name)+'</td><td class="ltr">'+escapeHtml(x.email)+'</td><td style="white-space:pre-wrap;min-width:320px">'+escapeHtml(x.message)+'</td><td><select data-contact-status="'+escapeHtml(x.id)+'"><option '+(x.status==='new'?'selected':'')+'>new</option><option '+(x.status==='replied'?'selected':'')+'>replied</option><option '+(x.status==='closed'?'selected':'')+'>closed</option></select></td><td class="ltr">'+new Date(x.createdAt).toLocaleString()+'</td><td><a class="btn alt" target="_blank" href="mailto:'+encodeURIComponent(x.email)+'?subject='+subject+'&body='+body+'">Reply / رد</a></td></tr>';}).join(''):'<tr><td colspan="6">لا توجد رسائل</td></tr>';\n        document.querySelectorAll('[data-contact-status]').forEach(function(s){s.onchange=async function(){try{await fetch(api+'/api/admin/contact-messages/'+encodeURIComponent(s.dataset.contactStatus)+'/status',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({status:s.value})});load()}catch(e){alert(e.message)}}});\n      }catch(e){tbody.innerHTML='<tr><td colspan="6">'+escapeHtml(e.message)+'</td></tr>'}\n    }\n    document.getElementById('contactMessageRefresh').onclick=load;\n    tab.onclick=function(){document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});document.querySelectorAll('.tabpane').forEach(function(p){p.classList.add('hidden')});tab.classList.add('active');pane.classList.remove('hidden');load();};\n  }\n  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();\n  setTimeout(init,800);\n})();\n""",encoding='utf-8')
+
+          index=Path('frontend/index.html')
+          it=index.read_text(encoding='utf-8')
+          tag='<script src="contact-handler.js"></script>'
+          if tag not in it: it=it.replace('</body>',tag+'</body>')
+          index.write_text(it,encoding='utf-8')
+
+          admin_html=Path('frontend/admin.html')
+          at=admin_html.read_text(encoding='utf-8')
+          atag='<script src="contact-admin.js"></script>'
+          if atag not in at: at=at.replace('</body>',atag+'</body>')
+          admin_html.write_text(at,encoding='utf-8')
+
+      - name: Commit contact messaging patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/server.js frontend/contact-handler.js frontend/contact-admin.js frontend/index.html frontend/admin.html
+          if git diff --cached --quiet; then
+            echo "No contact messaging changes to commit"
+            exit 0
+          fi
+          git commit -m "Implement contact messages and admin replies"
+          git push
