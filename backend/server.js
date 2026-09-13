@@ -3,6 +3,7 @@ const mongoose=require('mongoose');
 const cors=require('cors');
 const helmet=require('helmet');
 const rateLimit=require('express-rate-limit');
+const crypto=require('crypto');
 require('dotenv').config();
 
 const app=express();
@@ -12,6 +13,11 @@ app.use(helmet());
 app.use(cors({origin:origins.length?origins:true,credentials:false}));
 app.use(express.json({limit:'50kb'}));
 app.use(rateLimit({windowMs:60*1000,max:120,standardHeaders:true,legacyHeaders:false}));
+
+const ADMIN_EMAIL=(process.env.ADMIN_EMAIL||'Abdallah-Shalaby1@outlook.com').trim().toLowerCase();
+const ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||'';
+const ADMIN_SESSION_SECRET=process.env.ADMIN_SESSION_SECRET||'';
+const adminLoginLimiter=rateLimit({windowMs:15*60*1000,max:10,standardHeaders:true,legacyHeaders:false,message:{message:'Too many login attempts. Please try again later.'}});
 
 const StatSchema=new mongoose.Schema({slug:{type:String,unique:true,index:true},views:{type:Number,default:0},entries:{type:Number,default:0},positiveRatings:{type:Number,default:0},ratingSum:{type:Number,default:0},ratingCount:{type:Number,default:0}},{timestamps:true});
 const Stat=mongoose.model('CourseStat',StatSchema);
@@ -65,6 +71,12 @@ function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 function publicStats(s){return {slug:s.slug,views:s.views,entries:s.entries,positiveRatings:s.ratingCount?Math.round((s.positiveRatings/s.ratingCount)*100):0,ratingCount:s.ratingCount,averageRating:s.ratingCount?Math.round((s.ratingSum/s.ratingCount)*10)/10:0}}
 function clean(v,max){return typeof v==='string'?v.trim().slice(0,max):''}
 async function nextNumber(model,prefix,field){const last=await model.findOne({[field]:new RegExp('^'+prefix+'\\d+$')}).sort({[field]:-1}).lean();const n=last?parseInt(last[field].slice(prefix.length),10)+1:1;return prefix+String(n).padStart(6,'0')}
+function signToken(payload){const body=Buffer.from(JSON.stringify(payload)).toString('base64url');const sig=crypto.createHmac('sha256',ADMIN_SESSION_SECRET).update(body).digest('base64url');return body+'.'+sig}
+function verifyToken(token){try{if(!ADMIN_SESSION_SECRET||typeof token!=='string')return null;const p=token.split('.');if(p.length!==2)return null;const expSig=crypto.createHmac('sha256',ADMIN_SESSION_SECRET).update(p[0]).digest('base64url');const a=Buffer.from(p[1]),b=Buffer.from(expSig);if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return null;const payload=JSON.parse(Buffer.from(p[0],'base64url').toString('utf8'));return payload.exp>Date.now()?payload:null}catch{return null}}
+function requireAdmin(req,res,next){const auth=req.headers.authorization||'';const session=verifyToken(auth.startsWith('Bearer ')?auth.slice(7):'');if(!session||session.email!==ADMIN_EMAIL)return res.status(401).json({message:'Admin authentication required'});req.admin=session;next()}
+function traineeView(t){return {traineeId:t.traineeId,nameAr:[t.arabicFirstName,t.arabicMiddleName,t.arabicLastName].filter(Boolean).join(' '),nameEn:[t.englishFirstName,t.englishMiddleName,t.englishLastName].filter(Boolean).join(' '),idType:t.idType,idNumber:t.idNumber,mobile:t.mobile,email:t.email,createdAt:t.createdAt}}
+function enrollmentView(e){return {enrollmentId:e.enrollmentId,traineeId:e.traineeId,courseId:e.courseId,courseNameEn:e.courseNameEn,courseNameAr:e.courseNameAr,registrationType:e.registrationType,companyName:e.companyName,companyContact:e.companyContact,companyEmail:e.companyEmail,status:e.status,registeredAt:e.registeredAt}}
+function visitorView(v){return {visitorId:v.visitorId,name:v.name,email:v.email,linkedin:v.linkedin,egyptPhone:v.egyptPhone,outlookEmail:v.outlookEmail,consent:v.consent,registeredAt:v.registeredAt,challengeStartedAt:v.challengeStartedAt,challengeCompletedAt:v.challengeCompletedAt,score:v.score}}
 
 app.get('/health',(req,res)=>res.json({ok:true}));
 app.get('/api/courses',async(req,res)=>res.json(Object.entries(courses).map(([slug,c])=>({slug,...c}))));
@@ -72,6 +84,15 @@ app.get('/api/course-stats/:slug',validSlug,async(req,res)=>{try{const s=await S
 app.post('/api/course-stats/:slug/entry',validSlug,async(req,res)=>{try{const s=await Stat.findOneAndUpdate({slug:req.params.slug},{$inc:{views:1,entries:1}},{new:true,upsert:true});res.json(publicStats(s))}catch(e){res.status(500).json({message:'Unable to record entry'})}});
 app.post('/api/course-stats/:slug/rating',validSlug,async(req,res)=>{try{const rating=Number(req.body?.rating);if(!Number.isInteger(rating)||rating<1||rating>5)return res.status(400).json({message:'Rating must be 1-5'});const positive=rating>=4?1:0;const s=await Stat.findOneAndUpdate({slug:req.params.slug},{$inc:{ratingSum:rating,ratingCount:1,positiveRatings:positive}},{new:true,upsert:true});res.json(publicStats(s))}catch(e){res.status(500).json({message:'Unable to record rating'})}});
 app.post('/api/course-feedback/:slug',validSlug,async(req,res)=>{try{const note=typeof req.body?.note==='string'?req.body.note.trim():'';if(!note)return res.status(400).json({message:'Note is required'});if(note.length>300)return res.status(400).json({message:'Note must be 300 characters or fewer'});await Feedback.create({slug:req.params.slug,note});res.json({ok:true,message:'Feedback received'});}catch(e){res.status(500).json({message:'Unable to save feedback'})}});
+
+app.post('/api/admin/login',adminLoginLimiter,(req,res)=>{try{if(!ADMIN_PASSWORD||!ADMIN_SESSION_SECRET)return res.status(503).json({message:'Admin security is not configured on the server'});const email=clean(req.body?.email,180).toLowerCase();const password=typeof req.body?.password==='string'?req.body.password:'';if(email!==ADMIN_EMAIL||password!==ADMIN_PASSWORD)return res.status(401).json({message:'Invalid admin credentials'});res.json({ok:true,email:ADMIN_EMAIL,token:signToken({email:ADMIN_EMAIL,role:'admin',exp:Date.now()+8*60*60*1000})})}catch(e){res.status(500).json({message:'Unable to sign in'})}});
+app.get('/api/admin/me',requireAdmin,(req,res)=>res.json({ok:true,email:req.admin.email,role:req.admin.role}));
+app.get('/api/admin/dashboard',requireAdmin,async(req,res)=>{try{const [trainees,enrollments,visitors,stats,feedback]=await Promise.all([Trainee.countDocuments(),Enrollment.countDocuments(),Visitor.countDocuments(),Stat.find().sort({entries:-1}).lean(),Feedback.countDocuments()]);res.json({trainees,enrollments,visitors,feedback,stats:stats.map(publicStats)})}catch(e){res.status(500).json({message:'Unable to load dashboard'})}});
+app.get('/api/admin/trainees',requireAdmin,async(req,res)=>{try{const q=clean(req.query?.q,120);const filter=q?{$or:[{traineeId:new RegExp(q,'i')},{idNumber:new RegExp(q,'i')},{email:new RegExp(q,'i')},{arabicFirstName:new RegExp(q,'i')},{arabicLastName:new RegExp(q,'i')},{englishFirstName:new RegExp(q,'i')},{englishLastName:new RegExp(q,'i') }]}:{};const rows=await Trainee.find(filter).sort({createdAt:-1}).limit(500).lean();res.json(rows.map(traineeView))}catch(e){res.status(500).json({message:'Unable to load trainees'})}});
+app.get('/api/admin/enrollments',requireAdmin,async(req,res)=>{try{const q=clean(req.query?.q,120),status=clean(req.query?.status,30);const filter={};if(status)filter.status=status;if(q)filter.$or=[{enrollmentId:new RegExp(q,'i')},{traineeId:new RegExp(q,'i')},{courseNameEn:new RegExp(q,'i')},{courseNameAr:new RegExp(q,'i')},{companyName:new RegExp(q,'i')}];const rows=await Enrollment.find(filter).sort({registeredAt:-1}).limit(500).lean();res.json(rows.map(enrollmentView))}catch(e){res.status(500).json({message:'Unable to load enrollments'})}});
+app.patch('/api/admin/enrollments/:enrollmentId/status',requireAdmin,async(req,res)=>{try{const status=clean(req.body?.status,30);if(!['pending','confirmed','active','completed','cancelled'].includes(status))return res.status(400).json({message:'Invalid status'});const e=await Enrollment.findOneAndUpdate({enrollmentId:req.params.enrollmentId},{$set:{status}},{new:true});if(!e)return res.status(404).json({message:'Enrollment not found'});res.json(enrollmentView(e))}catch(e){res.status(500).json({message:'Unable to update enrollment'})}});
+app.get('/api/admin/visitors',requireAdmin,async(req,res)=>{try{const rows=await Visitor.find().sort({registeredAt:-1}).limit(500).lean();res.json(rows.map(visitorView))}catch(e){res.status(500).json({message:'Unable to load visitors'})}});
+app.get('/api/admin/feedback',requireAdmin,async(req,res)=>{try{const rows=await Feedback.find().sort({createdAt:-1}).limit(500).lean();res.json(rows)}catch(e){res.status(500).json({message:'Unable to load feedback'})}});
 
 app.post('/api/course-registration',async(req,res)=>{
  try{
@@ -85,6 +106,7 @@ app.post('/api/course-registration',async(req,res)=>{
   if(!allowed.has(b.courseSlug))return res.status(400).json({message:'Please select a valid course'});
   const required=['arabicFirstName','arabicMiddleName','arabicLastName','englishFirstName','englishMiddleName','englishLastName','idType','idNumber','mobile','email','registrationType'];
   if(required.some(k=>!fields[k]))return res.status(400).json({message:'Please complete all required fields'});
+  if(b.consent!==true)return res.status(400).json({message:'Consent is required'});
   if(!['national_id','iqama','passport'].includes(fields.idType))return res.status(400).json({message:'Invalid ID type'});
   if(!['individual','company'].includes(fields.registrationType))return res.status(400).json({message:'Invalid registration type'});
   if(!validEmail(fields.email))return res.status(400).json({message:'Please enter a valid email'});
@@ -92,12 +114,7 @@ app.post('/api/course-registration',async(req,res)=>{
   if(fields.registrationType==='company'&&!fields.companyName)return res.status(400).json({message:'Company name is required for company registration'});
   const c=courses[b.courseSlug];
   let trainee=await Trainee.findOne({idNumber:fields.idNumber});
-  if(trainee){
-    trainee.set(fields);await trainee.save();
-  }else{
-    const traineeId=await nextNumber(Trainee,'TRN-','traineeId');
-    trainee=await Trainee.create({traineeId,...fields});
-  }
+  if(trainee){trainee.set(fields);await trainee.save()}else{const traineeId=await nextNumber(Trainee,'TRN-','traineeId');trainee=await Trainee.create({traineeId,...fields})}
   const existing=await Enrollment.findOne({traineeId:trainee.traineeId,courseId:c.id});
   if(existing)return res.status(409).json({message:'This trainee is already registered for this course',traineeId:trainee.traineeId,enrollmentId:existing.enrollmentId,status:existing.status});
   const enrollmentId=await nextNumber(Enrollment,'ENR-','enrollmentId');
