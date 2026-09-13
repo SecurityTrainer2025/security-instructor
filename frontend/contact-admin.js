@@ -1,41 +1,81 @@
 (function(){
+  const API='https://security-instructor.onrender.com';
+  const tokenKey='securityInstructorAdminToken';
+  const mailCacheKey='securityInstructorGraphMailToken';
+  const mailStateKey='securityInstructorGraphPending';
+  const expectedSender='abdallah-shalaby1@outlook.com';
+
+  function esc(s){return String(s??'').replace(/[&<>\"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]})}
+  function htmlText(s){return esc(s).replace(/\r?\n/g,'<br>')}
+  function canonicalRedirect(){return window.location.origin+window.location.pathname}
+  function randomString(bytes){var a=new Uint8Array(bytes);crypto.getRandomValues(a);var s='';for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+  async function challenge(verifier){var data=new TextEncoder().encode(verifier),hash=await crypto.subtle.digest('SHA-256',data),a=new Uint8Array(hash),s='';for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+  async function getConfig(){var r=await fetch(API+'/api/public-config',{cache:'no-store'});var d={};try{d=await r.json()}catch{}if(!r.ok||!d.microsoftClientId)throw new Error('Microsoft Graph mail is not configured yet. / لم يتم إعداد بريد Microsoft بعد.');return d}
+  function getCachedToken(){try{var d=JSON.parse(sessionStorage.getItem(mailCacheKey)||'null');if(d&&d.accessToken&&Number(d.expiresAt)>Date.now()+60000)return d.accessToken}catch{}return ''}
+  function setCachedToken(token,expiresIn){sessionStorage.setItem(mailCacheKey,JSON.stringify({accessToken:token,expiresAt:Date.now()+Number(expiresIn||3600)*1000}))}
+  function clearCachedToken(){sessionStorage.removeItem(mailCacheKey)}
+  function savePending(id,reply){sessionStorage.setItem(mailStateKey,JSON.stringify({id:id,reply:reply,state:randomString(18)}));return JSON.parse(sessionStorage.getItem(mailStateKey))}
+  function getPending(){try{return JSON.parse(sessionStorage.getItem(mailStateKey)||'null')}catch{return null}}
+  function clearPending(){sessionStorage.removeItem(mailStateKey)}
+  async function beginMicrosoftLogin(clientId,pending){var verifier=randomString(64),state=pending.state,challengeValue=await challenge(verifier);pending.verifier=verifier;sessionStorage.setItem(mailStateKey,JSON.stringify(pending));var p=new URLSearchParams({client_id:clientId,response_type:'code',redirect_uri:canonicalRedirect(),response_mode:'query',scope:'openid profile email Mail.Send',code_challenge:challengeValue,code_challenge_method:'S256',state:state,prompt:'select_account'});window.location.assign('https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?'+p.toString())}
+  async function exchangeCode(clientId,code,verifier){var body=new URLSearchParams({client_id:clientId,grant_type:'authorization_code',code:code,redirect_uri:canonicalRedirect(),code_verifier:verifier,scope:'openid profile email Mail.Send'});var r=await fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString()});var d={};try{d=await r.json()}catch{}if(!r.ok||!d.access_token)throw new Error(d.error_description||'Microsoft sign-in failed.');setCachedToken(d.access_token,d.expires_in);return d.access_token}
+  async function graphMe(accessToken){var r=await fetch('https://graph.microsoft.com/v1.0/me',{headers:{Authorization:'Bearer '+accessToken}});var d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error?.message||'Unable to verify Microsoft account.');return d}
+  function buildMailHtml(name,originalMessage,replyText){return '<!doctype html><html><body style="margin:0;background:#eef2f5;font-family:Arial,Helvetica,sans-serif;color:#1b2b3a"><div style="max-width:680px;margin:32px auto;background:#fff;border:1px solid #d9e0e6"><div style="background:#0B1F33;padding:26px 30px"><div style="font-size:13px;letter-spacing:2px;color:#c8a96b;font-weight:700">SECURITY INSTRUCTOR</div><div style="font-size:23px;color:#fff;font-weight:700;margin-top:8px">Professional Training • Practical Skills • Safer Workplaces</div></div><div style="padding:30px"><p style="font-size:16px;margin:0 0 16px">Dear '+esc(name)+',</p><p style="font-size:15px;line-height:1.8;margin:0 0 22px">Thank you for contacting <strong>SECURITY INSTRUCTOR</strong>.</p><div style="border-left:4px solid #c8a96b;background:#f6f8fa;padding:16px 18px;margin:0 0 22px"><div style="font-size:12px;color:#6f7d88;font-weight:700;text-transform:uppercase">Your Message</div><div style="font-size:14px;line-height:1.8;margin-top:8px">'+htmlText(originalMessage)+'</div></div><div style="border-top:1px solid #e1e6ea;padding-top:20px"><div style="font-size:12px;color:#6f7d88;font-weight:700;text-transform:uppercase">Response</div><div style="font-size:15px;line-height:1.9;margin-top:8px">'+htmlText(replyText)+'</div></div><div style="margin-top:30px;padding-top:18px;border-top:1px solid #e1e6ea"><div style="font-weight:700">Abdallah Abdelaziz Shalaby</div><div style="color:#6f7d88;margin-top:4px">Training Support Executive | Fire Safety Trainer | LMS Specialist</div><div style="color:#6f7d88;margin-top:8px">SECURITY INSTRUCTOR</div></div></div><div style="background:#0B1F33;color:#cbd5df;padding:14px 30px;font-size:12px;text-align:center">Professional Training • Practical Skills • Safer Workplaces</div></div></body></html>'}
+  async function sendGraphMail(message,replyText,accessToken){var me=await graphMe(accessToken);var sender=String(me.mail||me.userPrincipalName||'').toLowerCase();if(sender!==expectedSender)throw new Error('Please sign in with '+expectedSender+' / يرجى تسجيل الدخول بالحساب الإداري المعتمد.');var html=buildMailHtml(message.name,message.message,replyText);var payload={message:{subject:'Re: SECURITY INSTRUCTOR contact message',body:{contentType:'HTML',content:html},toRecipients:[{emailAddress:{address:message.email}}]},saveToSentItems:true};var r=await fetch('https://graph.microsoft.com/v1.0/me/sendMail',{method:'POST',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify(payload)});if(r.status===401)throw new Error('GRAPH_TOKEN_EXPIRED');if(!r.ok){var d={};try{d=await r.json()}catch{}throw new Error(d.error?.message||'Unable to send email.')} }
+  async function markReplied(messageId){var adminToken=localStorage.getItem(tokenKey)||'';var r=await fetch(API+'/api/admin/contact-messages/'+encodeURIComponent(messageId)+'/status',{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+adminToken},body:JSON.stringify({status:'replied'})});if(!r.ok){var d={};try{d=await r.json()}catch{}throw new Error(d.message||'Reply sent, but status update failed.')}}
+
   function init(){
-    var tabs=document.querySelector('.tabs');
-    var dashboard=document.querySelector('#dashboard');
+    var tabs=document.querySelector('.tabs'),dashboard=document.querySelector('#dashboard');
     if(!tabs||!dashboard||document.querySelector('[data-tab=contact-messages]'))return;
     var tab=document.createElement('button');tab.className='tab';tab.dataset.tab='contact-messages';tab.textContent='رسائل التواصل / Contact Messages';tabs.appendChild(tab);
     var pane=document.createElement('div');pane.id='contact-messages';pane.className='tabpane hidden';
     pane.innerHTML='<div class="toolbar"><button class="btn alt" id="contactMessageRefresh">تحديث</button></div><div class="table-wrap"><table><thead><tr><th>الاسم</th><th>البريد</th><th>الرسالة</th><th>الحالة</th><th>التاريخ</th><th>الإجراء</th></tr></thead><tbody id="contactMessageRows"></tbody></table></div>';
     tabs.parentElement.appendChild(pane);
-    var api='https://security-instructor.onrender.com';
-    var tokenKey='securityInstructorAdminToken';
-    function escapeHtml(s){return String(s??'').replace(/[&<>\"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]})}
+
     function openReply(x){
       var old=document.getElementById('contactReplyModal');if(old)old.remove();
       var overlay=document.createElement('div');overlay.id='contactReplyModal';overlay.style.cssText='position:fixed;inset:0;background:rgba(4,15,25,.76);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9999;';
-      overlay.innerHTML='<div style="width:min(720px,96vw);max-height:90vh;overflow:auto;background:#102A43;border:1px solid #c8a96b;padding:24px;color:#fff"><div style="display:flex;justify-content:space-between;gap:16px;align-items:center"><div><div style="color:#c8a96b;font-size:12px;font-weight:800;letter-spacing:.08em">SECURITY INSTRUCTOR</div><h2 style="margin:6px 0 0">Reply / الرد على الرسالة</h2></div><button id="replyClose" class="btn alt">إغلاق</button></div><p style="color:#b7c4ce;line-height:1.7">إلى: '+escapeHtml(x.email)+'</p><div style="background:#0B1F33;border:1px solid #294158;padding:14px;white-space:pre-wrap;line-height:1.7"><strong>رسالة الزائر:</strong><br>'+escapeHtml(x.message)+'</div><label style="display:block;margin-top:16px;font-weight:800">Your Reply / ردك</label><textarea id="replyText" style="width:100%;min-height:190px;box-sizing:border-box;margin-top:8px;padding:13px;background:#0B1F33;border:1px solid #526577;color:#fff;resize:vertical" placeholder="اكتب ردك هنا..."></textarea><div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button id="replySend" class="btn">Send Reply / إرسال الرد</button></div><div id="replyStatus" style="display:none;margin-top:12px;padding:12px;border:1px solid #294158;line-height:1.7"></div></div>';
+      overlay.innerHTML='<div style="width:min(760px,96vw);max-height:90vh;overflow:auto;background:#102A43;border:1px solid #c8a96b;padding:24px;color:#fff"><div style="display:flex;justify-content:space-between;gap:16px;align-items:center"><div><div style="color:#c8a96b;font-size:12px;font-weight:800;letter-spacing:.08em">SECURITY INSTRUCTOR</div><h2 style="margin:6px 0 0">Reply / الرد على الرسالة</h2></div><button id="replyClose" class="btn alt">إغلاق</button></div><p style="color:#b7c4ce;line-height:1.7">إلى: '+esc(x.email)+'</p><div style="background:#0B1F33;border:1px solid #294158;padding:14px;white-space:pre-wrap;line-height:1.7"><strong>رسالة الزائر:</strong><br>'+esc(x.message)+'</div><label style="display:block;margin-top:16px;font-weight:800">Your Reply / ردك</label><textarea id="replyText" style="width:100%;min-height:190px;box-sizing:border-box;margin-top:8px;padding:13px;background:#0B1F33;border:1px solid #526577;color:#fff;resize:vertical" placeholder="اكتب ردك هنا..."></textarea><div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button id="replySend" class="btn">Send Reply / إرسال الرد</button></div><div id="replyStatus" style="display:none;margin-top:12px;padding:12px;border:1px solid #294158;line-height:1.7"></div><div style="margin-top:10px;color:#b7c4ce;font-size:12px;line-height:1.7">سيتم إرسال الرد من حساب Outlook الإداري المعتمد عبر Microsoft Graph. / The reply will be sent from the approved Outlook admin account via Microsoft Graph.</div></div>';
       document.body.appendChild(overlay);
       document.getElementById('replyClose').onclick=function(){overlay.remove()};
       document.getElementById('replySend').onclick=async function(){
         var btn=this,reply=document.getElementById('replyText').value.trim(),status=document.getElementById('replyStatus');
         if(!reply){status.textContent='Please enter your reply. / يرجى كتابة الرد.';status.style.display='block';return;}
-        btn.disabled=true;status.textContent='Sending… / جارٍ إرسال الرد…';status.style.display='block';
-        try{var token=localStorage.getItem(tokenKey)||'';var r=await fetch(api+'/api/admin/contact-messages/'+encodeURIComponent(x.id)+'/reply',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({reply:reply})});var out=await r.json();if(!r.ok)throw new Error(out.message||'Unable to send reply');status.textContent='Reply sent successfully. / تم إرسال الرد بنجاح.';setTimeout(function(){overlay.remove();load();},900);}catch(e){status.textContent=e.message;btn.disabled=false;}
+        btn.disabled=true;status.textContent='Preparing Microsoft sign-in… / جارٍ تجهيز تسجيل الدخول إلى Microsoft…';status.style.display='block';
+        try{
+          var accessToken=getCachedToken();
+          if(!accessToken){var cfg=await getConfig();var pending=savePending(x.id,reply);await beginMicrosoftLogin(cfg.microsoftClientId,pending);return;}
+          try{await sendGraphMail(x,reply,accessToken)}catch(e){if(e.message!=='GRAPH_TOKEN_EXPIRED')throw e;clearCachedToken();var cfg2=await getConfig();var pending2=savePending(x.id,reply);await beginMicrosoftLogin(cfg2.microsoftClientId,pending2);return;}
+          await markReplied(x.id);status.textContent='Reply sent successfully. / تم إرسال الرد بنجاح.';setTimeout(function(){overlay.remove();load();},900);
+        }catch(e){status.textContent=e.message||'Unable to send reply';btn.disabled=false;}
       };
     }
+
     async function load(){
-      var token=localStorage.getItem(tokenKey)||'';
-      var tbody=document.getElementById('contactMessageRows');
-      try{
-        var r=await fetch(api+'/api/admin/contact-messages',{headers:{Authorization:'Bearer '+token}});var rows=await r.json();if(!r.ok)throw new Error(rows.message||'Unable to load messages');
-        tbody.innerHTML=rows.length?rows.map(function(x){return '<tr><td>'+escapeHtml(x.name)+'</td><td class="ltr">'+escapeHtml(x.email)+'</td><td style="white-space:pre-wrap;min-width:320px">'+escapeHtml(x.message)+'</td><td><select data-contact-status="'+escapeHtml(x.id)+'"><option '+(x.status==='new'?'selected':'')+'>new</option><option '+(x.status==='replied'?'selected':'')+'>replied</option><option '+(x.status==='closed'?'selected':'')+'>closed</option></select></td><td class="ltr">'+new Date(x.createdAt).toLocaleString()+'</td><td><button class="btn alt" data-contact-reply="'+escapeHtml(x.id)+'">Reply / رد</button></td></tr>';}).join(''):'<tr><td colspan="6">لا توجد رسائل</td></tr>';
+      var adminToken=localStorage.getItem(tokenKey)||'';var tbody=document.getElementById('contactMessageRows');
+      try{var r=await fetch(API+'/api/admin/contact-messages',{headers:{Authorization:'Bearer '+adminToken}});var rows=await r.json();if(!r.ok)throw new Error(rows.message||'Unable to load messages');
+        tbody.innerHTML=rows.length?rows.map(function(x){return '<tr><td>'+esc(x.name)+'</td><td class="ltr">'+esc(x.email)+'</td><td style="white-space:pre-wrap;min-width:320px">'+esc(x.message)+'</td><td><select data-contact-status="'+esc(x.id)+'"><option '+(x.status==='new'?'selected':'')+'>new</option><option '+(x.status==='replied'?'selected':'')+'>replied</option><option '+(x.status==='closed'?'selected':'')+'>closed</option></select></td><td class="ltr">'+new Date(x.createdAt).toLocaleString()+'</td><td><button class="btn alt" data-contact-reply="'+esc(x.id)+'">Reply / رد</button></td></tr>';}).join(''):'<tr><td colspan="6">لا توجد رسائل</td></tr>';
         window.__contactMessages=rows;
-        document.querySelectorAll('[data-contact-status]').forEach(function(s){s.onchange=async function(){try{await fetch(api+'/api/admin/contact-messages/'+encodeURIComponent(s.dataset.contactStatus)+'/status',{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({status:s.value})});load();}catch(e){alert(e.message)}}});
+        document.querySelectorAll('[data-contact-status]').forEach(function(s){s.onchange=async function(){try{await fetch(API+'/api/admin/contact-messages/'+encodeURIComponent(s.dataset.contactStatus)+'/status',{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+adminToken},body:JSON.stringify({status:s.value})});load();}catch(e){alert(e.message)}}});
         document.querySelectorAll('[data-contact-reply]').forEach(function(b){b.onclick=function(){var row=window.__contactMessages.find(function(x){return x.id===b.dataset.contactReply});if(row)openReply(row);}});
-      }catch(e){tbody.innerHTML='<tr><td colspan="6">'+escapeHtml(e.message)+'</td></tr>'}
+      }catch(e){tbody.innerHTML='<tr><td colspan="6">'+esc(e.message)+'</td></tr>'}
     }
+
+    async function finishPendingAuth(){
+      var params=new URLSearchParams(location.search),code=params.get('code'),state=params.get('state');if(!code)return;
+      history.replaceState({},document.title,canonicalRedirect());
+      var pending=getPending();if(!pending||pending.state!==state||!pending.verifier)return;
+      var statusText='Completing Microsoft sign-in… / جارٍ إكمال تسجيل الدخول…';
+      try{
+        var cfg=await getConfig();var token=await exchangeCode(cfg.microsoftClientId,code,pending.verifier);var message=(window.__contactMessages||[]).find(function(x){return x.id===pending.id});if(!message)throw new Error('The original message is no longer available. Please reopen Reply.');
+        await sendGraphMail(message,pending.reply,token);await markReplied(pending.id);clearPending();toast('Reply sent successfully. / تم إرسال الرد بنجاح.');load();
+      }catch(e){clearPending();clearCachedToken();alert(e.message||'Unable to send reply');}
+    }
+
+    function toast(text){var el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el)}el.textContent=text;el.style.display='block';setTimeout(function(){el.style.display='none'},3000)}
     document.getElementById('contactMessageRefresh').onclick=load;
     tab.onclick=function(){document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});document.querySelectorAll('.tabpane').forEach(function(p){p.classList.add('hidden')});tab.classList.add('active');pane.classList.remove('hidden');load();};
+    load().then(finishPendingAuth);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
   setTimeout(init,800);
