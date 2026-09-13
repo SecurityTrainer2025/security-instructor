@@ -4,6 +4,7 @@ const cors=require('cors');
 const helmet=require('helmet');
 const rateLimit=require('express-rate-limit');
 const crypto=require('crypto');
+const nodemailer=require('nodemailer');
 require('dotenv').config();
 
 const app=express();
@@ -86,6 +87,20 @@ function requireAdmin(req,res,next){const auth=req.headers.authorization||'';con
 function traineeView(t){return {traineeId:t.traineeId,nameAr:[t.arabicFirstName,t.arabicMiddleName,t.arabicLastName].filter(Boolean).join(' '),nameEn:[t.englishFirstName,t.englishMiddleName,t.englishLastName].filter(Boolean).join(' '),idType:t.idType,idNumber:t.idNumber,mobile:t.mobile,email:t.email,createdAt:t.createdAt}}
 function enrollmentView(e){return {enrollmentId:e.enrollmentId,traineeId:e.traineeId,courseId:e.courseId,courseNameEn:e.courseNameEn,courseNameAr:e.courseNameAr,registrationType:e.registrationType,companyName:e.companyName,companyContact:e.companyContact,companyEmail:e.companyEmail,status:e.status,registeredAt:e.registeredAt}}
 function visitorView(v){return {visitorId:v.visitorId,name:v.name,email:v.email,linkedin:v.linkedin,egyptPhone:v.egyptPhone,outlookEmail:v.outlookEmail,consent:v.consent,registeredAt:v.registeredAt,challengeStartedAt:v.challengeStartedAt,challengeCompletedAt:v.challengeCompletedAt,score:v.score}}
+function escapeHtmlEmail(v){return String(v??'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
+function buildContactReplyHtml(name,originalMessage,replyText){
+  const safeName=escapeHtmlEmail(name),safeOriginal=escapeHtmlEmail(originalMessage).replace(/\n/g,'<br>'),safeReply=escapeHtmlEmail(replyText).replace(/\n/g,'<br>');
+  return '<!doctype html><html><body style="margin:0;background:#eef2f5;font-family:Arial,Helvetica,sans-serif;color:#1b2b3a"><div style="max-width:680px;margin:32px auto;background:#ffffff;border:1px solid #d9e0e6"><div style="background:#0B1F33;padding:26px 30px"><div style="font-size:13px;letter-spacing:2px;color:#c8a96b;font-weight:700">SECURITY INSTRUCTOR</div><div style="font-size:24px;color:#ffffff;font-weight:700;margin-top:8px">Professional Training • Practical Skills • Safer Workplaces</div></div><div style="padding:30px"><p style="font-size:16px;margin:0 0 16px">Dear '+safeName+',</p><p style="font-size:15px;line-height:1.8;margin:0 0 22px">Thank you for contacting <strong>SECURITY INSTRUCTOR</strong>.</p><div style="border-left:4px solid #c8a96b;background:#f6f8fa;padding:16px 18px;margin:0 0 22px"><div style="font-size:12px;color:#6f7d88;font-weight:700;text-transform:uppercase">Your Message</div><div style="font-size:14px;line-height:1.8;margin-top:8px">'+safeOriginal+'</div></div><div style="border-top:1px solid #e1e6ea;padding-top:20px"><div style="font-size:12px;color:#6f7d88;font-weight:700;text-transform:uppercase">Response</div><div style="font-size:15px;line-height:1.9;margin-top:8px">'+safeReply+'</div></div><div style="margin-top:30px;padding-top:18px;border-top:1px solid #e1e6ea"><div style="font-weight:700">Abdallah Abdelaziz Shalaby</div><div style="color:#6f7d88;margin-top:4px">Training Support Executive | Fire Safety Trainer | LMS Specialist</div><div style="color:#6f7d88;margin-top:8px">SECURITY INSTRUCTOR</div></div></div><div style="background:#0B1F33;color:#cbd5df;padding:14px 30px;font-size:12px;text-align:center">Professional Training • Practical Skills • Safer Workplaces</div></div></body></html>'
+}
+function getMailTransport(){
+  const user=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim();
+  const clientId=(process.env.MS_CLIENT_ID||'').trim();
+  const clientSecret=(process.env.MS_CLIENT_SECRET||'').trim();
+  const refreshToken=(process.env.MS_REFRESH_TOKEN||'').trim();
+  if(!user||!clientId||!clientSecret||!refreshToken)return null;
+  return nodemailer.createTransport({host:'smtp-mail.outlook.com',port:587,secure:false,auth:{type:'OAuth2',user,clientId,clientSecret,refreshToken}});
+}
+
 
 app.get('/health',(req,res)=>res.json({ok:true}));
 app.get('/api/courses',async(req,res)=>res.json(Object.entries(courses).map(([slug,c])=>({slug,...c}))));
@@ -104,6 +119,19 @@ app.patch('/api/admin/enrollments/:enrollmentId/status',requireAdmin,async(req,r
 app.get('/api/admin/visitors',requireAdmin,async(req,res)=>{try{const rows=await Visitor.find().sort({registeredAt:-1}).limit(500).lean();res.json(rows.map(visitorView))}catch(e){res.status(500).json({message:'Unable to load visitors'})}});
 app.get('/api/admin/feedback',requireAdmin,async(req,res)=>{try{const rows=await Feedback.find().sort({createdAt:-1}).limit(500).lean();res.json(rows)}catch(e){res.status(500).json({message:'Unable to load feedback'})}});
 app.get('/api/admin/contact-messages',requireAdmin,async(req,res)=>{try{const rows=await ContactMessage.find().sort({createdAt:-1}).limit(500).lean();res.json(rows.map(x=>({id:String(x._id),name:x.name,email:x.email,message:x.message,status:x.status,repliedAt:x.repliedAt,createdAt:x.createdAt})))}catch(e){res.status(500).json({message:'Unable to load contact messages'})}});
+app.post('/api/admin/contact-messages/:id/reply',requireAdmin,async(req,res)=>{try{const row=await ContactMessage.findById(req.params.id);if(!row)return res.status(404).json({message:'Contact message not found'});const replyText=clean(req.body?.reply,5000);if(replyText.length<2)return res.status(400).json({message:'Reply text is required'});const transport=getMailTransport();if(!transport)return res.status(503).json({message:'Email sending is not configured. Please add MS_CLIENT_ID, MS_CLIENT_SECRET, MS_REFRESH_TOKEN and MAIL_FROM to the server environment.'});const from=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim();const subject='Re: SECURITY INSTRUCTOR contact message';const html=buildContactReplyHtml(row.name,row.message,replyText);const textBody='Dear '+row.name+',
+
+Thank you for contacting SECURITY INSTRUCTOR.
+
+Your Message:
+'+row.message+'
+
+Response:
+'+replyText+'
+
+Best regards,
+Abdallah Abdelaziz Shalaby
+SECURITY INSTRUCTOR';await transport.sendMail({from,replyTo:from,to:row.email,subject,html,text:textBody});row.status='replied';row.repliedAt=new Date();await row.save();res.json({ok:true,status:row.status,repliedAt:row.repliedAt});}catch(e){console.error('CONTACT_REPLY_ERROR',e);res.status(500).json({message:'Unable to send reply'})}});
 app.patch('/api/admin/contact-messages/:id/status',requireAdmin,async(req,res)=>{try{const status=clean(req.body?.status,20);if(!['new','replied','closed'].includes(status))return res.status(400).json({message:'Invalid status'});const row=await ContactMessage.findByIdAndUpdate(req.params.id,{$set:{status,repliedAt:status==='replied'?new Date():null}},{new:true});if(!row)return res.status(404).json({message:'Contact message not found'});res.json({ok:true,id:String(row._id),status:row.status,repliedAt:row.repliedAt})}catch(e){res.status(500).json({message:'Unable to update contact message'})}});
 
 app.post('/api/course-registration',async(req,res)=>{
