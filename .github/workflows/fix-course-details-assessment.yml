@@ -1,0 +1,33 @@
+name: Move assessment button to course top
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'Move assessment button to course top') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Move existing assessment link
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p=Path('frontend/course-details.html')
+          s=p.read_text(encoding='utf-8')
+          pattern=r'<div class="footer-actions">\s*(<a class="action primary"[^>]*>.*?</a>)\s*(<a class="action secondary"[^>]*>.*?</a>)\s*</div>'
+          m=re.search(pattern,s,re.S)
+          if m and 'class="assessment-top"' not in s:
+              s=s[:m.start()]+'<div class="assessment-top">'+m.group(1)+'</div><div class="footer-actions">'+m.group(2)+'</div>'+s[m.end():]
+              s=s.replace('.footer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}', '.assessment-top{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.footer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}')
+              p.write_text(s,encoding='utf-8')
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add frontend/course-details.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Move assessment button to course top"
+          git push
