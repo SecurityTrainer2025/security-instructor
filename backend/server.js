@@ -132,6 +132,8 @@ function getMailTransport(){
 }
 
 app.get('/health',(req,res)=>res.json({ok:true}));
+app.get('/api/public-config',(req,res)=>res.json({microsoftClientId:String(process.env.MICROSOFT_CLIENT_ID||'').trim()}));
+
 app.get('/api/courses',async(req,res)=>res.json(Object.entries(courses).map(([slug,c])=>({slug,...c}))));
 app.get('/api/course-stats/:slug',validSlug,async(req,res)=>{try{const s=await Stat.findOneAndUpdate({slug:req.params.slug},{$setOnInsert:{slug:req.params.slug}},{new:true,upsert:true});res.json(publicStats(s))}catch(e){res.status(500).json({message:'Unable to load statistics'})}});
 app.post('/api/course-stats/:slug/entry',validSlug,async(req,res)=>{try{const s=await Stat.findOneAndUpdate({slug:req.params.slug},{$inc:{views:1,entries:1}},{new:true,upsert:true});res.json(publicStats(s))}catch(e){res.status(500).json({message:'Unable to record entry'})}});
