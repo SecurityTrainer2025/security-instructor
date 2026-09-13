@@ -23,6 +23,15 @@ const StatSchema=new mongoose.Schema({slug:{type:String,unique:true,index:true},
 const Stat=mongoose.model('CourseStat',StatSchema);
 const FeedbackSchema=new mongoose.Schema({slug:{type:String,index:true},note:{type:String,required:true,maxlength:300,trim:true}},{timestamps:true});
 const Feedback=mongoose.model('CourseFeedback',FeedbackSchema);
+const ContactMessageSchema=new mongoose.Schema({
+  name:{type:String,required:true,trim:true,maxlength:120},
+  email:{type:String,required:true,trim:true,lowercase:true,maxlength:180},
+  message:{type:String,required:true,trim:true,maxlength:5000},
+  status:{type:String,enum:['new','replied','closed'],default:'new',index:true},
+  repliedAt:{type:Date,default:null},
+  createdAt:{type:Date,default:Date.now}
+},{timestamps:true});
+const ContactMessage=mongoose.model('ContactMessage',ContactMessageSchema);
 
 const VisitorSchema=new mongoose.Schema({visitorId:{type:String,required:true,unique:true,index:true},name:{type:String,required:true,trim:true,maxlength:120},email:{type:String,required:true,trim:true,lowercase:true,maxlength:180},linkedin:{type:String,trim:true,maxlength:300,default:''},egyptPhone:{type:String,trim:true,maxlength:30,default:''},outlookEmail:{type:String,trim:true,lowercase:true,maxlength:180,default:''},consent:{type:Boolean,required:true,default:false},registeredAt:{type:Date,default:Date.now},challengeStartedAt:{type:Date,default:null},challengeCompletedAt:{type:Date,default:null},score:{type:Number,min:0,max:10,default:null}},{timestamps:true});
 const Visitor=mongoose.model('Visitor',VisitorSchema);
@@ -84,6 +93,7 @@ app.get('/api/course-stats/:slug',validSlug,async(req,res)=>{try{const s=await S
 app.post('/api/course-stats/:slug/entry',validSlug,async(req,res)=>{try{const s=await Stat.findOneAndUpdate({slug:req.params.slug},{$inc:{views:1,entries:1}},{new:true,upsert:true});res.json(publicStats(s))}catch(e){res.status(500).json({message:'Unable to record entry'})}});
 app.post('/api/course-stats/:slug/rating',validSlug,async(req,res)=>{try{const rating=Number(req.body?.rating);if(!Number.isInteger(rating)||rating<1||rating>5)return res.status(400).json({message:'Rating must be 1-5'});const positive=rating>=4?1:0;const s=await Stat.findOneAndUpdate({slug:req.params.slug},{$inc:{ratingSum:rating,ratingCount:1,positiveRatings:positive}},{new:true,upsert:true});res.json(publicStats(s))}catch(e){res.status(500).json({message:'Unable to record rating'})}});
 app.post('/api/course-feedback/:slug',validSlug,async(req,res)=>{try{const note=typeof req.body?.note==='string'?req.body.note.trim():'';if(!note)return res.status(400).json({message:'Note is required'});if(note.length>300)return res.status(400).json({message:'Note must be 300 characters or fewer'});await Feedback.create({slug:req.params.slug,note});res.json({ok:true,message:'Feedback received'});}catch(e){res.status(500).json({message:'Unable to save feedback'})}});
+app.post('/api/contact-messages',async(req,res)=>{try{const name=clean(req.body?.name,120),email=clean(req.body?.email,180).toLowerCase(),message=clean(req.body?.message,5000);if(name.length<2)return res.status(400).json({message:'Please enter your name'});if(!validEmail(email))return res.status(400).json({message:'Please enter a valid email'});if(message.length<2)return res.status(400).json({message:'Please enter your message'});const row=await ContactMessage.create({name,email,message});res.status(201).json({ok:true,id:row._id,createdAt:row.createdAt,status:row.status});}catch(e){console.error(e);res.status(500).json({message:'Unable to save contact message'})}});
 
 app.post('/api/admin/login',adminLoginLimiter,(req,res)=>{try{if(!ADMIN_PASSWORD||!ADMIN_SESSION_SECRET)return res.status(503).json({message:'Admin security is not configured on the server'});const email=clean(req.body?.email,180).toLowerCase();const password=typeof req.body?.password==='string'?req.body.password:'';if(email!==ADMIN_EMAIL||password!==ADMIN_PASSWORD)return res.status(401).json({message:'Invalid admin credentials'});res.json({ok:true,email:ADMIN_EMAIL,token:signToken({email:ADMIN_EMAIL,role:'admin',exp:Date.now()+8*60*60*1000})})}catch(e){res.status(500).json({message:'Unable to sign in'})}});
 app.get('/api/admin/me',requireAdmin,(req,res)=>res.json({ok:true,email:req.admin.email,role:req.admin.role}));
@@ -93,6 +103,8 @@ app.get('/api/admin/enrollments',requireAdmin,async(req,res)=>{try{const q=clean
 app.patch('/api/admin/enrollments/:enrollmentId/status',requireAdmin,async(req,res)=>{try{const status=clean(req.body?.status,30);if(!['pending','confirmed','active','completed','cancelled'].includes(status))return res.status(400).json({message:'Invalid status'});const e=await Enrollment.findOneAndUpdate({enrollmentId:req.params.enrollmentId},{$set:{status}},{new:true});if(!e)return res.status(404).json({message:'Enrollment not found'});res.json(enrollmentView(e))}catch(e){res.status(500).json({message:'Unable to update enrollment'})}});
 app.get('/api/admin/visitors',requireAdmin,async(req,res)=>{try{const rows=await Visitor.find().sort({registeredAt:-1}).limit(500).lean();res.json(rows.map(visitorView))}catch(e){res.status(500).json({message:'Unable to load visitors'})}});
 app.get('/api/admin/feedback',requireAdmin,async(req,res)=>{try{const rows=await Feedback.find().sort({createdAt:-1}).limit(500).lean();res.json(rows)}catch(e){res.status(500).json({message:'Unable to load feedback'})}});
+app.get('/api/admin/contact-messages',requireAdmin,async(req,res)=>{try{const rows=await ContactMessage.find().sort({createdAt:-1}).limit(500).lean();res.json(rows.map(x=>({id:String(x._id),name:x.name,email:x.email,message:x.message,status:x.status,repliedAt:x.repliedAt,createdAt:x.createdAt})))}catch(e){res.status(500).json({message:'Unable to load contact messages'})}});
+app.patch('/api/admin/contact-messages/:id/status',requireAdmin,async(req,res)=>{try{const status=clean(req.body?.status,20);if(!['new','replied','closed'].includes(status))return res.status(400).json({message:'Invalid status'});const row=await ContactMessage.findByIdAndUpdate(req.params.id,{$set:{status,repliedAt:status==='replied'?new Date():null}},{new:true});if(!row)return res.status(404).json({message:'Contact message not found'});res.json({ok:true,id:String(row._id),status:row.status,repliedAt:row.repliedAt})}catch(e){res.status(500).json({message:'Unable to update contact message'})}});
 
 app.post('/api/course-registration',async(req,res)=>{
  try{

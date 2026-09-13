@@ -58,5 +58,5 @@ function loadAll(){tabs();Promise.all([loadDashboard(),loadTrainees()]).catch(e=
 $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>loadEnrollments();$('#statusFilter').onchange=()=>loadEnrollments();$('#traineeRefresh').onclick=loadTrainees;$('#enrollRefresh').onclick=loadEnrollments;$('#visitorRefresh').onclick=loadVisitors;$('#statsRefresh').onclick=loadStats;$('#feedbackRefresh').onclick=loadFeedback;check();
 })();
 </script>
-</body>
+<script src="contact-admin.js"></script></body>
 </html>
