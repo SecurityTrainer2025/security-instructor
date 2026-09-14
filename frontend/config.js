@@ -1,5 +1,37 @@
 // Deployed statistics API
 window.APP_CONFIG={API_BASE:'https://security-instructor.onrender.com'};
+(function(){
+  var nativeFetch=window.fetch.bind(window);
+  function splitForTranslation(text,max){
+    var out=[],rest=String(text||'');
+    while(rest.length){
+      var cut=Math.min(max,rest.length);
+      if(cut<rest.length){var p=rest.lastIndexOf(' ',cut);if(p>150)cut=p;}
+      out.push(rest.slice(0,cut).trim());
+      rest=rest.slice(cut).trim();
+    }
+    return out.filter(Boolean);
+  }
+  window.fetch=function(input,init){
+    try{
+      var url=typeof input==='string'?input:(input&&input.url)||'';
+      if(url.indexOf('api.mymemory.translated.net/get?')!==-1){
+        var u=new URL(url,location.href),q=u.searchParams.get('q')||'';
+        if(q.length>500){
+          var parts=splitForTranslation(q,450);
+          var langpair=u.searchParams.get('langpair')||'';
+          return Promise.all(parts.map(function(part){
+            var partUrl='https://api.mymemory.translated.net/get?q='+encodeURIComponent(part)+'&langpair='+encodeURIComponent(langpair);
+            return nativeFetch(partUrl,init).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error('Translation service unavailable.');return j;});});
+          })).then(function(results){
+            return new Response(JSON.stringify({responseData:{translatedText:results.map(function(j){return j.responseData&&j.responseData.translatedText||'';}).join(' ')}}),{status:200,headers:{'Content-Type':'application/json'}});
+          });
+        }
+      }
+    }catch(err){}
+    return nativeFetch(input,init);
+  };
+})();
 window.addEventListener('DOMContentLoaded',function(){
 var isHome=location.pathname.endsWith('/index.html')||location.pathname.endsWith('/');
 var isLegacyChallenge=location.pathname.endsWith('/challenge.html');
@@ -23,5 +55,5 @@ if(contact&&!document.getElementById('ownerSocialLinks')){var social=document.cr
 var assessmentObserver=new MutationObserver(function(){var grid=document.getElementById('courseGrid');if(!grid)return;grid.querySelectorAll('.course-card').forEach(function(card){var trigger=card.querySelector('[data-course]');if(!trigger||card.querySelector('[data-course-assessment]'))return;var slug=trigger.getAttribute('data-course');var a=document.createElement('a');a.setAttribute('data-course-assessment',slug);a.href='course-assessment-v2.html?course='+encodeURIComponent(slug);a.innerHTML='Initial Course Assessment / التقييم المبدئي للدورة';a.style.cssText='display:inline-block;margin:10px 8px 0 0;padding:11px 16px;border:1px solid #c8a96b;color:#c8a96b;background:transparent;text-decoration:none;font-weight:800;';trigger.insertAdjacentElement('beforebegin',a);});});
 assessmentObserver.observe(document.body,{childList:true,subtree:true});
 setTimeout(function(){var grid=document.getElementById('courseGrid');if(grid){var ev=document.createEvent('Event');ev.initEvent('assessmentcardsready',true,true);grid.dispatchEvent(ev);}},0);
-setTimeout(function(){var adminCourseBtn=document.getElementById('adminCourseBtn');if(adminCourseBtn){adminCourseBtn.dataset.en='Available Courses';adminCourseBtn.dataset.ar='الدورات المتاحة';adminCourseBtn.textContent='Available Courses';}['vehicle-search-security-inspection','person-search-security-screening'].forEach(function(slug){var card=document.querySelector('[data-course="'+slug+'"]');if(!card)return;var article=card.closest('.course-card');if(article){var badge=article.querySelector('.course-card-media span');if(badge)badge.textContent='Available / متاحة';card.textContent='View Course / عرض الدورة';}});},0);
+setTimeout(function(){var adminCourseBtn=document.getElementById('adminCourseBtn');if(adminCourseBtn){adminCourseBtn.dataset.en='Available Courses';adminCourseBtn.dataset.ar='الدورات المتاحة';adminCourseBtn.textContent='Available Courses';}['vehicle-search-security-inspection','person-search-security-screening'].forEach(function(slug){var card=document.querySelector('[data-course="'+slug+'");if(!card)return;var article=card.closest('.course-card');if(article){var badge=article.querySelector('.course-card-media span');if(badge)badge.textContent='Available / متاحة';card.textContent='View Course / عرض الدورة';}});},0);
 });
