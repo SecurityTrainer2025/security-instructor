@@ -1,8 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
-// Keep the existing server intact, but allow the new article-photo workflow to send
-// a compressed image as a data URL and provide a structured phone-selection form.
+// Keep the existing server intact, but support the article-photo workflow.
 const originalJson = express.json;
 express.json = function patchedJson(options = {}) {
   return originalJson({ ...options, limit: '2mb' });
@@ -17,12 +16,9 @@ const now = () => new Date();
 function registerBefore(path, handler) {
   const originalPost = express.application.post;
   if (express.application.__siOverrideInstalled) return;
-  // Install a one-time wrapper so matching routes are registered before the legacy route.
   express.application.__siOverrideInstalled = true;
   express.application.post = function patchedPost(route, ...handlers) {
-    if (route === path) {
-      originalPost.call(this, route, handler);
-    }
+    if (route === path) originalPost.call(this, route, handler);
     return originalPost.call(this, route, ...handlers);
   };
 }
@@ -34,17 +30,20 @@ const articleHandler = async (req, res) => {
     const contentAr = clean(b.contentAr, 25000);
     const authorImage = clean(b.authorImage, 1800000);
     if (!b.titleEn || !b.titleAr || !b.authorName || !b.category || !b.excerptEn || !b.excerptAr || !contentEn || !contentAr) {
-      return res.status(400).json({ message: 'Please complete the article header fields' });
+      return res.status(400).json({ message: 'Please complete the required article fields.' });
     }
     const wc = Math.max(wordCount(contentEn), wordCount(contentAr));
-    if (wc < 700 || wc > 1500) {
-      return res.status(400).json({ message: 'Article length must be between 700 and 1500 words / يجب أن يكون طول المقال بين 700 و1500 كلمة' });
+    if (wc < 500 || wc > 1000) {
+      return res.status(400).json({ message: 'Article length must be between 500 and 1000 words / يجب أن يكون طول المقال بين 500 و1000 كلمة' });
     }
     if (b.authorEmail && !validEmail(b.authorEmail)) {
       return res.status(400).json({ message: 'Please enter a valid author email' });
     }
-    if (authorImage && !/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(authorImage) && authorImage.length > 300) {
+    if (authorImage && !/^https:\/\//.test(authorImage) && !/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(authorImage)) {
       return res.status(400).json({ message: 'Author photo format is invalid.' });
+    }
+    if (authorImage && /^https:\/\//.test(authorImage) && authorImage.length > 300) {
+      return res.status(400).json({ message: 'Author photo URL is too long.' });
     }
     const collection = mongoose.connection.collection('securityarticles');
     let slug = slugify(clean(b.titleEn || b.titleAr, 180));
