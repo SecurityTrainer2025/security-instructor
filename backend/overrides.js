@@ -1,83 +1,14 @@
-const express = require('express');
-const mongoose = require('mongoose');
-
-// Keep the existing server intact, but support the article-photo workflow.
-const originalJson = express.json;
-express.json = function patchedJson(options = {}) {
-  return originalJson({ ...options, limit: '2mb' });
-};
-
-const clean = (v, max) => typeof v === 'string' ? v.trim().slice(0, max) : '';
-const wordCount = v => String(v || '').trim().split(/\s+/).filter(Boolean).length;
-const validEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-const slugify = v => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70) || 'security-article';
-const now = () => new Date();
-
-function registerBefore(path, handler) {
-  const originalPost = express.application.post;
-  if (express.application.__siOverrideInstalled) return;
-  express.application.__siOverrideInstalled = true;
-  express.application.post = function patchedPost(route, ...handlers) {
-    if (route === path) originalPost.call(this, route, handler);
-    return originalPost.call(this, route, ...handlers);
-  };
-}
-
-const articleHandler = async (req, res) => {
-  try {
-    const b = req.body || {};
-    const contentEn = clean(b.contentEn, 25000);
-    const contentAr = clean(b.contentAr, 25000);
-    const authorImage = clean(b.authorImage, 1800000);
-    if (!b.titleEn || !b.titleAr || !b.authorName || !b.category || !b.excerptEn || !b.excerptAr || !contentEn || !contentAr) {
-      return res.status(400).json({ message: 'Please complete the required article fields.' });
-    }
-    const wc = Math.max(wordCount(contentEn), wordCount(contentAr));
-    if (wc < 500 || wc > 1000) {
-      return res.status(400).json({ message: 'Article length must be between 500 and 1000 words / يجب أن يكون طول المقال بين 500 و1000 كلمة' });
-    }
-    if (b.authorEmail && !validEmail(b.authorEmail)) {
-      return res.status(400).json({ message: 'Please enter a valid author email' });
-    }
-    if (authorImage && !/^https:\/\//.test(authorImage) && !/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(authorImage)) {
-      return res.status(400).json({ message: 'Author photo format is invalid.' });
-    }
-    if (authorImage && /^https:\/\//.test(authorImage) && authorImage.length > 300) {
-      return res.status(400).json({ message: 'Author photo URL is too long.' });
-    }
-    const collection = mongoose.connection.collection('securityarticles');
-    let slug = slugify(clean(b.titleEn || b.titleAr, 180));
-    let suffix = 0;
-    while (await collection.findOne({ slug })) {
-      suffix += 1;
-      slug = slugify(clean(b.titleEn || b.titleAr, 180)) + '-' + suffix;
-    }
-    const doc = {
-      slug,
-      titleEn: clean(b.titleEn, 180),
-      titleAr: clean(b.titleAr, 180),
-      authorName: clean(b.authorName, 120),
-      authorTitle: clean(b.authorTitle, 160),
-      authorEmail: clean(b.authorEmail, 180).toLowerCase(),
-      authorImage,
-      category: clean(b.category, 120),
-      excerptEn: clean(b.excerptEn, 700),
-      excerptAr: clean(b.excerptAr, 700),
-      contentEn,
-      contentAr,
-      sourceLanguage: b.sourceLanguage === 'ar' ? 'ar' : 'en',
-      status: 'pending',
-      rejectionReason: '',
-      reviewedAt: null,
-      createdAt: now(),
-      updatedAt: now()
-    };
-    await collection.insertOne(doc);
-    return res.status(201).json({ ok: true, id: String(doc._id), slug: doc.slug, status: doc.status });
-  } catch (e) {
-    console.error('article override error', e);
-    return res.status(500).json({ message: 'Unable to save article' });
-  }
-};
-
-registerBefore('/api/articles', articleHandler);
+const express=require('express');
+const mongoose=require('mongoose');
+const originalJson=express.json;
+express.json=function patchedJson(options={}){return originalJson({...options,limit:'2mb'});};
+const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
+const wordCount=v=>String(v||'').trim().split(/\s+/).filter(Boolean).length;
+const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const slugify=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,70)||'security-article';
+const now=()=>new Date();
+function install(method,path,handler){const key='__si_'+method+'_'+path.replace(/[^a-z0-9]/gi,'_');if(express.application[key])return;express.application[key]=true;const original=express.application[method];express.application[method]=function patchedRoute(route,...handlers){if(route===path)original.call(this,route,handler);return original.call(this,route,...handlers)}}
+const articleHandler=async(req,res)=>{try{const b=req.body||{},sourceLanguage=b.sourceLanguage==='ar'?'ar':'en';const title=clean(sourceLanguage==='ar'?b.titleAr:b.titleEn,180),excerpt=clean(sourceLanguage==='ar'?b.excerptAr:b.excerptEn,700),content=clean(sourceLanguage==='ar'?b.contentAr:b.contentEn,25000),authorImage=clean(b.authorImage,1800000),authorName=clean(b.authorName,120),category=clean(b.category,120);if(!title||!excerpt||!content||!authorName||!category)return res.status(400).json({message:'Please complete the required article fields.'});const wc=wordCount(content);if(wc<500||wc>1000)return res.status(400).json({message:'Article length must be between 500 and 1000 words / يجب أن يكون طول المقال بين 500 و1000 كلمة'});const authorEmail=clean(b.authorEmail,180).toLowerCase();if(authorEmail&&!validEmail(authorEmail))return res.status(400).json({message:'Please enter a valid author email'});if(authorImage&&!/^https:\/\//.test(authorImage)&&!/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(authorImage))return res.status(400).json({message:'Author photo format is invalid.'});if(/^https:\/\//.test(authorImage)&&authorImage.length>300)return res.status(400).json({message:'Author photo URL is too long.'});const titleEn=sourceLanguage==='en'?title:'',titleAr=sourceLanguage==='ar'?title:'',excerptEn=sourceLanguage==='en'?excerpt:'',excerptAr=sourceLanguage==='ar'?excerpt:'',contentEn=sourceLanguage==='en'?content:'',contentAr=sourceLanguage==='ar'?content:'';const collection=mongoose.connection.collection('securityarticles');const base=slugify(titleEn||titleAr);let slug=base,n=2;while(await collection.findOne({slug}))slug=base+'-'+n++;const doc={slug,titleEn,titleAr,authorName,authorTitle:clean(b.authorTitle,160),authorEmail,authorImage,category,excerptEn,excerptAr,contentEn,contentAr,sourceLanguage,status:'pending',translationStatus:'pending',rejectionReason:'',reviewedAt:null,createdAt:now(),updatedAt:now()};const result=await collection.insertOne(doc);return res.status(201).json({ok:true,id:String(result.insertedId),slug,status:'pending',translationStatus:'pending'});}catch(e){console.error('article override error',e);return res.status(500).json({message:'Unable to save article'});}};
+const articleEdit=async(req,res)=>{try{const id=req.params.id,b=req.body||{},collection=mongoose.connection.collection('securityarticles'),{ObjectId}=mongoose.Types;let oid;try{oid=new ObjectId(id)}catch{return res.status(400).json({message:'Invalid article id'})}const row=await collection.findOne({_id:oid});if(!row)return res.status(404).json({message:'Article not found'});const set={updatedAt:now()};['titleEn','titleAr','authorName','authorTitle','authorEmail','authorImage','category','excerptEn','excerptAr','contentEn','contentAr','sourceLanguage'].forEach(k=>{if(typeof b[k]==='string')set[k]=b[k].trim()});if(set.authorEmail&&!validEmail(set.authorEmail))return res.status(400).json({message:'Please enter a valid author email'});if(set.authorImage&&/^https:\/\//.test(set.authorImage)&&set.authorImage.length>300)return res.status(400).json({message:'Author photo URL is too long.'});const merged={...row,...set};const sourceWords=wordCount(merged.sourceLanguage==='ar'?merged.contentAr:merged.contentEn);if(sourceWords<500||sourceWords>1000)return res.status(400).json({message:'Original article length must be between 500 and 1000 words / يجب أن يكون المقال الأصلي بين 500 و1000 كلمة'});const ready=!!(merged.titleEn&&merged.titleAr&&merged.excerptEn&&merged.excerptAr&&merged.contentEn&&merged.contentAr&&wordCount(merged.contentEn)>=500&&wordCount(merged.contentEn)<=1000&&wordCount(merged.contentAr)>=500&&wordCount(merged.contentAr)<=1000);set.translationStatus=ready?'ready':'pending';await collection.updateOne({_id:oid},{$set:set});const updated=await collection.findOne({_id:oid});return res.json({id:String(updated._id),slug:updated.slug,titleEn:updated.titleEn,titleAr:updated.titleAr,authorName:updated.authorName,authorTitle:updated.authorTitle,authorEmail:updated.authorEmail,authorImage:updated.authorImage,category:updated.category,excerptEn:updated.excerptEn,excerptAr:updated.excerptAr,contentEn:updated.contentEn,contentAr:updated.contentAr,sourceLanguage:updated.sourceLanguage,status:updated.status,translationStatus:updated.translationStatus,rejectionReason:updated.rejectionReason||'',createdAt:updated.createdAt,reviewedAt:updated.reviewedAt||null,wordCountEn:wordCount(updated.contentEn),wordCountAr:wordCount(updated.contentAr)});}catch(e){console.error('article edit override error',e);return res.status(500).json({message:'Unable to edit article'});}};
+const articleReview=async(req,res)=>{try{const id=req.params.id,status=clean(req.body?.status,20),collection=mongoose.connection.collection('securityarticles');if(!['approved','rejected','pending'].includes(status))return res.status(400).json({message:'Invalid article status'});const {ObjectId}=mongoose.Types;let oid;try{oid=new ObjectId(id)}catch{return res.status(400).json({message:'Invalid article id'})}const row=await collection.findOne({_id:oid});if(!row)return res.status(404).json({message:'Article not found'});if(status==='approved'){const ready=!!(row.titleEn&&row.titleAr&&row.excerptEn&&row.excerptAr&&row.contentEn&&row.contentAr&&wordCount(row.contentEn)>=500&&wordCount(row.contentEn)<=1000&&wordCount(row.contentAr)>=500&&wordCount(row.contentAr)<=1000);if(!ready)return res.status(400).json({message:'Complete the second-language editorial version before approval / أكمل النسخة باللغة الثانية قبل اعتماد المقال'});}const set={status,rejectionReason:status==='rejected'?clean(req.body?.rejectionReason,700):'',reviewedAt:status==='pending'?null:now(),translationStatus:status==='approved'?'ready':(row.translationStatus||'pending'),updatedAt:now()};await collection.updateOne({_id:oid},{$set:set});const updated=await collection.findOne({_id:oid});return res.json({id:String(updated._id),slug:updated.slug,titleEn:updated.titleEn,titleAr:updated.titleAr,authorName:updated.authorName,authorTitle:updated.authorTitle,authorEmail:updated.authorEmail,authorImage:updated.authorImage,category:updated.category,excerptEn:updated.excerptEn,excerptAr:updated.excerptAr,contentEn:updated.contentEn,contentAr:updated.contentAr,sourceLanguage:updated.sourceLanguage,status:updated.status,translationStatus:updated.translationStatus,rejectionReason:updated.rejectionReason||'',createdAt:updated.createdAt,reviewedAt:updated.reviewedAt||null,wordCountEn:wordCount(updated.contentEn),wordCountAr:wordCount(updated.contentAr)});}catch(e){console.error('article review override error',e);return res.status(500).json({message:'Unable to review article'});}};
+install('post','/api/articles',articleHandler);install('patch','/api/admin/articles/:id',articleEdit);install('patch','/api/admin/articles/:id/review',articleReview);
