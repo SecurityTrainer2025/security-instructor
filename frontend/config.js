@@ -6,6 +6,8 @@ var isLegacyChallenge=location.pathname.endsWith('/challenge.html');
 if(isLegacyChallenge){location.replace('challenge-free.html');return;}
 var challengeDone=localStorage.getItem('securityKnowledgeChallengeCompleted')==='true';
 if(isHome&&!challengeDone){location.replace('challenge-free.html');return;}
+var adminBtn=document.getElementById('adminBtn');
+if(adminBtn){adminBtn.id='adminLinkButton';adminBtn.addEventListener('click',function(e){e.preventDefault();location.href='admin.html';});}
 var nav=document.querySelector('.topbar nav');
 if(nav&&!nav.querySelector('a[href="challenge-free.html"]')){var link=document.createElement('a');link.href='challenge-free.html';link.innerHTML='Challenge / التحدي';link.setAttribute('aria-label','Security Knowledge Challenge / اختبر معلوماتك الأمنية');var courses=nav.querySelector('a[href="#courses"]');if(courses&&courses.nextSibling)nav.insertBefore(link,courses.nextSibling);else nav.appendChild(link);}
 document.addEventListener('click',function(e){var button=e.target.closest('[data-course]');if(!button)return;var slug=button.getAttribute('data-course');if(!slug)return;e.preventDefault();e.stopImmediatePropagation();location.href='course-details.html?course='+encodeURIComponent(slug);},true);
