@@ -70,6 +70,7 @@ function loadAll(){tabs();Promise.all([loadDashboard(),loadTrainees()]).catch(e=
 $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>loadEnrollments();$('#statusFilter').onchange=()=>loadEnrollments();$('#traineeRefresh').onclick=loadTrainees;$('#enrollRefresh').onclick=loadEnrollments;$('#visitorRefresh').onclick=loadVisitors;$('#statsRefresh').onclick=loadStats;$('#feedbackRefresh').onclick=loadFeedback;$('#challengeResetBrowser').onclick=resetBrowserChallenge;$('#challengeOpenTest').onclick=openAdminChallenge;$('#challengeShowResults').onclick=showChallengeResults;check();
 })();
 </script>
+<script src="admin-center.js?v=20260915"></script>
 <script src="contact-admin.js?v=20260914-admin-2"></script>
 <script>
 (function(){
