@@ -1,0 +1,35 @@
+name: Wire Admin Center
+on:
+  push:
+    paths:
+      - '.github/workflows/wire-admin-center.yml'
+permissions:
+  contents: write
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch admin and backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('frontend/admin.html');s=p.read_text(encoding='utf-8');tag='<script src="admin-center.js?v=20260915"></script>';mark='<script src="contact-admin.js?v=20260914-admin-2"></script>'
+          if tag not in s:s=s.replace(mark,tag+'\n'+mark);p.write_text(s,encoding='utf-8')
+          p=Path('backend/overrides.js');s=p.read_text(encoding='utf-8');mark='ADMIN_CONTROL_CENTER_ROUTES_V2'
+          if mark not in s:
+            extra='''// ADMIN_CONTROL_CENTER_ROUTES_V2
+const _ctrlAuth=req=>String(req.headers.authorization||'').startsWith('Bearer ')&&String(req.headers.authorization||'').slice(7).trim().length>20;
+const _activity=async(req,res)=>{if(!_ctrlAuth(req))return res.status(401).json({message:'Admin authentication required'});const c=mongoose.connection.collection('adminactivity');if(req.method==='GET')return res.json(await c.find({}).sort({createdAt:-1}).limit(200).toArray());const b=req.body||{},d={action:clean(b.action,80),targetId:clean(b.targetId,160),details:clean(b.details,500),createdAt:now()};await c.insertOne(d);res.status(201).json(d)};
+const _content=async(req,res)=>{if(req.method!=='GET'&&!_ctrlAuth(req))return res.status(401).json({message:'Admin authentication required'});const c=mongoose.connection.collection('sitecontents');const defaults=[['homeEyebrow','PROFESSIONAL TRAINING • PRACTICAL SKILLS • SAFER WORKPLACES','تدريب احترافي • مهارات عملية • بيئات عمل أكثر أمانًا'],['homeName','Abdallah Abdelaziz Shalaby','عبدالله عبدالعزيز شلبي'],['homeRole','Training Support Executive | Fire Safety Trainer | LMS Specialist','مسؤول دعم التدريب | مدرب السلامة من الحرائق | أخصائي نظام إدارة التعلّم'],['homeIntro','Building safer people, safer workplaces and stronger security performance through practical training, professional standards and real-world readiness.','نبني أفرادًا أكثر أمانًا، وبيئات عمل أكثر أمانًا، وأداءً أمنيًا أكثر كفاءة من خلال التدريب العملي والمعايير المهنية والجاهزية الواقعية.'],['homeQuote','“Invest in your skills. Strengthen your readiness. Build a safer workplace.”','“استثمر في مهاراتك، وعزّز جاهزيتك، وابنِ بيئة عمل أكثر أمانًا.”'],['aboutTitle','About Me','نبذة عني'],['aboutLead','Abdallah Abdelaziz Shalaby is a certified Security Trainer and LMS Specialist with 17+ years of professional experience across the GCC, including Saudi Arabia, the United Arab Emirates and Qatar.','عبدالله عبدالعزيز شلبي مدرب أمني وأخصائي نظام إدارة التعلّم، يتمتع بخبرة مهنية تتجاوز 17 عامًا في دول مجلس التعاون الخليجي، تشمل المملكة العربية السعودية والإمارات العربية المتحدة ودولة قطر.'],['experienceTitle','Professional Experience','الخبرة المهنية'],['trainingTitle','Training Areas','مجالات التدريب'],['galleryTitle','Training & Professional Gallery','معرض التدريب والأعمال'],['coursesTitle','Courses & Training','الدورات التدريبية'],['projectsTitle','Projects & Ideas','المشاريع والأفكار']];
+for(const x of defaults)await c.updateOne({key:x[0]},{$setOnInsert:{key:x[0],en:x[1],ar:x[2],createdAt:now(),updatedAt:now()}},{upsert:true});
+if(req.method==='GET')return res.json(await c.find({},{projection:{_id:0,key:1,en:1,ar:1,updatedAt:1}}).sort({key:1}).toArray());const b=req.body||{},key=clean(b.key,80);await c.updateOne({key},{$set:{key,en:clean(b.en,2000),ar:clean(b.ar,2000),updatedAt:now()}},{upsert:true});res.json({ok:true,key,en:b.en||'',ar:b.ar||''})};
+const _archive=async(req,res)=>{if(!_ctrlAuth(req))return res.status(401).json({message:'Admin authentication required'});try{const oid=new mongoose.Types.ObjectId(req.params.id);await mongoose.connection.collection('securityarticles').updateOne({_id:oid},{$set:{status:'archived',updatedAt:now()}});res.json({ok:true,status:'archived'})}catch(e){res.status(400).json({message:'Invalid article id'})}};
+install('get','/api/admin/activity',_activity);install('post','/api/admin/activity',_activity);install('get','/api/site-content',_content);install('get','/api/admin/site-content',_content);install('patch','/api/admin/site-content',_content);install('patch','/api/admin/articles/:id/archive',_archive);
+'''
+            p.write_text(s+'\n'+extra,encoding='utf-8')
+          PY
+          git config user.name 'SecurityTrainer2025'
+          git config user.email 'abdallahabdalaziz@yahoo.com'
+          git add frontend/admin.html backend/overrides.js frontend/admin-center.js
+          git diff --cached --quiet || (git commit -m 'Wire Admin control center' && git push)
