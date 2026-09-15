@@ -1,6 +1,22 @@
 (()=>{
- const btn=document.getElementById('langBtn');
- const apply=dir=>{document.documentElement.dir=dir;document.documentElement.lang=dir==='rtl'?'ar':'en';document.querySelectorAll('[data-en][data-ar]').forEach(el=>{el.textContent=dir==='rtl'?el.dataset.ar:el.dataset.en});if(btn)btn.textContent=dir==='rtl'?'EN + AR':'AR + EN'};
- const saved=localStorage.getItem('siLang')||'en';apply(saved==='ar'?'rtl':'ltr');
- btn?.addEventListener('click',()=>{const next=document.documentElement.dir==='rtl'?'ltr':'rtl';localStorage.setItem('siLang',next==='rtl'?'ar':'en');apply(next)});
+  const bilingualize=()=>{
+    document.querySelectorAll('[data-en][data-ar]').forEach(el=>{
+      if(el.dataset.biDone==='1')return;
+      const en=el.dataset.en||'';
+      const ar=el.dataset.ar||'';
+      el.innerHTML=`<span class="bi-en" dir="ltr">${en}</span><span class="bi-ar" dir="rtl">${ar}</span>`;
+      el.dataset.biDone='1';
+    });
+    document.documentElement.lang='en';
+    document.documentElement.dir='ltr';
+  };
+  bilingualize();
+  const btn=document.getElementById('langBtn');
+  if(btn){
+    const replacement=btn.cloneNode(true);
+    replacement.textContent='AR + EN | العربية + English';
+    replacement.setAttribute('aria-label','Bilingual interface / واجهة ثنائية اللغة');
+    replacement.title='Bilingual interface / واجهة ثنائية اللغة';
+    btn.replaceWith(replacement);
+  }
 })();
