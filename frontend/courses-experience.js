@@ -1,23 +1,142 @@
-(function(){
-  const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';
-  const COURSES=[
-    {slug:'traffic-management-vehicle-control',en:'TRAFFIC MANAGEMENT & VEHICLE CONTROL',ar:'إدارة حركة المرور والتحكم في المركبات في الموقع',image:'assets/courses/04_Vehicle_Search_Security_Inspection.jpg',objectives:{en:['Understand the importance of professional site traffic management.','Identify various categories of vehicular and pedestrian traffic.','Master the 6 basic traffic hand signals and whistle codes.','Enforce strict parking rules and deploy parking lot technologies.','Apply traffic calming measures to reduce vehicle speed and accidents.'],ar:['فهم الأهمية البالغة لإدارة وتنظيم حركة المرور في مواقع العمل الحيوية.','تحديد وفصل الفئات المختلفة لحركة المركبات والمشاة لحفظ السلامة.','إتقان الحركات والإشارات الست الأساسية لتوجيه المرور يدويًا وإشارات الصافرة.','تطبيق قواعد المواقف الصارمة وتوظيف تقنيات إدارة المواقف الحديثة.','تطبيق تدابير تهدئة حركة المرور الهندسية لخفض السرعات والحد من الحوادث.']}},
-    {slug:'crowd-management-event-security',en:'CROWD MANAGEMENT & EVENT SECURITY',ar:'إدارة الحشود وتأمين الفعاليات والمناسبات الكبرى',image:'assets/courses/02_Crowd_Management_Event_Security.jpg',objectives:{en:['Understand the basic concepts of crowd dynamics and group psychology.','Analyze different categories of crowds and expect their behaviors.','Apply 8 scientific countermeasures to control hostile and unruly crowds.','Deploy basic riot and crowd control formations in special events.','Implement strict access control and screening policies in Gulf environments.'],ar:['فهم المفاهيم الأساسية لديناميكيات الحشود وعلم نفس الجماهير.','تحليل الفئات المختلفة للحشود وتوقع مسارات سلوكياتها بدقة.','تطبيق 8 تدابير مضادة علمية للسيطرة على الحشود المشاغبة والعدائية.','نشر وتشكيل قوات مكافحة الشغب والسيطرة على الحشود في الفعاليات.','تطبيق سياسات صارمة لتنظيم الدخول والتفتيش تلائم بيئة الخليج العربي.']}},
-    {slug:'fire-safety-emergency-response',en:'FIRE SAFETY & EMERGENCY RESPONSE',ar:'السلامة من الحرائق وتدابير الاستجابة للطوارئ',image:'assets/courses/03_Fire_Safety_Emergency_Response.jpg',objectives:{en:['Master the core physics and chemistry of fire tetrahedron dynamics.','Identify fire classifications and select portable agents per NFPA 10.','Demonstrate proper response and validation of fire alarm systems.','Apply tactical countermeasures including RACE, arson prevention, and security.','Manage mass evacuations and incident command structures per NFPA 101.'],ar:['إتقان المفاهيم الأساسية لكيمياء الحريق وديناميكيات رباعي الأوجه.','تصنيف أنواع الحرائق واختيار وسائط الإطفاء المناسبة بموجب NFPA 10.','تطبيق الاستجابة الصحيحة وتأكيد تنبيهات لوحات الكشف والإنذار.','تنفيذ تدابير الوقاية مثل RACE، ومكافحة الافتعال المتعمد، وتأمين المنشأة.','قيادة عمليات الإخلاء الجماعي وإدارة الحوادث بموجب معايير NFPA 101.']}},
-    {slug:'vehicle-search-security-inspection',en:'VEHICLE SEARCH & SECURITY INSPECTION',ar:'تفتيش المركبات والتفتيش الأمني',image:'assets/courses/01_Traffic_Management_Vehicle_Control.jpg',objectives:{en:['Professional vehicle search procedures.','Security inspection points and systematic search methods.','Identification of suspicious items and security concerns.','Safe communication and coordination during vehicle screening.','Documentation and escalation of security findings.'],ar:['إجراءات تفتيش المركبات بطريقة مهنية ومنهجية.','نقاط التفتيش الأمني وأساليب التفتيش المنظم.','التعرف على المواد أو الحالات المشبوهة والمخاطر الأمنية.','التواصل والتنسيق الآمن أثناء تفتيش المركبات.','توثيق نتائج التفتيش ورفع الحالات الأمنية وفق الإجراءات.']}},
-    {slug:'person-search-security-screening',en:'PERSON SEARCH & SECURITY SCREENING',ar:'تفتيش الأشخاص وإجراءات التفتيش الأمني',image:'assets/courses/05_Person_Search_Security_Screening.jpg',objectives:{en:['Professional person-search procedures.','Security screening principles and controlled access.','Use of screening equipment and search techniques.','Respectful communication and professional conduct.','Documentation and escalation of security findings.'],ar:['إجراءات تفتيش الأشخاص بطريقة مهنية.','مبادئ التفتيش الأمني وتنظيم الدخول للمناطق المصرح بها.','استخدام أجهزة التفتيش وأساليب البحث الأمني المناسبة.','التواصل باحترام والالتزام بالسلوك المهني أثناء التفتيش.','توثيق نتائج التفتيش ورفع الحالات الأمنية وفق الإجراءات.']}}
+(function () {
+  const API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || 'https://security-instructor.onrender.com';
+  const COURSES = [
+    { slug:'traffic-management-vehicle-control', en:'TRAFFIC MANAGEMENT & VEHICLE CONTROL', ar:'إدارة حركة المرور والتحكم في المركبات في الموقع', image:'assets/courses/04_Vehicle_Search_Security_Inspection.jpg', objectives:{ en:['Understand the importance of professional site traffic management.','Identify various categories of vehicular and pedestrian traffic.','Master the 6 basic traffic hand signals and whistle codes.','Enforce strict parking rules and deploy parking lot technologies.','Apply traffic calming measures to reduce vehicle speed and accidents.'], ar:['فهم الأهمية البالغة لإدارة وتنظيم حركة المرور في مواقع العمل الحيوية.','تحديد وفصل الفئات المختلفة لحركة المركبات والمشاة لحفظ السلامة.','إتقان الحركات والإشارات الست الأساسية لتوجيه المرور يدويًا وإشارات الصافرة.','تطبيق قواعد المواقف الصارمة وتوظيف تقنيات إدارة المواقف الحديثة.','تطبيق تدابير تهدئة حركة المرور الهندسية لخفض السرعات والحد من الحوادث.'] } },
+    { slug:'crowd-management-event-security', en:'CROWD MANAGEMENT & EVENT SECURITY', ar:'إدارة الحشود وتأمين الفعاليات والمناسبات الكبرى', image:'assets/courses/02_Crowd_Management_Event_Security.jpg', objectives:{ en:['Understand the basic concepts of crowd dynamics and group psychology.','Analyze different categories of crowds and expect their behaviors.','Apply 8 scientific countermeasures to control hostile and unruly crowds.','Deploy basic riot and crowd control formations in special events.','Implement strict access control and screening policies in Gulf environments.'], ar:['فهم المفاهيم الأساسية لديناميكيات الحشود وعلم نفس الجماهير.','تحليل الفئات المختلفة للحشود وتوقع مسارات سلوكياتها بدقة.','تطبيق 8 تدابير مضادة علمية للسيطرة على الحشود المشاغبة والعدائية.','نشر وتشكيل قوات مكافحة الشغب والسيطرة على الحشود في الفعاليات.','تطبيق سياسات صارمة لتنظيم الدخول والتفتيش تلائم بيئة الخليج العربي.'] } },
+    { slug:'fire-safety-emergency-response', en:'FIRE SAFETY & EMERGENCY RESPONSE', ar:'السلامة من الحرائق وتدابير الاستجابة للطوارئ', image:'assets/courses/03_Fire_Safety_Emergency_Response.jpg', objectives:{ en:['Master the core physics and chemistry of fire tetrahedron dynamics.','Identify fire classifications and select portable agents per NFPA 10.','Demonstrate proper response and validation of fire alarm systems.','Apply tactical countermeasures including RACE, arson prevention, and security.','Manage mass evacuations and incident command structures per NFPA 101.'], ar:['إتقان المفاهيم الأساسية لكيمياء الحريق وديناميكيات رباعي الأوجه.','تصنيف أنواع الحرائق واختيار وسائط الإطفاء المناسبة بموجب NFPA 10.','تطبيق الاستجابة الصحيحة وتأكيد تنبيهات لوحات الكشف والإنذار.','تنفيذ تدابير الوقاية مثل RACE، ومكافحة الافتعال المتعمد، وتأمين المنشأة.','قيادة عمليات الإخلاء الجماعي وإدارة الحوادث بموجب معايير NFPA 101.'] } },
+    { slug:'vehicle-search-security-inspection', en:'VEHICLE SEARCH & SECURITY INSPECTION', ar:'تفتيش المركبات والتفتيش الأمني', image:'assets/courses/01_Traffic_Management_Vehicle_Control.jpg', objectives:{ en:['Professional vehicle search procedures.','Security inspection points and systematic search methods.','Identification of suspicious items and security concerns.','Safe communication and coordination during vehicle screening.','Documentation and escalation of security findings.'], ar:['إجراءات تفتيش المركبات بطريقة مهنية ومنهجية.','نقاط التفتيش الأمني وأساليب التفتيش المنظم.','التعرف على المواد أو الحالات المشبوهة والمخاطر الأمنية.','التواصل والتنسيق الآمن أثناء تفتيش المركبات.','توثيق نتائج التفتيش ورفع الحالات الأمنية وفق الإجراءات.'] } },
+    { slug:'person-search-security-screening', en:'PERSON SEARCH & SECURITY SCREENING', ar:'تفتيش الأشخاص وإجراءات التفتيش الأمني', image:'assets/courses/05_Person_Search_Security_Screening.jpg', objectives:{ en:['Professional person-search procedures.','Security screening principles and controlled access.','Use of screening equipment and search techniques.','Respectful communication and professional conduct.','Documentation and escalation of security findings.'], ar:['إجراءات تفتيش الأشخاص بطريقة مهنية.','مبادئ التفتيش الأمني وتنظيم الدخول للمناطق المصرح بها.','استخدام أجهزة التفتيش وأساليب البحث الأمني المناسبة.','التواصل باحترام والالتزام بالسلوك المهني أثناء التفتيش.','توثيق نتائج التفتيش ورفع الحالات الأمنية وفق الإجراءات.'] } }
   ];
-  const esc=s=>String(s??'').replace(/[&<>\\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\"':'&quot;'}[m]));
-  const bi=(en,ar,cls='')=>`<div class="bi ${cls}"><span class="bi-en" dir="ltr">${esc(en)}</span><span class="bi-ar" dir="rtl">${esc(ar)}</span></div>`;
-  const modal=()=>document.querySelector('#courseModal'), body=()=>document.querySelector('#courseModalBody');
-  function show(html){body().innerHTML=html;modal().setAttribute('aria-hidden','false');}
-  function preview(c){show(`<div class="course-detail"><div class="course-detail-media"><img src="${c.image}" onerror="this.src='assets/course-previews/course-placeholder.svg'" alt="${esc(c.en)}"></div><div class="course-detail-content">${bi(c.en,c.ar,'detail-title')}<span class="course-status">Available / متاحة</span><div class="objectives-grid"><div><h3>Course Objectives & Learning Outcomes</h3><ul class="objectives">${c.objectives.en.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div class="rtl-column"><h3 dir="rtl">أهداف الدورة والمخرجات التعليمية</h3><ul class="objectives" dir="rtl">${c.objectives.ar.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div><p class="preview-note"><b>Public Preview / معاينة عامة:</b> This preview shows the course objectives and learning outcomes. Full training materials are not publicly downloadable. / تعرض هذه المعاينة أهداف الدورة ومخرجات التعلم، ولا تتاح المواد التدريبية الكاملة للتنزيل العام.</p></div></div><div class="course-flow-actions"><a class="btn gold" href="course-assessment-v2.html?course=${encodeURIComponent(c.slug)}">${bi('Initial Assessment','التقييم المبدئي')}</a><button class="btn outline" id="previewRegister">${bi('Registration','التسجيل')}</button></div>`);document.querySelector('#previewRegister').onclick=()=>registration(c)}
-  function registration(c){show(`<div class="registration-head">${bi('Course Registration','التسجيل في الدورة')}<span>${bi(c.en,c.ar)}</span></div><form id="courseRegistrationForm" class="course-registration-form"><div class="form-grid"><label>Arabic First Name / الاسم الأول بالعربية<input name="arabicFirstName" required></label><label>Arabic Middle Name / اسم الأب بالعربية<input name="arabicMiddleName" required></label><label>Arabic Last Name / اسم العائلة بالعربية<input name="arabicLastName" required></label><label>English First Name / الاسم الأول بالإنجليزية<input name="englishFirstName" required></label><label>English Middle Name / اسم الأب بالإنجليزية<input name="englishMiddleName" required></label><label>English Last Name / اسم العائلة بالإنجليزية<input name="englishLastName" required></label><label>ID Type / نوع الهوية<select name="idType" required><option value="">Select / اختر</option><option value="national_id">National ID / الهوية الوطنية</option><option value="iqama">Iqama / الإقامة</option><option value="passport">Passport / جواز السفر</option></select></label><label>ID Number / رقم الهوية<input name="idNumber" required></label><label>Mobile / الجوال<input name="mobile" required></label><label>Email / البريد الإلكتروني<input name="email" type="email" required></label><label>Registration Type / نوع التسجيل<select name="registrationType" id="registrationType" required><option value="individual">Individual / فردي</option><option value="company">Company / شركة</option></select></label><label class="company-field">Company Name / اسم الشركة<input name="companyName"></label><label class="company-field">Company Contact / مسؤول الشركة<input name="companyContact"></label><label class="company-field">Company Email / بريد الشركة<input name="companyEmail" type="email"></label></div><label class="consent"><input type="checkbox" name="consent" required> I confirm that the information provided is accurate and I agree to the course registration process. / أقر بصحة البيانات وأوافق على إجراءات التسجيل في الدورة.</label><input type="hidden" name="courseSlug" value="${c.slug}"><div id="registrationStatus" class="status"></div><div class="course-flow-actions"><button class="btn gold" type="submit">Submit Registration / إرسال التسجيل</button><button class="btn outline" type="button" id="backPreview">Back to Preview / العودة للمعاينة</button></div></form>`);const f=document.querySelector('#courseRegistrationForm'),type=document.querySelector('#registrationType');function company(){document.querySelectorAll('.company-field').forEach(x=>x.style.display=type.value==='company'?'grid':'none')}type.onchange=company;company();document.querySelector('#backPreview').onclick=()=>preview(c);f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f),payload=Object.fromEntries(fd.entries());payload.consent=f.consent.checked;try{const r=await fetch(API+'/api/course-registration',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),data=await r.json();if(!r.ok)throw new Error(data.message||'Registration failed');show(`<div class="registration-success">${bi('Registration Submitted Successfully','تم إرسال التسجيل بنجاح')}<div class="registration-id">Enrollment ID: ${esc(data.enrollmentId)}</div><div class="registration-id">Trainee ID: ${esc(data.traineeId)}</div><p>${bi('Your registration has been added to the training administration system for processing.','تمت إضافة تسجيلك إلى نظام إدارة التدريب ليتم التعامل معه ومتابعته.')}</p><button class="btn gold" id="closeSuccess">Close / إغلاق</button></div>`);document.querySelector('#closeSuccess').onclick=()=>modal().setAttribute('aria-hidden','true')}catch(err){document.querySelector('#registrationStatus').textContent=err.message+' / تعذر إكمال التسجيل.'}}}}
-  function render(){const grid=document.querySelector('#courseGrid');if(!grid)return;grid.innerHTML=COURSES.map(c=>`<article class="course-card"><div class="course-card-media"><img src="${c.image}" onerror="this.src='assets/course-previews/course-placeholder.svg'" alt="${esc(c.en)}"><span>Available / متاحة</span></div><div class="course-card-body">${bi(c.en,c.ar,'course-title-bi')}${bi('Course objectives and learning outcomes.','أهداف الدورة ومخرجات التعلم.','course-summary')}<div class="course-flow-actions"><button class="btn gold" data-preview="${c.slug}">${bi('Preview Course','معاينة الدورة')}</button><a class="btn outline" href="course-assessment-v2.html?course=${encodeURIComponent(c.slug)}">${bi('Initial Assessment','التقييم المبدئي')}</a><button class="btn outline" data-register="${c.slug}">${bi('Registration','التسجيل')}</button></div></div></article>`).join('');grid.querySelectorAll('[data-preview]').forEach(b=>b.onclick=()=>preview(COURSES.find(c=>c.slug===b.dataset.preview)));grid.querySelectorAll('[data-register]').forEach(b=>b.onclick=()=>registration(COURSES.find(c=>c.slug===b.dataset.register)))}
-  function ensureCourseRenderer(){const grid=document.querySelector('#courseGrid');if(!grid)return;const ours=grid.querySelectorAll('.course-flow-actions').length===COURSES.length&&grid.querySelectorAll('[data-preview]').length===COURSES.length&&grid.querySelectorAll('[data-register]').length===COURSES.length&&grid.querySelectorAll('a[href*="course-assessment-v2.html"]').length===COURSES.length;if(!ours)render()}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();
-  setTimeout(render,800);
-  const gridObserver=new MutationObserver(()=>ensureCourseRenderer());
-  const startObserver=()=>{const grid=document.querySelector('#courseGrid');if(grid){gridObserver.observe(grid,{childList:true,subtree:true});ensureCourseRenderer();}};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObserver);else startObserver();
+
+  const esc = value => String(value ?? '').replace(/[&<>\"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;' }[ch]));
+  const bi = (en, ar, cls='') => `<div class="bi ${cls}"><span class="bi-en" dir="ltr">${esc(en)}</span><span class="bi-ar" dir="rtl">${esc(ar)}</span></div>`;
+  const modal = () => document.querySelector('#courseModal');
+  const modalBody = () => document.querySelector('#courseModalBody');
+
+  function show(html) {
+    modalBody().innerHTML = html;
+    modal().setAttribute('aria-hidden', 'false');
+  }
+
+  function preview(course) {
+    show(`
+      <div class="course-detail">
+        <div class="course-detail-media"><img src="${course.image}" onerror="this.src='assets/course-previews/course-placeholder.svg'" alt="${esc(course.en)}"></div>
+        <div class="course-detail-content">
+          ${bi(course.en, course.ar, 'detail-title')}
+          <span class="course-status">Available / متاحة</span>
+          <div class="objectives-grid">
+            <div><h3>Course Objectives & Learning Outcomes</h3><ul class="objectives">${course.objectives.en.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+            <div class="rtl-column"><h3 dir="rtl">أهداف الدورة والمخرجات التعليمية</h3><ul class="objectives" dir="rtl">${course.objectives.ar.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+          </div>
+          <p class="preview-note"><b>Public Preview / معاينة عامة:</b> This preview shows the course objectives and learning outcomes. Full training materials are not publicly downloadable. / تعرض هذه المعاينة أهداف الدورة ومخرجات التعلم، ولا تتاح المواد التدريبية الكاملة للتنزيل العام.</p>
+        </div>
+      </div>
+      <div class="course-flow-actions">
+        <a class="btn gold" href="course-assessment-v2.html?course=${encodeURIComponent(course.slug)}">${bi('Initial Assessment','التقييم المبدئي')}</a>
+        <button class="btn outline" id="previewRegister">${bi('Registration','التسجيل')}</button>
+      </div>
+    `);
+    document.querySelector('#previewRegister').onclick = () => registration(course);
+  }
+
+  function registration(course) {
+    show(`
+      <div class="registration-head">${bi('Course Registration','التسجيل في الدورة')}<span>${bi(course.en, course.ar)}</span></div>
+      <form id="courseRegistrationForm" class="course-registration-form">
+        <div class="form-grid">
+          <label>Arabic First Name / الاسم الأول بالعربية<input name="arabicFirstName" required></label>
+          <label>Arabic Middle Name / اسم الأب بالعربية<input name="arabicMiddleName" required></label>
+          <label>Arabic Last Name / اسم العائلة بالعربية<input name="arabicLastName" required></label>
+          <label>English First Name / الاسم الأول بالإنجليزية<input name="englishFirstName" required></label>
+          <label>English Middle Name / اسم الأب بالإنجليزية<input name="englishMiddleName" required></label>
+          <label>English Last Name / اسم العائلة بالإنجليزية<input name="englishLastName" required></label>
+          <label>ID Type / نوع الهوية<select name="idType" required><option value="">Select / اختر</option><option value="national_id">National ID / الهوية الوطنية</option><option value="iqama">Iqama / الإقامة</option><option value="passport">Passport / جواز السفر</option></select></label>
+          <label>ID Number / رقم الهوية<input name="idNumber" required></label>
+          <label>Mobile / الجوال<input name="mobile" required></label>
+          <label>Email / البريد الإلكتروني<input name="email" type="email" required></label>
+          <label>Registration Type / نوع التسجيل<select name="registrationType" id="registrationType" required><option value="individual">Individual / فردي</option><option value="company">Company / شركة</option></select></label>
+          <label class="company-field">Company Name / اسم الشركة<input name="companyName"></label>
+          <label class="company-field">Company Contact / مسؤول الشركة<input name="companyContact"></label>
+          <label class="company-field">Company Email / بريد الشركة<input name="companyEmail" type="email"></label>
+        </div>
+        <label class="consent"><input type="checkbox" name="consent" required> I confirm that the information provided is accurate and I agree to the course registration process. / أقر بصحة البيانات وأوافق على إجراءات التسجيل في الدورة.</label>
+        <input type="hidden" name="courseSlug" value="${course.slug}">
+        <div id="registrationStatus" class="status"></div>
+        <div class="course-flow-actions"><button class="btn gold" type="submit">Submit Registration / إرسال التسجيل</button><button class="btn outline" type="button" id="backPreview">Back to Preview / العودة للمعاينة</button></div>
+      </form>
+    `);
+
+    const form = document.querySelector('#courseRegistrationForm');
+    const type = document.querySelector('#registrationType');
+    const toggleCompany = () => document.querySelectorAll('.company-field').forEach(el => { el.style.display = type.value === 'company' ? 'grid' : 'none'; });
+    type.onchange = toggleCompany;
+    toggleCompany();
+    document.querySelector('#backPreview').onclick = () => preview(course);
+
+    form.onsubmit = async function (event) {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
+      payload.consent = form.consent.checked;
+      try {
+        const response = await fetch(API + '/api/course-registration', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Registration failed');
+        show(`<div class="registration-success">${bi('Registration Submitted Successfully','تم إرسال التسجيل بنجاح')}<div class="registration-id">Enrollment ID: ${esc(data.enrollmentId)}</div><div class="registration-id">Trainee ID: ${esc(data.traineeId)}</div><p>${bi('Your registration has been added to the training administration system for processing.','تمت إضافة تسجيلك إلى نظام إدارة التدريب ليتم التعامل معه ومتابعته.')}</p><button class="btn gold" id="closeSuccess">Close / إغلاق</button></div>`);
+        document.querySelector('#closeSuccess').onclick = () => modal().setAttribute('aria-hidden','true');
+      } catch (error) {
+        document.querySelector('#registrationStatus').textContent = error.message + ' / تعذر إكمال التسجيل.';
+      }
+    };
+  }
+
+  function render() {
+    const grid = document.querySelector('#courseGrid');
+    if (!grid) return;
+    grid.innerHTML = COURSES.map(course => `
+      <article class="course-card">
+        <div class="course-card-media"><img src="${course.image}" onerror="this.src='assets/course-previews/course-placeholder.svg'" alt="${esc(course.en)}"><span>Available / متاحة</span></div>
+        <div class="course-card-body">
+          ${bi(course.en, course.ar, 'course-title-bi')}
+          ${bi('Course objectives and learning outcomes.','أهداف الدورة ومخرجات التعلم.','course-summary')}
+          <div class="course-flow-actions">
+            <button class="btn gold" data-preview="${course.slug}">${bi('Preview Course','معاينة الدورة')}</button>
+            <a class="btn outline" href="course-assessment-v2.html?course=${encodeURIComponent(course.slug)}">${bi('Initial Assessment','التقييم المبدئي')}</a>
+            <button class="btn outline" data-register="${course.slug}">${bi('Registration','التسجيل')}</button>
+          </div>
+        </div>
+      </article>
+    `).join('');
+
+    grid.querySelectorAll('[data-preview]').forEach(button => {
+      button.onclick = () => preview(COURSES.find(course => course.slug === button.dataset.preview));
+    });
+    grid.querySelectorAll('[data-register]').forEach(button => {
+      button.onclick = () => registration(COURSES.find(course => course.slug === button.dataset.register));
+    });
+  }
+
+  function ensureCourseRenderer() {
+    const grid = document.querySelector('#courseGrid');
+    if (!grid) return;
+    const correct = grid.querySelectorAll('.course-flow-actions').length === COURSES.length &&
+      grid.querySelectorAll('[data-preview]').length === COURSES.length &&
+      grid.querySelectorAll('[data-register]').length === COURSES.length &&
+      grid.querySelectorAll('a[href*="course-assessment-v2.html"]').length === COURSES.length;
+    if (!correct) render();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+  else render();
+
+  const observer = new MutationObserver(ensureCourseRenderer);
+  const start = () => {
+    const grid = document.querySelector('#courseGrid');
+    if (!grid) return;
+    observer.observe(grid, { childList:true, subtree:true });
+    ensureCourseRenderer();
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
 })();
