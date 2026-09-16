@@ -4,15 +4,16 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node -e \"require('./course-management-routes.js');require('./document-registry-routes.js');require('./start.js')\""
+    "start": "node -e \"require('./course-management-routes.js');require('./document-registry-routes.js');require('./training-certificate-routes.js');require('./start.js')\""
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
-    "express-rate-limit": "^8.0.1",
+    "express-rate-limit": "^8.1.0",
     "helmet": "^8.1.0",
     "mongoose": "^8.18.0",
-    "nodemailer": "^7.0.6"
+    "nodemailer": "^7.0.6",
+    "qrcode": "^1.5.4"
   }
 }
