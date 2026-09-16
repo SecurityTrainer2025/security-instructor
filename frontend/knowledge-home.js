@@ -10,8 +10,8 @@ function lockHomepageBilingual(){
     el.innerHTML=`<span class="bi-en" dir="ltr">${esc(el.dataset.en||'')}</span><span class="bi-ar" dir="rtl">${esc(el.dataset.ar||'')}</span>`;
     el.dataset.biLocked='1';
   });
-  const map={'Security Professionals':'متخصصو الأمن','Safety & Emergency':'السلامة والطوارئ','Trainers & Learning Leaders':'المدربون وقادة التعلم','Security Operations':'العمليات الأمنية','Training & Competency':'التدريب والكفاءة','Digital Training Operations':'عمليات التدريب الرقمي'};
-  document.querySelectorAll('.expert-card h3,.case-card h3,.page-card h3').forEach(el=>{if(el.querySelector('.bi-en'))return;const en=el.textContent.trim(),ar=map[en];if(ar)el.innerHTML=bi(en,ar);});
+  const map={'Security Professionals':['Security Professionals','متخصصو الأمن'],'Safety & Emergency':['Occupational Health & Safety in the Workplace','الصحة والسلامة المهنية في أماكن العمل'],'Trainers & Learning Leaders':['Trainers & Learning Leaders','المدربون وقادة التعلم'],'Security Operations':['Security Operations','العمليات الأمنية'],'Training & Competency':['Training & Competency','التدريب والكفاءة'],'Digital Training Operations':['Digital Training Operations','عمليات التدريب الرقمي']};
+  document.querySelectorAll('.expert-card h3,.case-card h3,.page-card h3').forEach(el=>{if(el.querySelector('.bi-en'))return;const pair=map[el.textContent.trim()];if(pair)el.innerHTML=bi(pair[0],pair[1]);});
   const cv=document.querySelector('a[href*="Abdallah_Shalaby_CV_English_V3.pdf"]');
   if(cv){cv.href='cv.html';cv.removeAttribute('target');cv.innerHTML=bi('View CV','عرض السيرة الذاتية');}
   const lang=document.getElementById('langBtn');
