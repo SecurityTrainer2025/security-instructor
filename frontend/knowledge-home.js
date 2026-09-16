@@ -21,4 +21,6 @@ function lockHomepageBilingual(){
 const paintIndexBilingual=()=>lockHomepageBilingual();
 const render=()=>{const host=document.getElementById('featuredArticle');if(host)host.innerHTML=featured();lockHomepageBilingual();};
 lockHomepageBilingual();
+document.addEventListener('DOMContentLoaded',lockHomepageBilingual);
+setTimeout(lockHomepageBilingual,0);
 fetch(API+'/api/articles',{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(()=>render()).catch(()=>render());
