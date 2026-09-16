@@ -1,58 +1,13 @@
 (function(){
   const qs=new URLSearchParams(location.search);
   const course=qs.get('course')||'traffic-management-vehicle-control';
-  const status=document.createElement('div');
-  status.id='siAssessmentStatus';
-  status.style.cssText='position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:2147482000;background:rgba(11,31,51,.96);border:1px solid #c8a96b;color:#fff;padding:7px 12px;font:700 11px Arial;border-radius:4px;pointer-events:none';
-  status.textContent='SI • Protected Assessment / التقييم المحمي';
-  document.body.appendChild(status);
-  function waitSecurity(){
-    if(!window.SIVisitorSecurity){setTimeout(waitSecurity,100);return;}
-    window.SIVisitorSecurity.protect({allowFrameFocus:true});
-    start();
-  }
-  async function start(){
-    const gate=await window.SIVisitorSecurity.startAttempt('assessment',course);
-    if(gate.error){
-      // The assessment must remain usable even if the analytics/attempt API is temporarily unavailable.
-      // The question bank and score are handled locally; certificate issuance can be retried later.
-      status.textContent='Protected Assessment / التقييم المحمي';
-      window.__siAssessmentAttemptId=null;
-      window.__siAssessmentOffline=true;
-      observeResult(null);
-      return;
-    }
-    window.__siAssessmentOffline=false;
-    status.textContent='Attempt '+gate.attemptNumber+' of 2 / المحاولة '+gate.attemptNumber+' من 2';
-    observeResult(gate.attemptId);
-  }
-  function observeResult(attemptId){
-    let sent=false;
-    const check=()=>{
-      if(sent)return;
-      const result=document.getElementById('result'),scoreEl=document.getElementById('score');
-      if(!result||!scoreEl)return;
-      if(getComputedStyle(result).display==='none')return;
-      const m=String(scoreEl.textContent||'').match(/(\d+)\s*\/\s*10/); if(!m)return;
-      sent=true;
-      const score=Number(m[1]),pass=score>=7;
-      const save=attemptId?window.SIVisitorSecurity.completeAttempt(attemptId,score):Promise.resolve({error:'offline'});
-      save.then(()=>{
-        status.textContent=pass?'Passed 7/10+ / اجتياز':'Below 7/10 / أقل من 7 من 10';
-        const box=document.createElement('div');
-        box.style.cssText='background:#0B1F33;color:#fff;border:1px solid #c8a96b;padding:18px;margin:20px;text-align:center;font-family:Arial';
-        if(pass){
-          box.innerHTML='<b style="color:#c8a96b;font-size:18px">Certificate eligible / مؤهل للشهادة</b><br><button id="siIssueAssessmentCert" style="margin-top:12px;padding:10px 14px;background:#c8a96b;color:#101820;border:1px solid #c8a96b;font-weight:800;cursor:pointer">Issue Certificate / إصدار الشهادة</button>';
-          result.appendChild(box);
-          document.getElementById('siIssueAssessmentCert').onclick=()=>window.SIVisitorSecurity.certPrompt({attemptId});
-        }else{
-          box.innerHTML='<span>First attempt did not reach 7/10. You may use one more attempt. / المحاولة الأولى لم تصل إلى 7 من 10، ويمكنك استخدام محاولة أخرى.</span>';
-          result.appendChild(box);
-        }
-      });
-    };
-    const observer=new MutationObserver(check); observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
-    setInterval(check,500);
-  }
-  const s=document.createElement('script');s.src='security-visitor.js?v=20260916';s.onload=waitSecurity;document.head.appendChild(s);
+  const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';
+  const status=document.createElement('div');status.id='siAssessmentStatus';status.style.cssText='position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:2147482000;background:rgba(11,31,51,.96);border:1px solid #c8a96b;color:#fff;padding:7px 12px;font:700 11px Arial;border-radius:4px;pointer-events:none';status.textContent='SI • Protected Assessment / التقييم المحمي';document.body.appendChild(status);
+  function waitSecurity(){if(!window.SIVisitorSecurity){setTimeout(waitSecurity,100);return}window.SIVisitorSecurity.protect({allowFrameFocus:true});start()}
+  async function start(){const gate=await window.SIVisitorSecurity.startAttempt('assessment',course);if(gate.error){status.textContent='Protected Assessment / التقييم المحمي';window.__siAssessmentAttemptId=null;window.__siAssessmentOffline=true;observeResult(null);return}window.__siAssessmentOffline=false;status.textContent='Attempt '+gate.attemptNumber+' of 2 / المحاولة '+gate.attemptNumber+' من 2';observeResult(gate.attemptId)}
+  function visitorId(){return window.SIVisitorSecurity.visitorId()}
+  async function issueLetter(attemptId,name){try{const r=await fetch(API+'/api/visitor/thank-you-letter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitorId:visitorId(),attemptId,recipientName:name})});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||'Unable to issue thank-you letter');location.href='thank-you-letter.html?id='+encodeURIComponent(d.letterId)}catch(e){const el=document.getElementById('siLetterError');if(el)el.textContent=e.message+' / تعذر إصدار خطاب الشكر'}}
+  function showLetterBox(result,attemptId){const box=document.createElement('div');box.style.cssText='background:#0B1F33;color:#fff;border:1px solid #c8a96b;padding:18px;margin:20px;text-align:center;font-family:Arial';box.innerHTML='<b style="color:#c8a96b;font-size:18px">Thank You Letter / خطاب شكر وتقدير</b><p style="color:#cbd5df;line-height:1.7;margin:10px 0">Issued for successfully passing the initial assessment. / يُصدر تقديرًا لاجتياز التقييم المبدئي بنجاح.</p><input id="siLetterName" maxlength="160" autocomplete="name" placeholder="Full Name / الاسم الكامل" style="width:min(420px,90%);padding:11px;border:1px solid #c8a96b;background:#fff;color:#0B1F33"><br><button id="siIssueLetter" style="margin-top:12px;padding:11px 16px;background:#c8a96b;color:#101820;border:1px solid #c8a96b;font-weight:800;cursor:pointer">Issue Letter / إصدار الخطاب</button><div id="siLetterError" style="color:#ffb4b4;margin-top:10px;font-size:13px"></div>';result.appendChild(box);document.getElementById('siIssueLetter').onclick=()=>{const name=document.getElementById('siLetterName').value.trim();if(name.length<2){document.getElementById('siLetterError').textContent='Please enter your full name / يرجى إدخال الاسم الكامل';return}issueLetter(attemptId,name)}}
+  function observeResult(attemptId){let sent=false;const check=()=>{if(sent)return;const result=document.getElementById('result'),scoreEl=document.getElementById('score');if(!result||!scoreEl||getComputedStyle(result).display==='none')return;const m=String(scoreEl.textContent||'').match(/(\d+)\s*\/\s*10/);if(!m)return;sent=true;const score=Number(m[1]),pass=score>=7;const save=attemptId?window.SIVisitorSecurity.completeAttempt(attemptId,score):Promise.resolve({error:'offline'});save.then(()=>{status.textContent=pass?'Passed 7/10+ / اجتياز':'Below 7/10 / أقل من 7 من 10';if(pass&&attemptId)showLetterBox(result,attemptId);else if(!pass){const box=document.createElement('div');box.style.cssText='background:#0B1F33;color:#fff;border:1px solid #c8a96b;padding:18px;margin:20px;text-align:center;font-family:Arial';box.innerHTML='<span>First attempt did not reach 7/10. You may use one more attempt. / المحاولة الأولى لم تصل إلى 7 من 10، ويمكنك استخدام محاولة أخرى.</span>';result.appendChild(box)}})};const observer=new MutationObserver(check);observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});setInterval(check,500)}
+  const s=document.createElement('script');s.src='security-visitor.js?v=20260916-5';s.onload=waitSecurity;document.head.appendChild(s);
 })();
