@@ -24,3 +24,4 @@ lockHomepageBilingual();
 document.addEventListener('DOMContentLoaded',lockHomepageBilingual);
 setTimeout(lockHomepageBilingual,0);
 fetch(API+'/api/articles',{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(()=>render()).catch(()=>render());
+(function loadPublicCourses(){const s=document.createElement('script');s.src='courses-public-fallback.js?v=1';s.defer=true;document.head.appendChild(s);})();
