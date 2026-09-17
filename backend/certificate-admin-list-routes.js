@@ -10,7 +10,7 @@ if(!express.application.__si_certificate_admin_list_route){
   express.application.__si_certificate_admin_list_route=true;
   const originalGet=express.application.get;
   express.application.get=function(route,...handlers){
-    if(route==='/api/admin/certificates'||route==='/api/admin/training-certificates'){
+    if(route==='/api/admin/certificates'||route==='/api/admin/certificates/list'||route==='/api/admin/training-certificates'){
       return originalGet.call(this,route,async(req,res)=>{
         if(!verifyAdmin(req))return res.status(401).json({message:'Admin authentication required'});
         try{
