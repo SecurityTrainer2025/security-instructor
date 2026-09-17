@@ -8,6 +8,11 @@
   status.textContent='SI • Protected Assessment / التقييم المحمي';
   document.body.appendChild(status);
 
+  let resultCheckTimer=null;
+  let resultCheckRunning=false;
+  let processedKey='';
+  let lastObservedScore=null;
+
   function waitSecurity(){
     if(!window.SIVisitorSecurity){setTimeout(waitSecurity,100);return;}
     window.SIVisitorSecurity.protect({allowFrameFocus:true});
@@ -77,7 +82,6 @@
 
   function showSecondPassNotice(){
     if(document.getElementById('siVisitorSecondPass'))return;
-    const result=document.getElementById('result');
     const host=document.querySelector('.wrap')||document.body;
     const box=document.createElement('div');box.id='siVisitorSecondPass';
     box.style.cssText='background:#102A43;color:#fff;border:1px solid #c8a96b;padding:18px;margin:24px auto;text-align:center;font-family:Arial,Tahoma,sans-serif;max-width:850px';
@@ -120,29 +124,43 @@
     }
   }
 
-  function observeResult(attemptId){
-    let lastScore=null;
-    const check=async()=>{
-      const result=document.getElementById('result'),scoreEl=document.getElementById('score');
-      if(!result||!scoreEl||getComputedStyle(result).display==='none')return;
-      const m=String(scoreEl.textContent||'').match(/(\d+)\s*\/\s*10/);
-      if(!m)return;
-      const score=Number(m[1]);
-      if(lastScore===score&&document.getElementById('siVisitorLetterBox'))return;
-      lastScore=score;
-      status.textContent=score>=7?'Passed 7/10+ / اجتياز':'Below 7/10 / أقل من 7 من 10';
-      await handleResult(score,attemptId||window.__siAssessmentAttemptId||null);
-      if(attemptId&&window.SIVisitorSecurity?.completeAttempt){
-        Promise.resolve(window.SIVisitorSecurity.completeAttempt(attemptId,score)).catch(err=>console.warn('Visitor attempt save failed:',err));
+  function scheduleResultCheck(attemptId){
+    if(resultCheckTimer)return;
+    resultCheckTimer=setTimeout(async()=>{
+      resultCheckTimer=null;
+      if(resultCheckRunning)return;
+      resultCheckRunning=true;
+      try{
+        const result=document.getElementById('result'),scoreEl=document.getElementById('score');
+        if(!result||!scoreEl||getComputedStyle(result).display==='none')return;
+        const m=String(scoreEl.textContent||'').match(/(\d+)\s*\/\s*10/);
+        if(!m)return;
+        const score=Number(m[1]);
+        const activeAttemptId=attemptId||window.__siAssessmentAttemptId||null;
+        const key=String(activeAttemptId||'')+':'+score+':'+String(window.__siAssessmentAttemptNumber||'');
+        if(key===processedKey)return;
+        if(lastObservedScore===score && (document.getElementById('siVisitorLetterBox')||document.getElementById('siVisitorFailNotice')||document.getElementById('siVisitorSecondPass')))return;
+        lastObservedScore=score;
+        status.textContent=score>=7?'Passed 7/10+ / اجتياز':'Below 7/10 / أقل من 7 من 10';
+        await handleResult(score,activeAttemptId);
+        processedKey=key;
+        if(activeAttemptId&&window.SIVisitorSecurity?.completeAttempt){
+          Promise.resolve(window.SIVisitorSecurity.completeAttempt(activeAttemptId,score)).catch(err=>console.warn('Visitor attempt save failed:',err));
+        }
+      }finally{
+        resultCheckRunning=false;
       }
-    };
-    const observer=new MutationObserver(()=>check());
+    },150);
+  }
+
+  function observeResult(attemptId){
+    const observer=new MutationObserver(()=>scheduleResultCheck(attemptId));
     observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
-    setInterval(check,500);
+    scheduleResultCheck(attemptId);
   }
 
   const s=document.createElement('script');
-  s.src='security-visitor.js?v=20260916-10';
+  s.src='security-visitor.js?v=20260917-12';
   s.onload=waitSecurity;
   document.head.appendChild(s);
 })();
