@@ -21,3 +21,28 @@
   window.addEventListener('DOMContentLoaded',boot);
 })();
 (function(){var s=document.createElement('script');s.src='reports-center.js?v=20260915';document.head.appendChild(s);var o=document.createElement('script');o.src='operations-report.js?v=20260915';document.head.appendChild(o);var c=document.createElement('script');c.src='course-management.js?v=20260915';document.head.appendChild(c);var v=document.createElement('script');v.src='visitor-analytics.js?v=20260916';document.head.appendChild(v);})();
+
+// Reliable enrollment status update: use the backend POST fallback before the legacy inline PATCH handler.
+(function(){
+  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||''),'Content-Type':'application/json'});
+  async function updateEnrollmentStatus(select){
+    const id=select.dataset.status,status=select.value;
+    const r=await fetch(API+'/api/admin/enrollments/'+encodeURIComponent(id)+'/status',{method:'POST',headers:auth(),body:JSON.stringify({status})});
+    let d={};try{d=await r.json()}catch{}
+    if(!r.ok)throw new Error(d.message||'Unable to update enrollment status');
+    return d;
+  }
+  document.addEventListener('change',async function(e){
+    const s=e.target&&e.target.matches&&e.target.matches('select[data-status]')?e.target:null;
+    if(!s)return;
+    e.stopImmediatePropagation();
+    try{
+      await updateEnrollmentStatus(s);
+      if(typeof toast==='function')toast('تم تحديث الحالة بنجاح');
+    }catch(err){
+      if(typeof toast==='function')toast(err.message);
+      else alert(err.message);
+    }
+  },true);
+})();
