@@ -4,7 +4,7 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node -e \"require('./course-management-routes.js');require('./document-registry-routes.js');require('./training-certificate-routes.js');require('./enrollment-management-routes.js');require('./batch-management-routes.js');require('./start.js')\""
+    "start": "node -e \"require('./course-management-routes.js');require('./document-registry-routes.js');require('./certificate-admin-list-routes.js');require('./training-certificate-routes.js');require('./enrollment-management-routes.js');require('./batch-management-routes.js');require('./start.js')\""
   },
   "dependencies": {
     "cors": "^2.8.5",
