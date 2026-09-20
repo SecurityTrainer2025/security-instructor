@@ -29,7 +29,7 @@
   async function completeAndIssue(id,btn){
     const old=btn.textContent;btn.disabled=true;btn.textContent='جاري الإصدار… / Processing…';
     try{
-      const r=await fetch(API+'/api/admin/enrollments/'+encodeURIComponent(id)+'/status',{method:'POST',headers:auth(),body:JSON.stringify({status:'completed'})});
+      const r=await fetch(API+'/api/admin/enrollments/'+encodeURIComponent(id)+'/complete-certificate',{method:'POST',headers:auth(),body:JSON.stringify({})});
       let d={};try{d=await r.json()}catch{}
       if(!r.ok)throw new Error(d.message||'Unable to complete enrollment');
       if(d.status!=='completed')throw new Error('Enrollment was not completed');
