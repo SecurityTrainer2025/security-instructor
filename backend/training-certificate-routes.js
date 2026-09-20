@@ -67,8 +67,8 @@ function registerTrainingCertificateDirectRoutes(app){
       const cert=await Certificate.findOne({certificateId}).lean();
       if(!cert)return res.status(404).json({message:'Certificate not found'});
       const verificationUrl=cert.verificationUrl||verifyLink(certificateId);
-      const png=await QRCode.toBuffer(verificationUrl,{type:'png',width:300,margin:2,errorCorrectionLevel:'H',color:{dark:'#0B1F33',light:'#FFFFFF'}});
-      res.set('Cache-Control','no-store').type('png').send(png);
+      const svg=await QRCode.toString(verificationUrl,{type:'svg',width:300,margin:2,errorCorrectionLevel:'H',color:{dark:'#0B1F33',light:'#FFFFFF'}});
+      res.set('Cache-Control','no-store').type('image/svg+xml').send(svg);
     }catch(err){console.error('Certificate QR failed',err);res.status(500).json({message:'Unable to generate certificate QR'})}
   });
   app.get('/api/verify/training-certificate',async(req,res)=>{
