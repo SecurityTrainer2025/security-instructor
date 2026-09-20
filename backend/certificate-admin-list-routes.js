@@ -1,6 +1,7 @@
 const express=require('express');
 const mongoose=require('mongoose');
 const crypto=require('crypto');
+const {issueForEnrollment}=require('./training-certificate-routes.js');
 require('dotenv').config();
 
 const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
@@ -16,7 +17,7 @@ if(!express.application.__si_certificate_admin_list_route){
         try{
           const db=mongoose.connection.db;
           if(!db)throw new Error('Database connection is not ready');
-          const rows=await db.collection('trainingcertificates').find({}).sort({issuedAt:-1}).limit(20000).toArray();
+          const completed=await db.collection('enrollments').find({status:'completed'},{projection:{enrollmentId:1}}).limit(20000).toArray();for(const row of completed){try{await issueForEnrollment(row.enrollmentId)}catch(e){console.error('Certificate list repair failed for',row.enrollmentId,e)}}const rows=await db.collection('trainingcertificates').find({}).sort({issuedAt:-1}).limit(20000).toArray();
           res.status(200).json({summary:{certificates:rows.length},certificates:rows});
         }catch(e){console.error('Certificate admin list error',e);res.status(500).json({message:'Unable to load training certificates: '+clean(e.message,240)})}
       });
