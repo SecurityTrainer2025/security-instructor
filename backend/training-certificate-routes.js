@@ -19,9 +19,11 @@ const nextId=()=>`SI-CERT-${new Date().getFullYear()}-${crypto.randomBytes(5).to
 async function send(to,subject,text,html){const t=transport();if(!t)return false;const from=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim();await t.sendMail({from,replyTo:from,to,subject,text,html});return true}
 async function issueForEnrollment(enrollmentId){
   const e=await Enrollment.findOne({enrollmentId}).lean();
-  if(!e||e.status!=='completed')return null;
+  if(!e)throw new Error('Enrollment not found');
+  if(e.status!=='completed')throw new Error('Enrollment must be completed before a certificate can be issued');
   const t=await Trainee.findOne({traineeId:e.traineeId}).lean();
-  if(!t||!t.email)return null;
+  if(!t)throw new Error('Trainee not found for this enrollment');
+  if(!t.email)throw new Error('Trainee email is missing');
   const existing=await Certificate.findOne({enrollmentId}).lean();
   if(existing)return existing;
   const nameEn=[t.englishFirstName,t.englishMiddleName,t.englishLastName].filter(Boolean).join(' ');
