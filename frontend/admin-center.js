@@ -22,6 +22,38 @@
 })();
 (function(){var s=document.createElement('script');s.src='reports-center.js?v=20260915';document.head.appendChild(s);var o=document.createElement('script');o.src='operations-report.js?v=20260915';document.head.appendChild(o);var c=document.createElement('script');c.src='course-management.js?v=20260915';document.head.appendChild(c);var v=document.createElement('script');v.src='visitor-analytics.js?v=20260916';document.head.appendChild(v);var b=document.createElement('script');b.src='batches-center.js?v=20260917';document.head.appendChild(b);var cert=document.createElement('script');cert.src='certificates-center.js?v=20260920';document.head.appendChild(cert);})();
 
+// Direct completion action: finish a pending enrollment and issue its certificate from the Registrations tab.
+(function(){
+  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||''),'Content-Type':'application/json'});
+  async function completeAndIssue(id,btn){
+    const old=btn.textContent;btn.disabled=true;btn.textContent='جاري الإصدار… / Processing…';
+    try{
+      const r=await fetch(API+'/api/admin/enrollments/'+encodeURIComponent(id)+'/status',{method:'POST',headers:auth(),body:JSON.stringify({status:'completed'})});
+      let d={};try{d=await r.json()}catch{}
+      if(!r.ok)throw new Error(d.message||'Unable to complete enrollment');
+      if(d.status!=='completed')throw new Error('Enrollment was not completed');
+      if(!d.certificateIssued)throw new Error('Enrollment was completed, but the certificate was not created.');
+      if(typeof toast==='function')toast('تم إكمال التسجيل وإصدار الشهادة بنجاح / Certificate issued');
+      if(typeof window.SICertificates?.refresh==='function')await window.SICertificates.refresh();
+      const refresh=document.getElementById('enrollRefresh');if(refresh)refresh.click();
+    }catch(e){btn.disabled=false;btn.textContent=old;alert(e.message)}
+  }
+  function enhance(){
+    document.querySelectorAll('#enrollRows tr').forEach(row=>{
+      const select=row.querySelector('select[data-status]');if(!select||row.querySelector('[data-complete-issue]'))return;
+      if(['completed','cancelled'].includes(select.value))return;
+      const b=document.createElement('button');b.type='button';b.className='btn alt';b.dataset.completeIssue=select.dataset.status;b.style.marginInlineStart='8px';b.style.padding='7px 10px';b.textContent='إكمال وإصدار الشهادة';
+      b.onclick=()=>completeAndIssue(select.dataset.status,b);
+      select.parentElement.appendChild(b);
+    });
+  }
+  const host=document.getElementById('enrollRows');
+  if(host)new MutationObserver(enhance).observe(host,{childList:true,subtree:true});
+  document.addEventListener('change',e=>{if(e.target?.matches?.('select[data-status]'))setTimeout(enhance,50)},true);
+  setTimeout(enhance,500);
+})();
+
 // Reliable enrollment status update: use the backend POST fallback before the legacy inline PATCH handler.
 (function(){
   const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
