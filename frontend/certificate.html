@@ -13,12 +13,12 @@
 .shield{position:absolute;left:12mm;top:63mm;width:46mm;height:60mm;opacity:.07;border:5mm solid var(--navy2);clip-path:polygon(50% 0,92% 15%,84% 72%,50% 100%,16% 72%,8% 15%);pointer-events:none}
 .sideText{position:absolute;right:19mm;top:78mm;width:34mm;text-align:center;color:var(--navy);opacity:.62;font-size:7px;line-height:1.8;letter-spacing:.12em;font-weight:800;z-index:1}.sideDash{width:9mm;height:1.3mm;background:var(--gold);margin:3mm auto 0}.shieldText{position:absolute;left:17mm;top:78mm;width:36mm;text-align:center;color:var(--navy);opacity:.55;font-size:7px;line-height:1.8;letter-spacing:.12em;font-weight:800;z-index:1}
 .corner{display:none}.ribbon{position:absolute;z-index:3;right:-28mm;top:5mm;width:82mm;height:10mm;background:var(--gold2);transform:rotate(45deg);box-shadow:0 7mm 0 0 var(--navy2),0 7mm 0 1mm var(--gold)}.sideRibbon{position:absolute;left:-28mm;bottom:5mm;width:82mm;height:10mm;background:var(--gold2);transform:rotate(45deg);z-index:3;box-shadow:0 7mm 0 0 var(--navy2),0 7mm 0 1mm var(--gold)}
-
 .inner{position:relative;z-index:5;margin:8mm 13mm 5mm;height:calc(210mm - 13mm);display:flex;flex-direction:column}
 .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #d9d2c5;padding:1mm 8mm 5mm 8mm}.brand{display:flex;align-items:center;gap:8px}.logo{font-size:52px;font-weight:900;color:var(--gold);line-height:1}.brand{gap:10px}.brand b{display:block;color:var(--navy);letter-spacing:.12em;font-size:17px}.brand small{display:block;color:var(--muted);letter-spacing:.08em;font-size:7.5px;margin-top:3px}.motto{text-align:right;color:var(--navy);font-size:8px;line-height:1.55;font-weight:900;letter-spacing:.07em;padding-top:2mm}.motto span{font-family:Tahoma,Arial,sans-serif;font-size:8px}
 .heading{text-align:center;margin:7mm 0 2mm}.ey{color:#92702F;font-size:8px;letter-spacing:.25em;font-weight:900}.heading h1{font:700 39px Georgia,serif;color:var(--navy);margin:3mm 0 0}.heading h2{font-family:Tahoma,Arial,sans-serif;color:#A37B2B;font-size:23px;margin:1mm 0 0}
 .certify{text-align:center;color:var(--navy);font-size:9px;letter-spacing:.30em;font-weight:900;margin-top:3mm}.name{font:700 35px Georgia,serif;color:var(--navy);text-align:center;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);padding:2.5mm 10mm;margin:2mm auto 2.5mm;min-width:145mm;max-width:215mm}.completed{text-align:center;font-size:11px;color:#243342;line-height:1.5}.completed b{font-size:17px;color:var(--navy)}.courseAr{font-family:Tahoma,Arial,sans-serif;font-weight:700;font-size:15px}
 .statement{display:grid;grid-template-columns:1fr 1fr;gap:16mm;margin:4mm 17mm 0}.statement p{margin:0;font-size:9px;line-height:1.6;color:#3f4b55}.statement .ar{direction:rtl;text-align:right;font-family:Tahoma,Arial,sans-serif}
+.topics{margin:3.5mm 15mm 0;padding-top:2.5mm;border-top:1px solid rgba(200,169,107,.75);display:none}.topics.show{display:block}.topics-title{display:flex;align-items:center;justify-content:center;gap:4mm;color:#92702F;font-size:8px;letter-spacing:.18em;font-weight:900;text-transform:uppercase}.topics-title .ar{font-family:Tahoma,Arial,sans-serif;letter-spacing:0;font-size:10px}.topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm 12mm;margin-top:2.5mm}.topic{display:flex;align-items:center;gap:2.2mm;color:#243342;font-size:8.2px;line-height:1.25}.topic .dot{width:4.5mm;height:4.5mm;border:1px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 4.5mm;color:#92702F;font-size:7px;font-weight:900}.topic .ar{font-family:Tahoma,Arial,sans-serif;font-size:8px;direction:rtl;margin-left:auto;text-align:right}
 .bottom{position:absolute;left:7mm;right:7mm;bottom:10mm;display:grid;grid-template-columns:1.2fr 1fr 1fr;align-items:end;gap:9mm;padding:0 5mm}.details{font-size:9px;line-height:1.35;color:var(--muted);padding-bottom:1mm}.details .row{margin-top:1.8mm}.details b{display:block;color:var(--navy);font-size:7.2px;letter-spacing:.06em}.details span{color:#1d2d3b;font-weight:800}
 .seal{width:42mm;height:42mm;margin:auto;border-radius:50%;background:var(--navy2);border:2mm double var(--gold);box-shadow:0 0 0 1mm #e7d29e;display:flex;align-items:center;justify-content:center;position:relative;color:var(--gold);text-align:center}.seal:before{content:"★  SECURITY INSTRUCTOR  ★";position:absolute;inset:3mm;border:1px solid var(--gold);border-radius:50%;font-size:5px;letter-spacing:.08em;padding-top:2mm}.seal strong{font-size:27px;color:#fff;z-index:1}.seal small{position:absolute;bottom:7mm;font-size:4.5px;letter-spacing:.08em;color:var(--gold);z-index:1}
 .sign{display:flex;align-items:flex-end;justify-content:center;gap:7mm}.signature{font-family:"Brush Script MT","Segoe Script",cursive;color:var(--navy);font-size:31px;border-bottom:1px solid var(--gold);padding:0 8mm 1mm;display:inline-block}.sign small{display:block;margin-top:1.5mm;font-size:6px;color:#8A6C30;font-weight:800}
@@ -26,7 +26,7 @@
 .footer{position:absolute;bottom:4mm;left:13mm;right:13mm;border-top:1px solid var(--gold);padding-top:1.8mm;display:flex;justify-content:space-between;color:#8A6C30;font-size:6px;font-weight:900;letter-spacing:.1em}
 .error{position:absolute;left:50%;bottom:22mm;transform:translateX(-50%);padding:4mm 8mm;background:var(--navy);color:#fff;border:1px solid var(--gold);width:70%;text-align:center;font-size:11px}
 .actions{text-align:center;margin:16px}.actions button{background:var(--gold);color:#101820;border:1px solid var(--gold);padding:10px 18px;font-weight:900;cursor:pointer}
-@media(max-width:1000px){.wrap{width:calc(100% - 16px);height:auto;min-height:210mm;margin:8px}.inner{height:auto;margin:25px}.statement,.bottom{grid-template-columns:1fr}.motto{text-align:left}.sign{display:block}.footer{position:static;margin-top:20px}.error{position:static;transform:none;margin:20px auto}}
+@media(max-width:1000px){.wrap{width:calc(100% - 16px);height:auto;min-height:210mm;margin:8px}.inner{height:auto;margin:25px}.statement,.bottom,.topic-grid{grid-template-columns:1fr}.motto{text-align:left}.sign{display:block}.footer{position:static;margin-top:20px}.error{position:static;transform:none;margin:20px auto}}
 @media print{body{background:#fff}.wrap{margin:0;width:297mm;height:210mm;box-shadow:none;border:2px solid var(--gold);page-break-inside:avoid}.actions{display:none}@page{size:A4 landscape;margin:0}}
 </style>
 </head>
@@ -40,6 +40,18 @@
 <div id="name" class="name">Loading…</div>
 <div class="completed">has successfully completed the training course for<br><b id="courseEn">—</b><br><span id="courseAr" class="courseAr" dir="rtl">—</span></div>
 <section class="statement"><p>Demonstrating a good understanding of key concepts and safety practices.</p><p class="ar">وقد أظهر فهمًا جيدًا للمفاهيم الأساسية وممارسات السلامة المتعلقة بهذا المجال.</p></section>
+<section id="topics" class="topics">
+<div class="topics-title"><span>TRAINING TOPICS COVERED</span><span class="ar" dir="rtl">المواضيع التدريبية التي تم تناولها</span></div>
+<div class="topic-grid">
+<div class="topic"><span class="dot">1</span><span>Fire Science & Building Hazards</span><span class="ar">علوم الحريق ومخاطر المنشآت</span></div>
+<div class="topic"><span class="dot">2</span><span>Fire Classifications & Extinguishing Agents</span><span class="ar">تصنيف الحرائق ووسائط الإطفاء</span></div>
+<div class="topic"><span class="dot">3</span><span>Fire Detection & Alarm Systems</span><span class="ar">أنظمة كشف وإنذار الحريق</span></div>
+<div class="topic"><span class="dot">4</span><span>Fire Suppression Systems</span><span class="ar">أنظمة إطفاء الحريق</span></div>
+<div class="topic"><span class="dot">5</span><span>RACE Emergency Response</span><span class="ar">الاستجابة للطوارئ باستخدام RACE</span></div>
+<div class="topic"><span class="dot">6</span><span>Fire Emergency Plans & Security</span><span class="ar">خطط الطوارئ وأمن المنشآت</span></div>
+<div class="topic"><span class="dot">7</span><span>Emergency Evacuation & Egress Safety</span><span class="ar">الإخلاء ومخارج الطوارئ</span></div>
+<div class="topic"><span class="dot">8</span><span>Incident Command & Emergency Coordination</span><span class="ar">إدارة الحوادث والتنسيق في الطوارئ</span></div>
+</div></section>
 <section class="bottom">
 <div class="details">
 <div class="row"><b>DATE / التاريخ</b><span id="date">—</span></div>
@@ -61,6 +73,8 @@ try{
 if(!id)throw new Error('Certificate ID is required');
 const r=await fetch(API+'/api/training-certificates/'+encodeURIComponent(id),{cache:'no-store'});const raw=await r.text();let d;try{d=JSON.parse(raw)}catch{throw new Error('Certificate service returned an invalid response')};if(!r.ok)throw new Error(d.message||'Certificate not found');
 document.getElementById('name').textContent=d.recipientNameEn||d.recipientNameAr||'—';document.getElementById('courseEn').textContent=d.courseNameEn||'—';document.getElementById('courseAr').textContent=d.courseNameAr||'—';document.getElementById('date').textContent=d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';document.getElementById('id').textContent=d.certificateId||'—';document.getElementById('trainee').textContent=d.traineeId||'—';document.getElementById('idNumber').textContent=d.idNumber||'—';
+const course=(d.courseNameEn||'').toLowerCase();
+if(course.includes('fire safety')||course.includes('emergency response'))document.getElementById('topics').classList.add('show');
 const verify=API+'/api/verify/training-certificate?id='+encodeURIComponent(d.certificateId);const qrImg=document.createElement('img');qrImg.alt='Certificate verification QR';qrImg.src=API+'/api/training-certificates/'+encodeURIComponent(d.certificateId)+'/qr?v='+encodeURIComponent(d.certificateId);qrImg.onerror=function(){document.getElementById('qr').textContent='QR verification unavailable';};document.getElementById('qr').appendChild(qrImg);document.getElementById('verifyLink').href=verify;
 }catch(e){fail(e.message)}
 })();
