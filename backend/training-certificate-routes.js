@@ -51,4 +51,36 @@ install('get','/api/training-certificates/:certificateId',async(req,res)=>{try{c
 install('get','/api/training-certificates/:certificateId/qr',async(req,res)=>{try{const c=await Certificate.findOne({certificateId:clean(req.params.certificateId,100)}).lean();if(!c)return res.status(404).end();const png=await QRCode.toBuffer(c.verificationUrl,{width:180,margin:1,color:{dark:'#0B1F33',light:'#FFFFFF'}});res.type('png').send(png)}catch(err){res.status(500).end()}});
 install('get','/api/verify/training-certificate',async(req,res)=>{try{const c=await Certificate.findOne({certificateId:clean(req.query?.id,100)}).lean();if(!c)return res.status(404).json({valid:false,message:'Certificate not found'});const t=await Trainee.findOne({traineeId:c.traineeId}).lean();res.json({valid:c.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:c.certificateId,traineeId:c.traineeId,recipientNameEn:c.recipientNameEn,recipientNameAr:c.recipientNameAr,courseNameEn:c.courseNameEn,courseNameAr:c.courseNameAr,idType:c.idType||t?.idType||'',idNumber:c.idNumber||t?.idNumber||'',issuedAt:c.issuedAt,status:c.verificationStatus})}catch(err){res.status(500).json({valid:false,message:'Unable to verify certificate'})}});
 install('get','/api/admin/training-certificates',async(req,res)=>{if(!(await adminAuth(req)))return res.status(401).json({message:'Admin authentication required'});try{const rows=await Certificate.find({}).sort({issuedAt:-1}).limit(20000).lean();res.json({summary:{certificates:rows.length},certificates:rows})}catch(err){res.status(500).json({message:'Unable to load training certificates'})}});
-module.exports={issueForEnrollment};
+function registerTrainingCertificateDirectRoutes(app){
+  app.get('/api/training-certificates/:certificateId',async(req,res)=>{
+    try{
+      const certificateId=clean(req.params.certificateId,100);
+      const cert=await Certificate.findOne({certificateId}).lean();
+      if(!cert)return res.status(404).json({message:'Certificate not found'});
+      const trainee=await Trainee.findOne({traineeId:cert.traineeId}).lean();
+      res.set('Cache-Control','no-store').json({...cert,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||''});
+    }catch(err){console.error('Certificate load failed',err);res.status(500).json({message:'Unable to load certificate'})}
+  });
+  app.get('/api/training-certificates/:certificateId/qr',async(req,res)=>{
+    try{
+      const certificateId=clean(req.params.certificateId,100);
+      const cert=await Certificate.findOne({certificateId}).lean();
+      if(!cert)return res.status(404).json({message:'Certificate not found'});
+      const verificationUrl=cert.verificationUrl||verifyLink(certificateId);
+      const png=await QRCode.toBuffer(verificationUrl,{type:'png',width:300,margin:2,errorCorrectionLevel:'H',color:{dark:'#0B1F33',light:'#FFFFFF'}});
+      res.set('Cache-Control','no-store').type('png').send(png);
+    }catch(err){console.error('Certificate QR failed',err);res.status(500).json({message:'Unable to generate certificate QR'})}
+  });
+  app.get('/api/verify/training-certificate',async(req,res)=>{
+    try{
+      const certificateId=clean(req.query?.id,100);
+      if(!certificateId)return res.status(400).json({valid:false,message:'Certificate ID is required'});
+      const cert=await Certificate.findOne({certificateId}).lean();
+      if(!cert)return res.status(404).json({valid:false,message:'Certificate not found'});
+      const trainee=await Trainee.findOne({traineeId:cert.traineeId}).lean();
+      res.set('Cache-Control','no-store').json({valid:cert.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:cert.certificateId,traineeId:cert.traineeId,recipientNameEn:cert.recipientNameEn,recipientNameAr:cert.recipientNameAr,courseNameEn:cert.courseNameEn,courseNameAr:cert.courseNameAr,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||'',issuedAt:cert.issuedAt,status:cert.verificationStatus,verificationUrl:cert.verificationUrl||verifyLink(certificateId)});
+    }catch(err){console.error('Certificate verification failed',err);res.status(500).json({valid:false,message:'Unable to verify certificate'})}
+  });
+}
+
+module.exports={issueForEnrollment,registerTrainingCertificateDirectRoutes};
