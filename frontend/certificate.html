@@ -4,54 +4,52 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Certificate of Achievement | SECURITY INSTRUCTOR</title>
 <style>
-:root{--navy:#071A2D;--navy2:#0B1F33;--gold:#C8A96B;--gold2:#E4C987;--paper:#FAF9F5;--ink:#0B1F33;--muted:#596673}
+:root{--navy:#071A2D;--navy2:#0B1F33;--gold:#C8A96B;--gold2:#E2C27C;--paper:#FAF9F4;--ink:#0B1F33;--muted:#65717D}
 *{box-sizing:border-box}body{margin:0;background:var(--navy);font-family:Arial,Tahoma,sans-serif;color:var(--ink)}
-.wrap{width:297mm;min-height:210mm;margin:8mm auto;background:var(--paper);position:relative;overflow:hidden;border:2px solid var(--gold);box-shadow:0 0 0 7px var(--navy2)}
-.wrap:before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,107,.10),transparent 28%,transparent 72%,rgba(200,169,107,.08));pointer-events:none}
-.wrap:after{content:"SI";position:absolute;right:24mm;bottom:-20mm;font-size:155mm;font-weight:900;color:rgba(11,31,51,.035);transform:rotate(-8deg);pointer-events:none}
-.corner{position:absolute;z-index:2;width:58mm;height:58mm;overflow:hidden}
-.corner.tl{left:-22mm;top:-22mm;border-radius:50%;border:13mm solid var(--navy2);box-shadow:0 0 0 2mm var(--gold)}
-.corner.br{right:-25mm;bottom:-25mm;border-radius:50%;border:13mm solid var(--navy2);box-shadow:0 0 0 2mm var(--gold)}
-.ribbon{position:absolute;z-index:3;right:-24mm;top:7mm;width:78mm;height:9mm;background:var(--gold2);transform:rotate(45deg);box-shadow:0 2px 0 rgba(7,26,45,.35)}
-.inner{position:relative;z-index:4;margin:8mm 11mm 6mm;height:calc(210mm - 14mm);display:flex;flex-direction:column}
-.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #d8d0c1;padding-bottom:5mm}
-.brand{display:flex;align-items:center;gap:9px}.logo{font-size:44px;font-weight:900;color:var(--gold);line-height:1}.brand b{display:block;color:var(--navy);letter-spacing:.13em;font-size:16px}.brand small{display:block;color:var(--muted);letter-spacing:.08em;font-size:7px;margin-top:4px}
-.motto{text-align:right;color:var(--navy);font-size:7px;line-height:1.5;font-weight:800;letter-spacing:.05em}.motto span{font-family:Tahoma,Arial,sans-serif;font-size:8px}
-.heading{text-align:center;margin:8mm 0 2mm}.ey{color:#8A6C30;font-size:9px;letter-spacing:.22em;font-weight:900}.heading h1{font:700 32px Georgia,serif;color:var(--navy);margin:3mm 0 0}.heading h2{font-family:Tahoma,Arial,sans-serif;color:#A27A2B;font-size:21px;margin:1mm 0 0}
-.certify{text-align:center;color:var(--navy);font-size:10px;letter-spacing:.17em;font-weight:800;margin-top:2mm}
-.name{font:700 31px Georgia,serif;color:var(--navy);text-align:center;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);padding:3mm 10mm;margin:2mm auto 3mm;min-width:150mm;max-width:225mm}
-.completed{text-align:center;font-size:11px;color:#243342;line-height:1.5}.completed b{font-size:14px;color:var(--navy)}
-.course{margin:2mm auto 0;text-align:center;max-width:210mm}.course .en{font-weight:900;letter-spacing:.04em;font-size:14px;color:var(--navy)}.course .ar{direction:rtl;font-family:Tahoma,Arial,sans-serif;font-size:13px;font-weight:700;color:var(--navy);margin-top:1mm}
-.statement{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:4mm}.statement p{margin:0;font-size:9px;line-height:1.6;color:#394651}.statement .ar{direction:rtl;text-align:right;font-family:Tahoma,Arial,sans-serif}
-.bottom{display:grid;grid-template-columns:1.25fr .8fr .8fr;align-items:end;gap:9mm;margin-top:auto;padding-bottom:9mm}.details{font-size:8.5px;line-height:1.55;color:var(--muted)}.details .row{margin-top:1.8mm}.details b{display:block;color:var(--navy);font-size:7px;letter-spacing:.04em}.details span{color:#1d2d3b;font-weight:700}.sign{text-align:center}.signature{font-family:"Brush Script MT","Segoe Script",cursive;color:var(--navy);font-size:27px;border-bottom:1px solid var(--gold);padding:0 10mm 1mm;display:inline-block}.sign small{display:block;margin-top:2mm;font-size:7px;color:#8A6C30;font-weight:800}
-.qr{text-align:center}.qrbox{width:29mm;height:29mm;margin:auto;background:#fff;border:1px solid #ddd;display:flex;align-items:center;justify-content:center}.qrbox img{width:27mm;height:27mm}.qr a{display:inline-block;margin-top:1.5mm;color:var(--navy);font-size:7px;font-weight:900;text-decoration:none}.footer{position:absolute;bottom:4mm;left:11mm;right:11mm;border-top:1px solid var(--gold);padding-top:2mm;display:flex;justify-content:space-between;color:#8A6C30;font-size:6.5px;font-weight:900;letter-spacing:.1em}
+.wrap{width:297mm;height:210mm;margin:8mm auto;background:var(--paper);position:relative;overflow:hidden;border:2px solid var(--gold);box-shadow:0 0 0 7px var(--navy2)}
+.wrap:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 55%,rgba(200,169,107,.035),transparent 28%),repeating-linear-gradient(125deg,rgba(11,31,51,.018) 0 1px,transparent 1px 7px);pointer-events:none}
+.watermark{position:absolute;right:42mm;bottom:-18mm;font-size:150mm;line-height:1;font-weight:900;color:rgba(11,31,51,.035);transform:rotate(-8deg);pointer-events:none}
+.world{position:absolute;right:7mm;top:66mm;width:52mm;height:48mm;opacity:.10;background-image:radial-gradient(circle,#0B1F33 1px,transparent 1.5px);background-size:5px 5px;clip-path:ellipse(48% 48% at 50% 50%);transform:rotate(-10deg)}
+.shield{position:absolute;left:12mm;top:69mm;width:43mm;height:57mm;opacity:.07;border:5mm solid var(--navy2);clip-path:polygon(50% 0,92% 15%,84% 72%,50% 100%,16% 72%,8% 15%);pointer-events:none}
+.shieldText{position:absolute;left:17mm;top:83mm;width:34mm;text-align:center;color:var(--navy);opacity:.55;font-size:7px;line-height:1.8;letter-spacing:.12em;font-weight:800;z-index:1}
+.corner{position:absolute;z-index:2;pointer-events:none}.corner.tl{left:-31mm;top:-31mm;width:62mm;height:62mm;border-radius:50%;border:10mm solid var(--navy2);box-shadow:0 0 0 2mm var(--gold)}.corner.br{right:-31mm;bottom:-31mm;width:62mm;height:62mm;border-radius:50%;border:10mm solid var(--navy2);box-shadow:0 0 0 2mm var(--gold)}
+.ribbon{position:absolute;z-index:3;right:-22mm;top:8mm;width:75mm;height:8mm;background:var(--gold2);transform:rotate(45deg);box-shadow:0 2px 0 rgba(7,26,45,.3)}
+.sideRibbon{position:absolute;left:-22mm;bottom:6mm;width:75mm;height:8mm;background:var(--gold2);transform:rotate(45deg);z-index:3}
+.inner{position:relative;z-index:5;margin:8mm 12mm 5mm;height:calc(210mm - 13mm);display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #d9d2c5;padding-bottom:4.5mm}.brand{display:flex;align-items:center;gap:8px}.logo{font-size:43px;font-weight:900;color:var(--gold);line-height:1}.brand b{display:block;color:var(--navy);letter-spacing:.13em;font-size:15px}.brand small{display:block;color:var(--muted);letter-spacing:.08em;font-size:7px;margin-top:3px}.motto{text-align:right;color:var(--navy);font-size:7px;line-height:1.55;font-weight:900;letter-spacing:.05em}.motto span{font-family:Tahoma,Arial,sans-serif;font-size:8px}
+.heading{text-align:center;margin:7mm 0 2mm}.ey{color:#92702F;font-size:8px;letter-spacing:.25em;font-weight:900}.heading h1{font:700 31px Georgia,serif;color:var(--navy);margin:3mm 0 0}.heading h2{font-family:Tahoma,Arial,sans-serif;color:#A37B2B;font-size:20px;margin:1mm 0 0}
+.certify{text-align:center;color:var(--navy);font-size:8px;letter-spacing:.28em;font-weight:900;margin-top:2mm}.name{font:700 29px Georgia,serif;color:var(--navy);text-align:center;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);padding:2.5mm 10mm;margin:2mm auto 2.5mm;min-width:145mm;max-width:215mm}.completed{text-align:center;font-size:10px;color:#243342;line-height:1.45}.completed b{font-size:14px;color:var(--navy)}.courseAr{font-family:Tahoma,Arial,sans-serif;font-weight:700;font-size:13px}
+.statement{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin:4mm 14mm 0}.statement p{margin:0;font-size:8.5px;line-height:1.55;color:#3f4b55}.statement .ar{direction:rtl;text-align:right;font-family:Tahoma,Arial,sans-serif}
+.bottom{display:grid;grid-template-columns:1.05fr 1fr .85fr;align-items:end;gap:7mm;margin-top:auto;padding:0 3mm 7mm}.details{font-size:8px;line-height:1.35;color:var(--muted)}.details .row{margin-top:1.4mm}.details b{display:block;color:var(--navy);font-size:6.7px;letter-spacing:.06em}.details span{color:#1d2d3b;font-weight:800}
+.seal{width:36mm;height:36mm;margin:auto;border-radius:50%;background:var(--navy2);border:2mm double var(--gold);box-shadow:0 0 0 1mm #e7d29e;display:flex;align-items:center;justify-content:center;position:relative;color:var(--gold);text-align:center}.seal:before{content:"★  SECURITY INSTRUCTOR  ★";position:absolute;inset:3mm;border:1px solid var(--gold);border-radius:50%;font-size:5px;letter-spacing:.08em;padding-top:2mm}.seal strong{font-size:22px;color:#fff;z-index:1}.seal small{position:absolute;bottom:7mm;font-size:4.5px;letter-spacing:.08em;color:var(--gold);z-index:1}
+.sign{text-align:center}.signature{font-family:"Brush Script MT","Segoe Script",cursive;color:var(--navy);font-size:26px;border-bottom:1px solid var(--gold);padding:0 8mm 1mm;display:inline-block}.sign small{display:block;margin-top:1.5mm;font-size:6px;color:#8A6C30;font-weight:800}
+.qr{text-align:center}.qrbox{width:27mm;height:27mm;margin:auto;background:#fff;border:1px solid #ddd;display:flex;align-items:center;justify-content:center}.qrbox img{width:25mm;height:25mm}.qr a{display:inline-block;margin-top:1.5mm;color:var(--navy);font-size:6.5px;font-weight:900;text-decoration:none}
+.footer{position:absolute;bottom:3.5mm;left:12mm;right:12mm;border-top:1px solid var(--gold);padding-top:1.8mm;display:flex;justify-content:space-between;color:#8A6C30;font-size:6px;font-weight:900;letter-spacing:.1em}
+.error{position:absolute;left:50%;bottom:22mm;transform:translateX(-50%);padding:4mm 8mm;background:var(--navy);color:#fff;border:1px solid var(--gold);width:70%;text-align:center;font-size:11px}
 .actions{text-align:center;margin:16px}.actions button{background:var(--gold);color:#101820;border:1px solid var(--gold);padding:10px 18px;font-weight:900;cursor:pointer}
-.error{margin:4mm auto;padding:4mm;background:var(--navy);color:#fff;border:1px solid var(--gold);max-width:210mm;text-align:center;font-size:12px}
-@media(max-width:1000px){.wrap{width:calc(100% - 16px);min-height:auto;margin:8px}.inner{height:auto;margin:25px}.statement,.bottom{grid-template-columns:1fr}.motto{text-align:left}.footer{position:static;margin-top:20px}}
-@media print{body{background:#fff}.wrap{margin:0;width:297mm;min-height:210mm;box-shadow:none;border:2px solid var(--gold);page-break-inside:avoid}.actions{display:none}@page{size:A4 landscape;margin:0}}
+@media(max-width:1000px){.wrap{width:calc(100% - 16px);height:auto;min-height:210mm;margin:8px}.inner{height:auto;margin:25px}.statement,.bottom{grid-template-columns:1fr}.motto{text-align:left}.footer{position:static;margin-top:20px}.error{position:static;transform:none;margin:20px auto}}
+@media print{body{background:#fff}.wrap{margin:0;width:297mm;height:210mm;box-shadow:none;border:2px solid var(--gold);page-break-inside:avoid}.actions{display:none}@page{size:A4 landscape;margin:0}}
 </style>
 </head>
 <body>
 <main id="certificate" class="wrap">
-<div class="corner tl"></div><div class="corner br"></div><div class="ribbon"></div>
+<div class="corner tl"></div><div class="corner br"></div><div class="ribbon"></div><div class="sideRibbon"></div><div class="watermark">SI</div><div class="world"></div><div class="shield"></div><div class="shieldText">SECURITY<br>SAFETY<br>AWARENESS<br>PREPAREDNESS</div>
 <div class="inner">
-<header class="top">
-<div class="brand"><div class="logo">SI</div><div><b>SECURITY INSTRUCTOR</b><small>KNOWLEDGE • SKILLS • SAFER COMMUNITIES</small></div></div>
-<div class="motto">TRAIN TODAY • BUILD A SAFER TOMORROW<br><span dir="rtl">تدرّب اليوم • ابنِ مستقبلاً أكثر أمانًا</span></div>
-</header>
-<section class="heading"><div class="ey">TRAINING CERTIFICATE</div><h1>Certificate of Achievement</h1><h2>شهادة إتمام</h2></section>
+<header class="top"><div class="brand"><div class="logo">SI</div><div><b>SECURITY INSTRUCTOR</b><small>KNOWLEDGE | SKILLS | SAFER COMMUNITIES</small></div></div><div class="motto">TRAIN TODAY • BUILD A SAFER TOMORROW<br><span dir="rtl">تدرّب اليوم • لمجتمع أكثر أمانًا</span></div></header>
+<section class="heading"><div class="ey">TRAINING CERTIFICATE</div><h1>Certificate of Achievement</h1><h2>شهادة إتمام دورة تدريبية</h2></section>
 <div class="certify">THIS IS TO CERTIFY THAT</div>
 <div id="name" class="name">Loading…</div>
-<div class="completed">has successfully completed the training course for<br><b id="courseEn">—</b><br><span id="courseAr" dir="rtl" style="font-family:Tahoma,Arial,sans-serif;font-weight:700">—</span></div>
-<section class="statement"><p>Demonstrating a good understanding of key concepts and safety practices.</p><p class="ar">وقد أظهر فهمًا جيدًا للمفاهيم الأساسية وممارسات السلامة بهذا المجال.</p></section>
+<div class="completed">has successfully completed the training course for<br><b id="courseEn">—</b><br><span id="courseAr" class="courseAr" dir="rtl">—</span></div>
+<section class="statement"><p>Demonstrating a good understanding of key concepts and safety practices.</p><p class="ar">وقد أظهر فهمًا جيدًا للمفاهيم الأساسية وممارسات السلامة المتعلقة بهذا المجال.</p></section>
 <section class="bottom">
 <div class="details">
+<div class="row"><b>SCORE / الدرجة</b><span id="score">—</span></div>
 <div class="row"><b>DATE / التاريخ</b><span id="date">—</span></div>
 <div class="row"><b>CERTIFICATE ID / رقم الشهادة</b><span id="id">—</span></div>
-<div class="row"><b>ID NUMBER / رقم الهوية</b><span id="idNumber">—</span></div>
 <div class="row"><b>TRAINEE ID / رقم المتدرب</b><span id="trainee">—</span></div>
+<div class="row"><b>ID NUMBER / رقم الهوية</b><span id="idNumber">—</span></div>
 </div>
-<div class="sign"><div class="signature">Abdalla Abdelaziz</div><small>FOUNDER / المؤسس</small></div>
+<div class="sign"><div class="seal"><div><strong>SI</strong></div><small>KNOWLEDGE BUILDS SAFER COMMUNITIES</small></div><div class="signature">Abdalla Abdelaziz</div></div>
 <div class="qr"><div id="qr" class="qrbox"></div><a id="verifyLink" href="#" target="_blank" rel="noopener">Verify Certificate / التحقق من الشهادة</a></div>
 </section>
 <footer class="footer"><span>SECURITY INSTRUCTOR</span><span>شهادة إتمام دورة تدريبية</span><span>KNOWLEDGE BUILDS SAFER COMMUNITIES</span></footer>
@@ -59,24 +57,13 @@
 <div class="actions"><button onclick="window.print()">Print / Save as PDF — طباعة / حفظ PDF</button></div>
 <script>
 (async function(){
-const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';
-const id=new URLSearchParams(location.search).get('id');
-const fail=msg=>{document.getElementById('name').textContent='Certificate not found / الشهادة غير موجودة';const e=document.createElement('div');e.className='error';e.textContent=msg;document.getElementById('certificate').appendChild(e)};
+const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';const id=new URLSearchParams(location.search).get('id');
+function fail(msg){document.getElementById('name').textContent='Certificate not found / الشهادة غير موجودة';const e=document.createElement('div');e.className='error';e.textContent=msg;document.getElementById('certificate').appendChild(e)}
 try{
 if(!id)throw new Error('Certificate ID is required');
-const r=await fetch(API+'/api/training-certificates/'+encodeURIComponent(id),{cache:'no-store'});
-const raw=await r.text();let d;try{d=JSON.parse(raw)}catch{throw new Error('Certificate service returned an invalid response')};
-if(!r.ok)throw new Error(d.message||'Certificate not found');
-document.getElementById('name').textContent=d.recipientNameEn||d.recipientNameAr||'—';
-document.getElementById('courseEn').textContent=d.courseNameEn||'—';
-document.getElementById('courseAr').textContent=d.courseNameAr||'—';
-document.getElementById('date').textContent=d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
-document.getElementById('id').textContent=d.certificateId||'—';
-document.getElementById('idNumber').textContent=d.idNumber||'—';
-document.getElementById('trainee').textContent=d.traineeId||'—';
-const verify=API+'/api/verify/training-certificate?id='+encodeURIComponent(d.certificateId);
-document.getElementById('qr').innerHTML='<img alt="Certificate verification QR" src="'+API+'/api/training-certificates/'+encodeURIComponent(d.certificateId)+'/qr">';
-document.getElementById('verifyLink').href=verify;
+const r=await fetch(API+'/api/training-certificates/'+encodeURIComponent(id),{cache:'no-store'});const raw=await r.text();let d;try{d=JSON.parse(raw)}catch{throw new Error('Certificate service returned an invalid response')};if(!r.ok)throw new Error(d.message||'Certificate not found');
+document.getElementById('name').textContent=d.recipientNameEn||d.recipientNameAr||'—';document.getElementById('courseEn').textContent=d.courseNameEn||'—';document.getElementById('courseAr').textContent=d.courseNameAr||'—';document.getElementById('date').textContent=d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';document.getElementById('id').textContent=d.certificateId||'—';document.getElementById('trainee').textContent=d.traineeId||'—';document.getElementById('idNumber').textContent=d.idNumber||'—';document.getElementById('score').textContent=d.score!=null?d.score+' / 10':'—';
+const verify=API+'/api/verify/training-certificate?id='+encodeURIComponent(d.certificateId);document.getElementById('qr').innerHTML='<img alt="Certificate verification QR" src="'+API+'/api/training-certificates/'+encodeURIComponent(d.certificateId)+'/qr">';document.getElementById('verifyLink').href=verify;
 }catch(e){fail(e.message)}
 })();
 </script>
