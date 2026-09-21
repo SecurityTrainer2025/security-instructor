@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand">SI &nbsp; SECURITY INSTRUCTOR — ADMIN</div><a id="publicSiteLink" class="hidden" href="../index.html">العودة للموقع / Back to Website</a></header>
+<header class="top"><div class="brand">SI &nbsp; SECURITY INSTRUCTOR — ADMIN</div><a id="contextNav" class="hidden" href="../index.html">العودة للموقع / Back to Website</a></header>
 <section id="loginPanel" class="panel login">
 <div class="eyebrow">SECURE ADMIN ACCESS</div><h1>دخول الإدارة</h1><p>استخدم البريد الإداري المعتمد للدخول إلى لوحة إدارة المتدربين والتسجيلات والتقييمات.</p>
 <div class="field"><label>Admin Email / البريد الإداري</label><input id="email" type="email" autocomplete="username" value="Abdallah-Shalaby1@outlook.com"></div>
@@ -21,7 +21,7 @@
 <section id="dashboard" class="hidden">
 <div class="panel"><div class="dash-head"><div><div class="eyebrow">ADMINISTRATION CENTER</div><h1>لوحة إدارة SECURITY INSTRUCTOR</h1><div id="signedIn" class="muted"></div></div><button id="logoutBtn" class="btn alt">تسجيل الخروج / Logout</button></div>
 <div class="cards"><div class="metric"><b id="mTrainees">—</b><span>المتدربون / Trainees</span></div><div class="metric"><b id="mEnroll">—</b><span>التسجيلات / Enrollments</span></div><div class="metric"><b id="mVisitors">—</b><span>الزوار / Visitors</span></div><div class="metric"><b id="mFeedback">—</b><span>الملاحظات / Feedback</span></div><div class="metric"><b id="mChallengeAttempts">—</b><span>محاولات التحدي / Challenge Attempts</span></div></div></div>
-<div class="panel"><div class="tabs"><button class="tab active" data-tab="trainees">المتدربون</button><button class="tab" data-tab="enrollments">التسجيلات</button><button class="tab" data-tab="visitors">الـChallenge والزوار</button><button class="tab" data-tab="stats">إحصائيات الدورات</button><button class="tab" data-tab="feedback">الملاحظات</button><button class="tab" data-tab="articles">المقالات / Articles</button><button class="tab" data-tab="challenge-control">تحكم التحدي / Challenge Control</button></div><button id="tabReturnHome" class="btn alt hidden" type="button">↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard</button>
+<div class="panel"><div class="tabs"><button class="tab active" data-tab="trainees">المتدربون</button><button class="tab" data-tab="enrollments">التسجيلات</button><button class="tab" data-tab="visitors">الـChallenge والزوار</button><button class="tab" data-tab="stats">إحصائيات الدورات</button><button class="tab" data-tab="feedback">الملاحظات</button><button class="tab" data-tab="articles">المقالات / Articles</button><button class="tab" data-tab="challenge-control">تحكم التحدي / Challenge Control</button></div>
 <div id="trainees" class="tabpane"><div class="toolbar"><input id="traineeSearch" placeholder="بحث بالاسم أو الهوية أو البريد"><button class="btn alt" id="traineeRefresh">تحديث</button></div><div class="table-wrap"><table><thead><tr><th>رقم المتدرب</th><th>الاسم بالعربية</th><th>الاسم بالإنجليزية</th><th>الهوية</th><th>الجوال</th><th>البريد</th></tr></thead><tbody id="traineeRows"></tbody></table></div></div>
 <div id="enrollments" class="tabpane hidden"><div class="toolbar"><input id="enrollSearch" placeholder="بحث برقم التسجيل أو الدورة أو الشركة"><select id="statusFilter"><option value="">كل الحالات</option><option>pending</option><option>confirmed</option><option>active</option><option>completed</option><option>cancelled</option></select><button class="btn alt" id="enrollRefresh">تحديث</button></div><div class="table-wrap"><table><thead><tr><th>رقم التسجيل</th><th>رقم المتدرب</th><th>الدورة</th><th>النوع</th><th>الشركة</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody id="enrollRows"></tbody></table></div></div>
 <div id="visitors" class="tabpane hidden"><div class="toolbar"><button class="btn alt" id="visitorRefresh">تحديث</button></div><div class="table-wrap"><table><thead><tr><th>الاسم</th><th>البريد</th><th>Visitor ID</th><th>التسجيل</th><th>Challenge</th><th>النتيجة</th></tr></thead><tbody id="visitorRows"></tbody></table></div></div>
@@ -48,14 +48,9 @@ const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>\"]
 function msg(text,error=false){const el=$('#loginMsg');el.textContent=text;el.className='msg'+(error?' error':'');el.style.display='block'}
 function toast(text){const el=$('#toast');el.textContent=text;el.style.display='block';setTimeout(()=>el.style.display='none',2500)}
 function installAdminHomeLinks(){}
-function setTabReturnButton(isHome){const b=document.querySelector('#tabReturnHome');if(b)b.classList.toggle('hidden',!!isHome);}
-function syncAdminNavigation(){
-  const link=document.querySelector('#publicSiteLink');
-  const active=document.querySelector('.tab.active');
-  const isHome=!active || active.dataset.tab==='trainees';
-  if(link)link.classList.toggle('hidden',!isHome);
-  setTabReturnButton(isHome);
-}
+function setContextNav(isHome){const b=document.querySelector('#contextNav');if(!b)return;if(isHome){b.textContent='العودة للموقع / Back to Website';b.href='../index.html';}else{b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';b.href='./';}b.classList.remove('hidden');}
+function syncAdminNavigation(){const active=document.querySelector('.tab.active');setContextNav(!active||active.dataset.tab==='trainees');}
+function togglePublicSiteLink(on){setContextNav(on);}
 function togglePublicSiteLink(on){syncAdminNavigation();}
 function goAdminHome(){
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -91,7 +86,6 @@ function showDash(email){$('#loginPanel').classList.add('hidden');$('#dashboard'
 async function check(){if(!token){return}try{const me=await api('/api/admin/me');showDash(me.email)}catch{localStorage.removeItem(tokenKey);token=''}}
 $('#loginBtn').onclick=async()=>{msg('');try{const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('#email').value.trim(),password:$('#password').value})});const d=await r.json();if(!r.ok)throw new Error(d.message||'Login failed');token=d.token;localStorage.setItem(tokenKey,token);showDash(d.email)}catch(e){msg(e.message,true)}};
 $('#logoutBtn').onclick=()=>{localStorage.removeItem(tokenKey);token='';location.reload()};
-$('#tabReturnHome').onclick=()=>{const home=document.querySelector('.tab[data-tab="trainees"]');if(home)home.click();window.scrollTo({top:0,behavior:'smooth'});};
 async function loadDashboard(){const d=await api('/api/admin/dashboard');$('#mTrainees').textContent=d.trainees;$('#mEnroll').textContent=d.enrollments;$('#mVisitors').textContent=d.visitors;$('#mFeedback').textContent=d.feedback;$('#mChallengeAttempts').textContent=d.challengeAttempts??0;renderStats(d.stats)}
 function renderTrainees(rows){$('#traineeRows').innerHTML=rows.length?rows.map(x=>`<tr><td class="ltr">${esc(x.traineeId)}</td><td>${esc(x.nameAr)}</td><td class="ltr">${esc(x.nameEn)}</td><td class="ltr">${esc(x.idNumber)}<br>${esc(x.idType)}</td><td class="ltr">${esc(x.mobile)}</td><td class="ltr">${esc(x.email)}</td></tr>`).join(''):'<tr><td colspan="6">لا توجد بيانات</td></tr>'}
 async function loadTrainees(){const q=encodeURIComponent($('#traineeSearch').value.trim());renderTrainees(await api('/api/admin/trainees?q='+q))}
