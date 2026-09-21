@@ -47,9 +47,28 @@ const CH_DONE='securityKnowledgeChallengeCompleted',CH_SCORE='securityKnowledgeC
 const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
 function msg(text,error=false){const el=$('#loginMsg');el.textContent=text;el.className='msg'+(error?' error':'');el.style.display='block'}
 function toast(text){const el=$('#toast');el.textContent=text;el.style.display='block';setTimeout(()=>el.style.display='none',2500)}
-function installAdminHomeLinks(){}
+function installAdminHomeLinks(){
+  const active=document.querySelector('.tab.active');
+  const panes=document.querySelectorAll('.tabpane');
+  panes.forEach(p=>p.querySelectorAll('.si-admin-home').forEach(b=>b.remove()));
+  if(!active || active.dataset.tab==='trainees')return;
+  const pane=document.querySelector('#'+active.dataset.tab);
+  if(!pane)return;
+  const b=document.createElement('button');
+  b.type='button';
+  b.className='btn alt si-admin-home';
+  b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';
+  b.style.cssText='display:block;width:auto;margin:0 0 16px auto;position:relative;z-index:20';
+  b.onclick=()=>{
+    const home=document.querySelector('.tab[data-tab="trainees"]');
+    if(home)home.click();
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  pane.insertBefore(b,pane.firstChild);
+}
 function setContextNav(isHome){const b=document.querySelector('#contextNav');if(!b)return;if(isHome){b.textContent='العودة للموقع / Back to Website';b.href='../index.html';}else{b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';b.href='./';}b.classList.remove('hidden');}
-function syncAdminNavigation(){const active=document.querySelector('.tab.active');setContextNav(!active||active.dataset.tab==='trainees');}
+function syncAdminNavigation(){const active=document.querySelector('.tab.active');const isHome=!active||active.dataset.tab==='trainees';setContextNav(isHome);installAdminHomeLinks();}
+function togglePublicSiteLink(on){syncAdminNavigation();}
 function togglePublicSiteLink(on){setContextNav(on);}
 function togglePublicSiteLink(on){syncAdminNavigation();}
 function goAdminHome(){
@@ -96,7 +115,7 @@ async function loadVisitors(){renderVisitors(await api('/api/admin/visitors'))}
 function renderStats(rows){$('#statsRows').innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(x.slug)}</td><td>${x.views}</td><td>${x.entries}</td><td>${x.positiveRatings}%</td><td>${x.averageRating||0}</td><td>${x.ratingCount||0}</td></tr>`).join(''):'<tr><td colspan="6">لا توجد بيانات</td></tr>'}
 async function loadStats(){const d=await api('/api/admin/dashboard');renderStats(d.stats)}
 async function loadFeedback(){const rows=await api('/api/admin/feedback');$('#feedbackRows').innerHTML=rows.length?rows.map(x=>`<tr><td class="ltr">${esc(x.slug)}</td><td>${esc(x.note)}</td><td class="ltr">${new Date(x.createdAt).toLocaleString()}</td></tr>`).join(''):'<tr><td colspan="3">لا توجد بيانات</td></tr>'}
-function tabs(){document.querySelectorAll('.tab').forEach(b=>b.onclick=async()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tabpane').forEach(x=>x.classList.add('hidden'));b.classList.add('active');const pane=$('#'+b.dataset.tab);if(!pane)return;pane.classList.remove('hidden');syncAdminNavigation();try{if(b.dataset.tab==='trainees')await loadTrainees();if(b.dataset.tab==='enrollments')await loadEnrollments();if(b.dataset.tab==='visitors')await loadVisitors();if(b.dataset.tab==='stats')await loadStats();if(b.dataset.tab==='feedback')await loadFeedback();if(b.dataset.tab==='challenge-control')refreshChallengeControl()}catch(e){toast(e.message)}})}
+function tabs(){document.querySelectorAll('.tab').forEach(b=>b.onclick=async()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tabpane').forEach(x=>x.classList.add('hidden'));b.classList.add('active');const pane=$('#'+b.dataset.tab);if(!pane)return;pane.classList.remove('hidden');syncAdminNavigation();installAdminHomeLinks();try{if(b.dataset.tab==='trainees')await loadTrainees();if(b.dataset.tab==='enrollments')await loadEnrollments();if(b.dataset.tab==='visitors')await loadVisitors();if(b.dataset.tab==='stats')await loadStats();if(b.dataset.tab==='feedback')await loadFeedback();if(b.dataset.tab==='challenge-control')refreshChallengeControl()}catch(e){toast(e.message)}})}
 function loadAll(){tabs();Promise.all([loadDashboard(),loadTrainees()]).catch(e=>toast(e.message))}
 $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>loadEnrollments();$('#statusFilter').onchange=()=>loadEnrollments();$('#traineeRefresh').onclick=loadTrainees;$('#enrollRefresh').onclick=loadEnrollments;$('#visitorRefresh').onclick=loadVisitors;$('#statsRefresh').onclick=loadStats;$('#feedbackRefresh').onclick=loadFeedback;$('#challengeResetBrowser').onclick=resetBrowserChallenge;$('#challengeOpenTest').onclick=openAdminChallenge;$('#challengeShowResults').onclick=showChallengeResults;check();
 })();
