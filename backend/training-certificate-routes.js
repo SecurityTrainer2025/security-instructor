@@ -13,7 +13,8 @@ const Certificate=mongoose.model('TrainingCertificate',new mongoose.Schema({cert
 const adminAuth=async req=>{try{const h=String(req.headers.authorization||'');if(!h.startsWith('Bearer '))return false;const r=await fetch('http://127.0.0.1:'+(process.env.PORT||10000)+'/api/admin/me',{headers:{Authorization:h}});return r.ok}catch{return false}};
 const transport=()=>{const user=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim(),clientId=(process.env.MS_CLIENT_ID||'').trim(),clientSecret=(process.env.MS_CLIENT_SECRET||'').trim(),refreshToken=(process.env.MS_REFRESH_TOKEN||'').trim();if(!user||!clientId||!clientSecret||!refreshToken)return null;return nodemailer.createTransport({host:'smtp-mail.outlook.com',port:587,secure:false,auth:{type:'OAuth2',user,clientId,clientSecret,refreshToken}})};
 const courseLink=slug=>`${FRONTEND}/assessment-gateway.html?course=${encodeURIComponent(slug)}`;
-const verifyLink=id=>`${FRONTEND}/verify.html?type=certificate&id=${encodeURIComponent(id)}`;
+const PUBLIC_VERIFY='https://securitytrainer2025.github.io/security-instructor/frontend/verify.html';
+const verifyLink=id=>`${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
 const certificateLink=id=>`${FRONTEND}/certificate.html?id=${encodeURIComponent(id)}`;
 const nextId=()=>`SI-CERT-${new Date().getFullYear()}-${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
 async function send(to,subject,text,html){const t=transport();if(!t)return false;const from=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim();await t.sendMail({from,replyTo:from,to,subject,text,html});return true}
@@ -66,7 +67,7 @@ function registerTrainingCertificateDirectRoutes(app){
       const certificateId=clean(req.params.certificateId,100);
       const cert=await Certificate.findOne({certificateId}).lean();
       if(!cert)return res.status(404).json({message:'Certificate not found'});
-      const verificationUrl=cert.verificationUrl||verifyLink(certificateId);
+      const verificationUrl=verifyLink(certificateId);
       const svg=await QRCode.toString(verificationUrl,{type:'svg',width:300,margin:2,errorCorrectionLevel:'H',color:{dark:'#0B1F33',light:'#FFFFFF'}});
       res.set('Cache-Control','no-store').type('image/svg+xml').send(svg);
     }catch(err){console.error('Certificate QR failed',err);res.status(500).json({message:'Unable to generate certificate QR'})}
@@ -78,7 +79,7 @@ function registerTrainingCertificateDirectRoutes(app){
       const cert=await Certificate.findOne({certificateId}).lean();
       if(!cert)return res.status(404).json({valid:false,message:'Certificate not found'});
       const trainee=await Trainee.findOne({traineeId:cert.traineeId}).lean();
-      res.set('Cache-Control','no-store').json({valid:cert.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:cert.certificateId,traineeId:cert.traineeId,recipientNameEn:cert.recipientNameEn,recipientNameAr:cert.recipientNameAr,courseNameEn:cert.courseNameEn,courseNameAr:cert.courseNameAr,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||'',issuedAt:cert.issuedAt,status:cert.verificationStatus,verificationUrl:cert.verificationUrl||verifyLink(certificateId)});
+      res.set('Cache-Control','no-store').json({valid:cert.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:cert.certificateId,traineeId:cert.traineeId,recipientNameEn:cert.recipientNameEn,recipientNameAr:cert.recipientNameAr,courseNameEn:cert.courseNameEn,courseNameAr:cert.courseNameAr,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||'',issuedAt:cert.issuedAt,status:cert.verificationStatus,verificationUrl:verifyLink(certificateId)});
     }catch(err){console.error('Certificate verification failed',err);res.status(500).json({valid:false,message:'Unable to verify certificate'})}
   });
 }
