@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SECURITY INSTRUCTOR — Admin Portal</title>
+<style>
+:root{--navy:#0B1F33;--navy2:#102A43;--gold:#C8A96B;--line:#294158;--text:#EEF3F7;--muted:#B7C4CE;--ok:#7FB58A;--danger:#C77B7B}
+*{box-sizing:border-box}body{margin:0;background:#071725;color:var(--text);font-family:Arial,Helvetica,sans-serif}.wrap{width:min(1400px,94%);margin:auto;padding:26px 0 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px}.brand{font-weight:900;letter-spacing:.08em}.brand span{color:var(--gold)}.panel{background:var(--navy2);border:1px solid var(--line);padding:24px;margin-top:22px}.login{max-width:470px;margin:70px auto}.eyebrow{color:var(--gold);font-weight:800;letter-spacing:.12em;font-size:12px}.muted{color:var(--muted)}h1{margin:8px 0}.field{margin-top:16px}.field label{display:block;font-weight:700;margin-bottom:7px}.field input{width:100%;padding:13px;background:var(--navy);border:1px solid #526577;color:#fff;font-size:15px}.btn{border:1px solid var(--gold);background:var(--gold);color:#101820;font-weight:900;padding:11px 16px;cursor:pointer}.btn.alt{background:transparent;color:var(--gold)}.btn.danger{border-color:var(--danger);color:#fff;background:transparent}.hidden{display:none!important}.msg{margin-top:14px;padding:12px;border:1px solid var(--line);line-height:1.6}.error{border-color:var(--danger)}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.metric{background:var(--navy);border:1px solid var(--line);padding:18px}.metric b{display:block;font-size:30px;color:var(--gold)}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.toolbar input,.toolbar select{padding:11px;background:var(--navy);border:1px solid #526577;color:#fff}.table-wrap{overflow:auto;border:1px solid var(--line)}table{width:100%;border-collapse:collapse;min-width:1050px}th,td{padding:11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--navy);color:var(--gold)}.status{display:inline-block;padding:4px 8px;border:1px solid #526577}.valid{border-color:var(--ok);color:#bde0c4}.revoked{border-color:var(--danger);color:#e5aaaa}.ltr{direction:ltr}.actions{display:flex;gap:7px;flex-wrap:wrap}.note{color:var(--muted);line-height:1.7}.top a{color:var(--gold);text-decoration:none}.toast{position:fixed;right:20px;bottom:20px;background:var(--navy2);border:1px solid var(--gold);padding:12px 16px;display:none;max-width:420px}@media(max-width:700px){.metrics{grid-template-columns:1fr}.wrap{width:96%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand"><span>SI</span> — SECURITY INSTRUCTOR <span>/ ADMIN PORTAL</span></div><a href="../index.html">Public Website</a></header>
+
+<section id="loginPanel" class="panel login">
+<div class="eyebrow">PRIVATE ADMIN ACCESS</div>
+<h1>Admin Portal</h1>
+<p class="muted">This portal is for authorized administration only. Public pages do not expose administrative data or actions.</p>
+<div class="field"><label>Admin Email</label><input id="email" type="email" autocomplete="username" value="Abdallah-Shalaby1@outlook.com"></div>
+<div class="field"><label>Admin Password</label><input id="password" type="password" autocomplete="current-password"></div>
+<div style="margin-top:18px"><button id="loginBtn" class="btn">Sign In / دخول</button></div>
+<div id="loginMsg" class="msg hidden"></div>
+<p class="note">Authentication is enforced by the backend. Do not share your admin password.</p>
+</section>
+
+<section id="portal" class="hidden">
+<div class="panel">
+<div style="display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap">
+<div><div class="eyebrow">CERTIFICATE MANAGEMENT</div><h1>Training Certificates</h1><div id="signedIn" class="muted"></div></div>
+<button id="logoutBtn" class="btn alt">Logout / تسجيل الخروج</button>
+</div>
+<div class="metrics">
+<div class="metric"><b id="total">—</b><span class="muted">Total certificates</span></div>
+<div class="metric"><b id="valid">—</b><span class="muted">Valid certificates</span></div>
+<div class="metric"><b id="revoked">—</b><span class="muted">Revoked certificates</span></div>
+</div>
+</div>
+
+<div class="panel">
+<div class="toolbar">
+<input id="search" placeholder="Search certificate ID, trainee, course or email" style="min-width:300px">
+<select id="status"><option value="">All statuses</option><option value="valid">Valid</option><option value="revoked">Revoked</option></select>
+<button id="refresh" class="btn alt">Refresh</button>
+</div>
+<div class="note">Use <b>View</b> to open the approved certificate design, <b>Verify</b> to open the public verification page, and <b>Revoke</b> when a certificate must no longer be valid.</div>
+<div class="table-wrap" style="margin-top:14px"><table>
+<thead><tr><th>Certificate ID</th><th>Trainee</th><th>Course</th><th>Issued</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody id="rows"></tbody>
+</table></div>
+</div>
+</section>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+(function(){
+const API='https://security-instructor.onrender.com',KEY='securityInstructorAdminToken';
+let token=localStorage.getItem(KEY)||'',all=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+function toast(s){const e=$('toast');e.textContent=s;e.style.display='block';setTimeout(()=>e.style.display='none',2800)}
+function auth(){return {Authorization:'Bearer '+token}}
+async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{'Content-Type':'application/json',...auth(),...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||'Request failed');return d}
+function showPortal(email){$('loginPanel').classList.add('hidden');$('portal').classList.remove('hidden');$('signedIn').textContent='Signed in: '+email;load()}
+function showLogin(msg){$('portal').classList.add('hidden');$('loginPanel').classList.remove('hidden');if(msg){$('loginMsg').textContent=msg;$('loginMsg').classList.remove('hidden','error');}}
+async function check(){if(!token)return;try{const me=await api('/api/admin/me');showPortal(me.email)}catch{localStorage.removeItem(KEY);token=''}}
+$('loginBtn').onclick=async()=>{try{$('loginMsg').classList.add('hidden');const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('email').value.trim(),password:$('password').value})});const d=await r.json();if(!r.ok)throw new Error(d.message||'Login failed');token=d.token;localStorage.setItem(KEY,token);showPortal(d.email)}catch(e){$('loginMsg').textContent=e.message;$('loginMsg').classList.remove('hidden');$('loginMsg').classList.add('error')}};
+$('logoutBtn').onclick=()=>{localStorage.removeItem(KEY);token='';location.reload()};
+async function load(){ $('rows').innerHTML='<tr><td colspan="6">Loading…</td></tr>';try{const d=await api('/api/admin/certificates/list');all=d.certificates||[];render()}catch(e){$('rows').innerHTML='<tr><td colspan="6">'+esc(e.message)+'</td></tr>'}}
+function render(){const q=$('search').value.trim().toLowerCase(),f=$('status').value;let a=all;if(q)a=a.filter(x=>[x.certificateId,x.traineeId,x.recipientNameEn,x.recipientNameAr,x.courseNameEn,x.courseNameAr,x.email].some(v=>String(v||'').toLowerCase().includes(q)));if(f)a=a.filter(x=>x.verificationStatus===f);$('total').textContent=all.length;$('valid').textContent=all.filter(x=>x.verificationStatus==='valid').length;$('revoked').textContent=all.filter(x=>x.verificationStatus==='revoked').length;$('rows').innerHTML=a.length?a.map(x=>{const id=encodeURIComponent(x.certificateId);return '<tr><td class="ltr"><b>'+esc(x.certificateId)+'</b><br><small class="muted">'+esc(x.trainingId||'')+'</small></td><td><b>'+esc(x.recipientNameEn||'—')+'</b><br>'+esc(x.recipientNameAr||'')+'<br><small class="muted">'+esc(x.traineeId||'')+'</small></td><td>'+esc(x.courseNameEn||'—')+'<br>'+esc(x.courseNameAr||'')+'</td><td>'+esc(x.issuedAt?new Date(x.issuedAt).toLocaleString():'—')+'</td><td><span class="status '+(x.verificationStatus==='valid'?'valid':'revoked')+'">'+esc(x.verificationStatus||'—')+'</span></td><td><div class="actions"><button class="btn alt" onclick="SI.view(\''+id+'\')">View</button><button class="btn alt" onclick="SI.verify(\''+id+'\')">Verify</button>'+(x.verificationStatus==='valid'?'<button class="btn danger" onclick="SI.revoke(\''+id+'\')">Revoke</button>':'')+'</div></td></tr>'}).join(''):'<tr><td colspan="6">No certificates found.</td></tr>'}
+$('search').oninput=render;$('status').onchange=render;$('refresh').onclick=load;
+window.SI={view:id=>window.open('../certificate.html?id='+id,'_blank','noopener'),verify:id=>window.open('../verify.html?type=certificate&id='+id,'_blank','noopener'),revoke:async id=>{const real=decodeURIComponent(id);if(!confirm('Revoke certificate '+real+'? This will make public verification show Revoked.'))return;try{await api('/api/admin/training-certificates/'+encodeURIComponent(real)+'/revoke',{method:'PATCH',body:JSON.stringify({reason:'Revoked by administrator'})});toast('Certificate revoked');await load()}catch(e){toast(e.message)}}};
+check();
+})();
+</script>
+</body>
+</html>
