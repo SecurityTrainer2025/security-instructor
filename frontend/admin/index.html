@@ -149,23 +149,22 @@ $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>lo
     const pane=document.getElementById(active.dataset.tab);
     if(!pane||pane.classList.contains('hidden'))return;
 
-    const b=document.createElement('a');
+    const b=document.createElement('button');
+    b.type='button';
     b.className='btn alt si-admin-home';
-    b.href=ADMIN_HOME;
     b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';
-    b.setAttribute('role','button');
     b.style.cssText='display:block!important;width:max-content;margin:0 0 16px auto!important;position:relative;z-index:1000;text-decoration:none;cursor:pointer;';
 
-    // Explicit navigation for browsers/webviews that interfere with normal anchor navigation.
-    b.addEventListener('click',function(e){
+    // Same-page navigation: no URL change, no page reload, no loss of admin authentication.
+    b.onclick=function(e){
       e.preventDefault();
       e.stopPropagation();
-      window.location.assign(ADMIN_HOME);
-    },false);
+      goAdminHome();
+      setTimeout(function(){ applyAdminReturn(); },0);
+    };
 
     pane.insertBefore(b,pane.firstChild);
   }
-
   document.addEventListener('click',function(e){
     if(e.target.closest&&e.target.closest('.tab'))setTimeout(applyAdminReturn,50);
   },true);
