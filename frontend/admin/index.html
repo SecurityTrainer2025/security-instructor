@@ -66,10 +66,13 @@ function goAdminHome(){
 
 function installAdminHomeLinks(){
   const active=document.querySelector('.tab.active');
-  document.querySelectorAll('.si-admin-home').forEach(b=>b.remove());
+  document.querySelectorAll('.si-admin-home').forEach(b=>{
+    if(!active || active.dataset.tab==='trainees' || b.parentElement?.id!==active.dataset.tab)b.remove();
+  });
   if(!active || active.dataset.tab==='trainees')return;
   const pane=document.getElementById(active.dataset.tab);
   if(!pane || pane.classList.contains('hidden'))return;
+  if(pane.querySelector(':scope > .si-admin-home'))return;
 
   const b=document.createElement('button');
   b.type='button';
@@ -100,13 +103,21 @@ function syncAdminNavigation(){
   installAdminHomeLinks();
 }
 
-const adminPaneObserver=new MutationObserver(()=>syncAdminNavigation());
+let adminSyncQueued=false;
+const adminPaneObserver=new MutationObserver(()=>{
+  if(adminSyncQueued)return;
+  adminSyncQueued=true;
+  setTimeout(()=>{
+    adminSyncQueued=false;
+    syncAdminNavigation();
+  },0);
+});
 
 async function api(path,options={}){options.headers=Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+token},options.headers||{});const r=await fetch(API+path,options);let data={};try{data=await r.json()}catch{}if(!r.ok)throw new Error(data.message||'Request failed');return data}
 function refreshChallengeControl(){const done=localStorage.getItem(CH_DONE)==='true',score=localStorage.getItem(CH_SCORE)||'—',attempt=localStorage.getItem(CH_ATTEMPT)||'—';$('#challengeControlState').innerHTML=done?'✓ <strong style="color:#c8a96b">Challenge completed on this browser.</strong><br>Score / النتيجة: <b style="color:#c8a96b">'+esc(score)+'/10</b><br>Attempt ID / رقم المحاولة: <span class="ltr">'+esc(attempt)+'</span>':'○ <strong>Challenge is not completed on this browser.</strong><br>يمكن فتح الاختبار والبدء من جديد من زر اختبار الإدارة.'}
 function resetBrowserChallenge(){localStorage.removeItem(CH_DONE);localStorage.removeItem(CH_SCORE);localStorage.removeItem(CH_ATTEMPT);refreshChallengeControl();toast('تمت إعادة ضبط اختبار الإدارة')}function openAdminChallenge(){resetBrowserChallenge();window.open('../challenge-free.html','_blank','noopener')}
 function showChallengeResults(){const b=document.querySelector('[data-tab="challenge-results"]');if(b){b.click()}else{toast('تبويب نتائج التحدي سيظهر بعد تحميل أدوات الإدارة')}}
-function showDash(email){$('#loginPanel').classList.add('hidden');$('#dashboard').classList.remove('hidden');syncAdminNavigation();$('#signedIn').textContent='تم الدخول باسم: '+email;loadAll();refreshChallengeControl();adminPaneObserver.observe(document.querySelector('#dashboard'),{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-tab']});syncAdminNavigation()}
+function showDash(email){$('#loginPanel').classList.add('hidden');$('#dashboard').classList.remove('hidden');syncAdminNavigation();$('#signedIn').textContent='تم الدخول باسم: '+email;loadAll();refreshChallengeControl();adminPaneObserver.observe(document.querySelector('#dashboard'),{childList:true,subtree:true});syncAdminNavigation()}
 async function check(){if(!token){return}try{const me=await api('/api/admin/me');showDash(me.email);if(new URLSearchParams(location.search).get('dashboard')==='1'){setTimeout(()=>{const home=document.querySelector('.tab[data-tab="trainees"]');if(home)home.click();window.scrollTo({top:0,behavior:'smooth'});},50)}}catch{localStorage.removeItem(tokenKey);token=''}}
 $('#loginBtn').onclick=async()=>{msg('');try{const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('#email').value.trim(),password:$('#password').value})});const d=await r.json();if(!r.ok)throw new Error(d.message||'Login failed');token=d.token;localStorage.setItem(tokenKey,token);showDash(d.email)}catch(e){msg(e.message,true)}};
 $('#logoutBtn').onclick=()=>{localStorage.removeItem(tokenKey);token='';location.reload()};
