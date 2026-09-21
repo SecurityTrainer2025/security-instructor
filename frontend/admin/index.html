@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand">SI &nbsp; SECURITY INSTRUCTOR — ADMIN</div><a id="publicSiteLink" class="hidden" href="../index.html">العودة للموقع / Back to Website</a></header>
+<header class="top"><div class="brand">SI &nbsp; SECURITY INSTRUCTOR — ADMIN</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button id="adminHomeTop" class="btn alt" type="button">↩ لوحة الإدارة / Admin Dashboard</button><a id="publicSiteLink" class="hidden" href="../index.html">العودة للموقع / Back to Website</a></div></header>
 <section id="loginPanel" class="panel login">
 <div class="eyebrow">SECURE ADMIN ACCESS</div><h1>دخول الإدارة</h1><p>استخدم البريد الإداري المعتمد للدخول إلى لوحة إدارة المتدربين والتسجيلات والتقييمات.</p>
 <div class="field"><label>Admin Email / البريد الإداري</label><input id="email" type="email" autocomplete="username" value="Abdallah-Shalaby1@outlook.com"></div>
@@ -73,6 +73,16 @@ function syncAdminNavigation(){
   });
 }
 function togglePublicSiteLink(on){syncAdminNavigation();}
+function goAdminHome(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tabpane').forEach(x=>x.classList.add('hidden'));
+  const home=document.querySelector('.tab[data-tab="trainees"]');
+  if(home){home.classList.add('active');const pane=document.querySelector('#trainees');if(pane)pane.classList.remove('hidden');}
+  const top=document.querySelector('#adminHomeTop');if(top)top.style.display='none';
+  const publicLink=document.querySelector('#publicSiteLink');if(publicLink)publicLink.classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
 const adminPaneObserver=new MutationObserver(()=>{installAdminHomeLinks();syncAdminNavigation();});
 function installNavigationGuard(){
   document.addEventListener('click',function(e){
@@ -94,7 +104,7 @@ async function api(path,options={}){options.headers=Object.assign({'Content-Type
 function refreshChallengeControl(){const done=localStorage.getItem(CH_DONE)==='true',score=localStorage.getItem(CH_SCORE)||'—',attempt=localStorage.getItem(CH_ATTEMPT)||'—';$('#challengeControlState').innerHTML=done?'✓ <strong style="color:#c8a96b">Challenge completed on this browser.</strong><br>Score / النتيجة: <b style="color:#c8a96b">'+esc(score)+'/10</b><br>Attempt ID / رقم المحاولة: <span class="ltr">'+esc(attempt)+'</span>':'○ <strong>Challenge is not completed on this browser.</strong><br>يمكن فتح الاختبار والبدء من جديد من زر اختبار الإدارة.'}
 function resetBrowserChallenge(){localStorage.removeItem(CH_DONE);localStorage.removeItem(CH_SCORE);localStorage.removeItem(CH_ATTEMPT);refreshChallengeControl();toast('تمت إعادة ضبط اختبار الإدارة')}function openAdminChallenge(){resetBrowserChallenge();window.open('../challenge-free.html','_blank','noopener')}
 function showChallengeResults(){const b=document.querySelector('[data-tab="challenge-results"]');if(b){b.click()}else{toast('تبويب نتائج التحدي سيظهر بعد تحميل أدوات الإدارة')}}
-function showDash(email){$('#loginPanel').classList.add('hidden');$('#dashboard').classList.remove('hidden');togglePublicSiteLink(true);$('#signedIn').textContent='تم الدخول باسم: '+email;loadAll();refreshChallengeControl();installAdminHomeLinks();installNavigationGuard();adminPaneObserver.observe(document.querySelector('#dashboard'),{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-tab']});syncAdminNavigation()}
+function showDash(email){$('#loginPanel').classList.add('hidden');$('#dashboard').classList.remove('hidden');togglePublicSiteLink(true);$('#signedIn').textContent='تم الدخول باسم: '+email;loadAll();refreshChallengeControl();installAdminHomeLinks();installNavigationGuard();const homeBtn=document.querySelector('#adminHomeTop');if(homeBtn)homeBtn.onclick=goAdminHome;adminPaneObserver.observe(document.querySelector('#dashboard'),{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-tab']});syncAdminNavigation()}
 async function check(){if(!token){return}try{const me=await api('/api/admin/me');showDash(me.email)}catch{localStorage.removeItem(tokenKey);token=''}}
 $('#loginBtn').onclick=async()=>{msg('');try{const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('#email').value.trim(),password:$('#password').value})});const d=await r.json();if(!r.ok)throw new Error(d.message||'Login failed');token=d.token;localStorage.setItem(tokenKey,token);showDash(d.email)}catch(e){msg(e.message,true)}};
 $('#logoutBtn').onclick=()=>{localStorage.removeItem(tokenKey);token='';location.reload()};
