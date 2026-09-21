@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand">SI &nbsp; SECURITY INSTRUCTOR — ADMIN</div><a href="../index.html">العودة للموقع / Back to Website</a></header>
+<header class="top"><div class="brand">SI &nbsp; SECURITY INSTRUCTOR — ADMIN</div><a id="publicSiteLink" class="hidden" href="../index.html">العودة للموقع / Back to Website</a></header>
 <section id="loginPanel" class="panel login">
 <div class="eyebrow">SECURE ADMIN ACCESS</div><h1>دخول الإدارة</h1><p>استخدم البريد الإداري المعتمد للدخول إلى لوحة إدارة المتدربين والتسجيلات والتقييمات.</p>
 <div class="field"><label>Admin Email / البريد الإداري</label><input id="email" type="email" autocomplete="username" value="Abdallah-Shalaby1@outlook.com"></div>
@@ -47,11 +47,13 @@ const CH_DONE='securityKnowledgeChallengeCompleted',CH_SCORE='securityKnowledgeC
 const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
 function msg(text,error=false){const el=$('#loginMsg');el.textContent=text;el.className='msg'+(error?' error':'');el.style.display='block'}
 function toast(text){const el=$('#toast');el.textContent=text;el.style.display='block';setTimeout(()=>el.style.display='none',2500)}
+function installAdminHomeLinks(){document.querySelectorAll('.tabpane').forEach(p=>{if(p.id==='trainees'||p.querySelector('.si-admin-home'))return;const b=document.createElement('button');b.type='button';b.className='btn alt si-admin-home';b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';b.style.cssText='margin-bottom:14px';b.onclick=()=>{const first=document.querySelector('.tab[data-tab="trainees"]');if(first)first.click();window.scrollTo({top:0,behavior:'smooth'})};p.insertBefore(b,p.firstChild)});}
+const adminPaneObserver=new MutationObserver(installAdminHomeLinks);
 async function api(path,options={}){options.headers=Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+token},options.headers||{});const r=await fetch(API+path,options);let data={};try{data=await r.json()}catch{}if(!r.ok)throw new Error(data.message||'Request failed');return data}
 function refreshChallengeControl(){const done=localStorage.getItem(CH_DONE)==='true',score=localStorage.getItem(CH_SCORE)||'—',attempt=localStorage.getItem(CH_ATTEMPT)||'—';$('#challengeControlState').innerHTML=done?'✓ <strong style="color:#c8a96b">Challenge completed on this browser.</strong><br>Score / النتيجة: <b style="color:#c8a96b">'+esc(score)+'/10</b><br>Attempt ID / رقم المحاولة: <span class="ltr">'+esc(attempt)+'</span>':'○ <strong>Challenge is not completed on this browser.</strong><br>يمكن فتح الاختبار والبدء من جديد من زر اختبار الإدارة.'}
 function resetBrowserChallenge(){localStorage.removeItem(CH_DONE);localStorage.removeItem(CH_SCORE);localStorage.removeItem(CH_ATTEMPT);refreshChallengeControl();toast('تمت إعادة ضبط اختبار الإدارة')}function openAdminChallenge(){resetBrowserChallenge();window.open('../challenge-free.html','_blank','noopener')}
 function showChallengeResults(){const b=document.querySelector('[data-tab="challenge-results"]');if(b){b.click()}else{toast('تبويب نتائج التحدي سيظهر بعد تحميل أدوات الإدارة')}}
-function showDash(email){$('#loginPanel').classList.add('hidden');$('#dashboard').classList.remove('hidden');$('#signedIn').textContent='تم الدخول باسم: '+email;loadAll();refreshChallengeControl()}
+function showDash(email){$('#loginPanel').classList.add('hidden');$('#dashboard').classList.remove('hidden');$('#publicSiteLink').classList.remove('hidden');$('#signedIn').textContent='تم الدخول باسم: '+email;loadAll();refreshChallengeControl();installAdminHomeLinks();adminPaneObserver.observe(document.querySelector('#dashboard'),{childList:true,subtree:true})}
 async function check(){if(!token){return}try{const me=await api('/api/admin/me');showDash(me.email)}catch{localStorage.removeItem(tokenKey);token=''}}
 $('#loginBtn').onclick=async()=>{msg('');try{const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('#email').value.trim(),password:$('#password').value})});const d=await r.json();if(!r.ok)throw new Error(d.message||'Login failed');token=d.token;localStorage.setItem(tokenKey,token);showDash(d.email)}catch(e){msg(e.message,true)}};
 $('#logoutBtn').onclick=()=>{localStorage.removeItem(tokenKey);token='';location.reload()};
