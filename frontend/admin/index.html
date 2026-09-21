@@ -143,16 +143,11 @@ $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>lo
     if(isHome)return;
     const pane=document.getElementById(active.dataset.tab);
     if(!pane||pane.classList.contains('hidden'))return;
-    const b=document.createElement('button');
-    b.type='button';
+    const b=document.createElement('a');
     b.className='btn alt si-admin-home';
+    b.href='./';
     b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';
-    b.style.cssText='display:block!important;margin:0 0 16px auto!important;position:relative;z-index:1000;cursor:pointer;';
-    b.addEventListener('click',function(){
-      const home=document.querySelector('.tab[data-tab="trainees"]');
-      if(home)home.click();
-      window.scrollTo({top:0,behavior:'smooth'});
-    });
+    b.style.cssText='display:block!important;width:max-content;margin:0 0 16px auto!important;position:relative;z-index:1000;text-decoration:none;cursor:pointer;';
     pane.insertBefore(b,pane.firstChild);
   }
   document.addEventListener('click',function(e){
