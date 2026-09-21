@@ -66,7 +66,7 @@ function installAdminHomeLinks(){
   };
   pane.insertBefore(b,pane.firstChild);
 }
-function setContextNav(isHome){const b=document.querySelector('#contextNav');if(!b)return;if(isHome){b.textContent='العودة للموقع / Back to Website';b.href='../index.html';}else{b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';b.href='./?dashboard=1';}b.classList.remove('hidden');}
+function setContextNav(isHome){const b=document.querySelector('#contextNav');if(!b)return;if(isHome){b.textContent='العودة للموقع / Back to Website';b.href='../index.html';}else{b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';b.href='./?dashboard=1&return=dashboard';}b.classList.remove('hidden');}
 function syncAdminNavigation(){const active=document.querySelector('.tab.active');const isHome=!active||active.dataset.tab==='trainees';setContextNav(isHome);installAdminHomeLinks();}
 function togglePublicSiteLink(on){syncAdminNavigation();}
 function togglePublicSiteLink(on){setContextNav(on);}
