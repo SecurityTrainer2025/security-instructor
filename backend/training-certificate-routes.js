@@ -13,6 +13,7 @@ const Certificate=mongoose.model('TrainingCertificate',new mongoose.Schema({cert
 const adminAuth=async req=>{try{const h=String(req.headers.authorization||'');if(!h.startsWith('Bearer '))return false;const r=await fetch('http://127.0.0.1:'+(process.env.PORT||10000)+'/api/admin/me',{headers:{Authorization:h}});return r.ok}catch{return false}};
 const transport=()=>{const user=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim(),clientId=(process.env.MS_CLIENT_ID||'').trim(),clientSecret=(process.env.MS_CLIENT_SECRET||'').trim(),refreshToken=(process.env.MS_REFRESH_TOKEN||'').trim();if(!user||!clientId||!clientSecret||!refreshToken)return null;return nodemailer.createTransport({host:'smtp-mail.outlook.com',port:587,secure:false,auth:{type:'OAuth2',user,clientId,clientSecret,refreshToken}})};
 const courseLink=slug=>`${FRONTEND}/assessment-gateway.html?course=${encodeURIComponent(slug)}`;
+const LEGACY_COURSE_META={'CRS-FIRE-001':{durationHours:24,level:'Level 1 / المستوى الأول',trainingTopics:[['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],['Fire Classifications & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],['Emergency Evacuation & Egress Safety','الإخلاء ومخارج الطوارئ','●'],['RACE Emergency Response','الاستجابة للطوارئ باستخدام RACE','↗'],['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙'],['Fire Emergency Plans & Security','خطط الطوارئ وأمن المنشآت','▣']]}};
 const PUBLIC_VERIFY='https://securitytrainer2025.github.io/security-instructor/frontend/verify.html';
 const verifyLink=id=>`${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
 const certificateLink=id=>`${FRONTEND}/certificate.html?id=${encodeURIComponent(id)}`;
@@ -69,9 +70,10 @@ function registerTrainingCertificateDirectRoutes(app){
       const trainee=await Trainee.findOne({traineeId:cert.traineeId}).lean();
       const courseQuery=mongoose.Types.ObjectId.isValid(String(cert.courseId||''))?{_id:new mongoose.Types.ObjectId(String(cert.courseId))}:{$or:[{code:cert.courseId},{slug:cert.courseId},{id:cert.courseId},{nameEn:cert.courseNameEn},{courseNameEn:cert.courseNameEn},{en:cert.courseNameEn}]};
       const course=await mongoose.connection.collection('trainingcourses').findOne(courseQuery);
-      const durationHours=cert.durationHours??course?.durationHours??'';
-      const level=cert.level||course?.level||'';
-      const trainingTopics=Array.isArray(cert.trainingTopics)&&cert.trainingTopics.length?cert.trainingTopics:(Array.isArray(course?.trainingTopics)?course.trainingTopics:[]);
+      const legacy=LEGACY_COURSE_META[cert.trainingId||cert.courseId]||{};
+      const durationHours=cert.durationHours??course?.durationHours??legacy.durationHours??'';
+      const level=cert.level||course?.level||legacy.level||'';
+      const trainingTopics=Array.isArray(cert.trainingTopics)&&cert.trainingTopics.length?cert.trainingTopics:(Array.isArray(course?.trainingTopics)&&course.trainingTopics.length?course.trainingTopics:(legacy.trainingTopics||[]));
       const trainerName=cert.trainerName||course?.trainerName||course?.instructor||'';
       const signatureName=cert.signatureName||trainerName;
       res.set('Cache-Control','no-store').json({...cert,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||'',trainingId:cert.trainingId||course?.code||cert.courseId||'',durationHours,level,trainingTopics,trainerName,signatureName});
