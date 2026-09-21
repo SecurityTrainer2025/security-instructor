@@ -134,5 +134,34 @@ $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>lo
 </script>
 <script src="../reports-center.js?v=20260915"></script>
 <script src="../certificates-center.js?v=20260921"></script>
+<script>
+(function(){
+  function applyAdminReturn(){
+    const active=document.querySelector('.tab.active');
+    const isHome=!active||active.dataset.tab==='trainees';
+    document.querySelectorAll('.si-admin-home').forEach(b=>b.remove());
+    if(isHome)return;
+    const pane=document.getElementById(active.dataset.tab);
+    if(!pane||pane.classList.contains('hidden'))return;
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='btn alt si-admin-home';
+    b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';
+    b.style.cssText='display:block!important;margin:0 0 16px auto!important;position:relative;z-index:1000;cursor:pointer;';
+    b.addEventListener('click',function(){
+      const home=document.querySelector('.tab[data-tab="trainees"]');
+      if(home)home.click();
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+    pane.insertBefore(b,pane.firstChild);
+  }
+  document.addEventListener('click',function(e){
+    if(e.target.closest&&e.target.closest('.tab'))setTimeout(applyAdminReturn,50);
+  },true);
+  new MutationObserver(function(){setTimeout(applyAdminReturn,0);}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(applyAdminReturn,100);});
+  setTimeout(applyAdminReturn,300);
+})();
+</script>
 </body>
 </html>
