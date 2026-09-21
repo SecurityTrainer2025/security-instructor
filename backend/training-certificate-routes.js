@@ -67,7 +67,7 @@ function registerTrainingCertificateDirectRoutes(app){
       const cert=await Certificate.findOne({certificateId}).lean();
       if(!cert)return res.status(404).json({message:'Certificate not found'});
       const trainee=await Trainee.findOne({traineeId:cert.traineeId}).lean();
-      const courseQuery=mongoose.Types.ObjectId.isValid(String(cert.courseId||''))?{_id:new mongoose.Types.ObjectId(String(cert.courseId))}:{$or:[{code:cert.courseId},{slug:cert.courseId}]};
+      const courseQuery=mongoose.Types.ObjectId.isValid(String(cert.courseId||''))?{_id:new mongoose.Types.ObjectId(String(cert.courseId))}:{$or:[{code:cert.courseId},{slug:cert.courseId},{id:cert.courseId},{nameEn:cert.courseNameEn},{courseNameEn:cert.courseNameEn},{en:cert.courseNameEn}]};
       const course=await mongoose.connection.collection('trainingcourses').findOne(courseQuery);
       const durationHours=cert.durationHours??course?.durationHours??'';
       const level=cert.level||course?.level||'';
