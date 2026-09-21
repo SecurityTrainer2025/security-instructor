@@ -67,7 +67,14 @@ function registerTrainingCertificateDirectRoutes(app){
       const cert=await Certificate.findOne({certificateId}).lean();
       if(!cert)return res.status(404).json({message:'Certificate not found'});
       const trainee=await Trainee.findOne({traineeId:cert.traineeId}).lean();
-      res.set('Cache-Control','no-store').json({...cert,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||'',trainingId:cert.trainingId||cert.courseId||'',durationHours:cert.durationHours??'',level:cert.level||'',trainingTopics:Array.isArray(cert.trainingTopics)?cert.trainingTopics:[],trainerName:cert.trainerName||'',signatureName:cert.signatureName||cert.trainerName||''});
+      const courseQuery=mongoose.Types.ObjectId.isValid(String(cert.courseId||''))?{_id:new mongoose.Types.ObjectId(String(cert.courseId))}:{$or:[{code:cert.courseId},{slug:cert.courseId}]};
+      const course=await mongoose.connection.collection('trainingcourses').findOne(courseQuery);
+      const durationHours=cert.durationHours??course?.durationHours??'';
+      const level=cert.level||course?.level||'';
+      const trainingTopics=Array.isArray(cert.trainingTopics)&&cert.trainingTopics.length?cert.trainingTopics:(Array.isArray(course?.trainingTopics)?course.trainingTopics:[]);
+      const trainerName=cert.trainerName||course?.trainerName||course?.instructor||'';
+      const signatureName=cert.signatureName||trainerName;
+      res.set('Cache-Control','no-store').json({...cert,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||'',trainingId:cert.trainingId||course?.code||cert.courseId||'',durationHours,level,trainingTopics,trainerName,signatureName});
     }catch(err){console.error('Certificate load failed',err);res.status(500).json({message:'Unable to load certificate'})}
   });
   app.get('/api/training-certificates/:certificateId/qr',async(req,res)=>{
