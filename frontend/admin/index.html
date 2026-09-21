@@ -83,6 +83,8 @@ function goAdminHome(){
 const adminPaneObserver=new MutationObserver(()=>{syncAdminNavigation();});
 function installNavigationGuard(){
   document.addEventListener('click',function(e){
+    const context=e.target.closest&&e.target.closest('#contextNav');
+    if(context && context.textContent.indexOf('لوحة الإدارة')!==-1){e.preventDefault();goAdminHome();return;}
     const tab=e.target.closest&&e.target.closest('.tab');
     if(!tab)return;
     const link=document.querySelector('#publicSiteLink');
@@ -145,8 +147,9 @@ $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>lo
     if(!pane||pane.classList.contains('hidden'))return;
     const b=document.createElement('a');
     b.className='btn alt si-admin-home';
-    b.href='https://securitytrainer2025.github.io/security-instructor/frontend/admin/?dashboard=1&return=dashboard';
+    b.href='#dashboard';
     b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';
+    b.onclick=function(e){e.preventDefault();goAdminHome();};
     b.style.cssText='display:block!important;width:max-content;margin:0 0 16px auto!important;position:relative;z-index:1000;text-decoration:none;cursor:pointer;';
     pane.insertBefore(b,pane.firstChild);
   }
