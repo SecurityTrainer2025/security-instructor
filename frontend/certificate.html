@@ -71,28 +71,67 @@
 <div class="actions"><button onclick="window.print()">Print / Save as PDF — طباعة / حفظ PDF</button></div>
 <script>
 (async function(){
-const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';const id=new URLSearchParams(location.search).get('id');
-function fail(msg){const text=(v,f='—')=>v===null||v===undefined||String(v).trim()===''?f:String(v).trim();
-document.getElementById('name').textContent=text(d.recipientNameEn||d.recipientNameAr);
-document.getElementById('courseEn').textContent=text(d.courseNameEn);
-document.getElementById('courseAr').textContent=text(d.courseNameAr);
-document.getElementById('date').textContent=d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
-document.getElementById('id').textContent=text(d.certificateId);
-document.getElementById('trainingId').textContent=text(d.trainingId||d.courseId);
-document.getElementById('idNumber').textContent=text(d.idNumber);
-const dh=d.durationHours;
-document.getElementById('duration').innerHTML=dh!==null&&dh!==undefined&&dh!==''?'<strong>'+String(dh).replace(/</g,'&lt;')+' Hours</strong> | '+String(dh).replace(/</g,'&lt;')+' ساعة':'—';
-document.getElementById('level').textContent=text(d.level);
-document.getElementById('signature').textContent=text(d.trainerName||d.instructor||d.signatureName);
-const grid=document.getElementById('topicGrid');
-if(grid){
-grid.innerHTML='';
-const fallback=[['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],['Fire Classifications & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],['RACE Emergency Response','الاستجابة للطوارئ باستخدام RACE','↗'],['Fire Emergency Plans & Security','خطط الطوارئ وأمن المنشآت','▣'],['Emergency Evacuation & Egress Safety','الإخلاء ومخارج الطوارئ','●'],['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙']];
-const topics=Array.isArray(d.trainingTopics)?d.trainingTopics.map(t=>Array.isArray(t)?{en:t[0],ar:t[1],icon:t[2]||'•'}:t).filter(t=>t&&((t.en||t.nameEn)||(t.ar||t.nameAr))):[];
-const items=topics.length?topics:fallback.map(t=>({en:t[0],ar:t[1],icon:t[2]}));
-items.forEach(t=>{const item=document.createElement('div');item.className='topic';const icon=document.createElement('span');icon.className='dot';icon.textContent=t.icon||'•';const body=document.createElement('div');const en=document.createElement('span');en.className='topicEn';en.textContent=t.en||t.nameEn||'—';const ar=document.createElement('span');ar.className='ar';ar.textContent=t.ar||t.nameAr||'—';body.append(en,ar);item.append(icon,body);grid.appendChild(item)});
+const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';
+const id=new URLSearchParams(location.search).get('id');
+function fail(msg){
+  document.getElementById('name').textContent='Certificate not found / الشهادة غير موجودة';
+  const e=document.createElement('div');e.className='error';e.textContent=msg;
+  document.getElementById('certificate').appendChild(e);
 }
-const verify=new URL('verify.html',location.href);verify.searchParams.set('type','certificate');verify.searchParams.set('id',d.certificateId);const qrImg=document.createElement('img');qrImg.alt='Certificate verification QR';qrImg.src=API+'/api/training-certificates/'+encodeURIComponent(d.certificateId)+'/qr?v='+encodeURIComponent(d.certificateId);qrImg.onerror=function(){const box=document.getElementById('qr');box.innerHTML='<span style="font-size:7px;line-height:1.4;color:#0B1F33;padding:2mm">Verification QR unavailable<br>'+String(d.certificateId||'')+'</span>';};document.getElementById('qr').appendChild(qrImg);document.getElementById('verifyLink').href=verify.toString();
+try{
+  if(!id)throw new Error('Certificate ID is required');
+  const r=await fetch(API+'/api/training-certificates/'+encodeURIComponent(id),{cache:'no-store'});
+  const raw=await r.text();let d;
+  try{d=JSON.parse(raw)}catch{throw new Error('Certificate service returned an invalid response')}
+  if(!r.ok)throw new Error(d.message||'Certificate not found');
+  const text=(v,f='—')=>v===null||v===undefined||String(v).trim()===''?f:String(v).trim();
+  document.getElementById('name').textContent=text(d.recipientNameEn||d.recipientNameAr);
+  document.getElementById('courseEn').textContent=text(d.courseNameEn);
+  document.getElementById('courseAr').textContent=text(d.courseNameAr);
+  document.getElementById('date').textContent=d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  document.getElementById('id').textContent=text(d.certificateId);
+  document.getElementById('trainingId').textContent=text(d.trainingId||d.courseId);
+  document.getElementById('idNumber').textContent=text(d.idNumber);
+  const dh=d.durationHours;
+  document.getElementById('duration').innerHTML=dh!==null&&dh!==undefined&&dh!==''?'<strong>'+String(dh).replace(/</g,'&lt;')+' Hours</strong> | '+String(dh).replace(/</g,'&lt;')+' ساعة':'—';
+  document.getElementById('level').textContent=text(d.level);
+  document.getElementById('signature').textContent=text(d.trainerName||d.instructor||d.signatureName);
+
+  const grid=document.getElementById('topicGrid');
+  if(grid){
+    grid.innerHTML='';
+    const fallback=[
+      ['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],
+      ['Fire Classifications & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],
+      ['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],
+      ['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],
+      ['RACE Emergency Response','الاستجابة للطوارئ باستخدام RACE','↗'],
+      ['Fire Emergency Plans & Security','خطط الطوارئ وأمن المنشآت','▣'],
+      ['Emergency Evacuation & Egress Safety','الإخلاء ومخارج الطوارئ','●'],
+      ['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙']
+    ];
+    const topics=Array.isArray(d.trainingTopics)?d.trainingTopics.map(t=>Array.isArray(t)?{en:t[0],ar:t[1],icon:t[2]||'•'}:t).filter(t=>t&&((t.en||t.nameEn)||(t.ar||t.nameAr))):[];
+    const items=topics.length?topics:fallback.map(t=>({en:t[0],ar:t[1],icon:t[2]}));
+    items.forEach(t=>{
+      const item=document.createElement('div');item.className='topic';
+      const icon=document.createElement('span');icon.className='dot';icon.textContent=t.icon||'•';
+      const body=document.createElement('div');
+      const en=document.createElement('span');en.className='topicEn';en.textContent=t.en||t.nameEn||'—';
+      const ar=document.createElement('span');ar.className='ar';ar.textContent=t.ar||t.nameAr||'—';
+      body.append(en,ar);item.append(icon,body);grid.appendChild(item);
+    });
+  }
+
+  const verify=new URL('verify.html',location.href);
+  verify.searchParams.set('type','certificate');verify.searchParams.set('id',d.certificateId);
+  const qrImg=document.createElement('img');qrImg.alt='Certificate verification QR';
+  qrImg.src=API+'/api/training-certificates/'+encodeURIComponent(d.certificateId)+'/qr?v='+encodeURIComponent(d.certificateId);
+  qrImg.onerror=function(){
+    const box=document.getElementById('qr');
+    box.innerHTML='<span style="font-size:7px;line-height:1.4;color:#0B1F33;padding:2mm">Verification QR unavailable<br>'+String(d.certificateId||'')+'</span>';
+  };
+  document.getElementById('qr').appendChild(qrImg);
+  document.getElementById('verifyLink').href=verify.toString();
 }catch(e){fail(e.message)}
 })();
 </script>
