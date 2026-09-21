@@ -111,7 +111,7 @@ try{
       ['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙']
     ];
     const topics=Array.isArray(d.trainingTopics)?d.trainingTopics.map(t=>Array.isArray(t)?{en:t[0],ar:t[1],icon:t[2]||'•'}:t).filter(t=>t&&((t.en||t.nameEn)||(t.ar||t.nameAr))):[];
-    const items=topics.length?topics:fallback.map(t=>({en:t[0],ar:t[1],icon:t[2]}));
+    const isFire=/fire\s+safety|emergency\s+response/i.test(d.courseNameEn||'');const items=topics.length?topics:(isFire?fallback.map(t=>({en:t[0],ar:t[1],icon:t[2]})):[]);document.getElementById('topics').classList.toggle('show',items.length>0);
     items.forEach(t=>{
       const item=document.createElement('div');item.className='topic';
       const icon=document.createElement('span');icon.className='dot';icon.textContent=t.icon||'•';
