@@ -96,7 +96,7 @@ function registerTrainingCertificateDirectRoutes(app){
       const cert=await Certificate.findOne({certificateId}).lean();
       if(!cert)return res.status(404).json({valid:false,message:'Certificate not found'});
       const trainee=await Trainee.findOne({traineeId:cert.traineeId}).lean();
-      res.set('Cache-Control','no-store').json({valid:cert.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:cert.certificateId,traineeId:cert.traineeId,recipientNameEn:cert.recipientNameEn,recipientNameAr:cert.recipientNameAr,courseNameEn:cert.courseNameEn,courseNameAr:cert.courseNameAr,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||'',issuedAt:cert.issuedAt,status:cert.verificationStatus,verificationUrl:verifyLink(certificateId)});
+      const rawId=String(cert.idNumber||trainee?.idNumber||''); const maskedId=rawId.length>4?'•'.repeat(Math.max(0,rawId.length-4))+rawId.slice(-4):rawId; res.set('Cache-Control','no-store').json({valid:cert.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:cert.certificateId,recipientNameEn:cert.recipientNameEn,recipientNameAr:cert.recipientNameAr,courseNameEn:cert.courseNameEn,courseNameAr:cert.courseNameAr,idType:cert.idType||trainee?.idType||'',idNumberMasked:maskedId,issuedAt:cert.issuedAt,status:cert.verificationStatus,verificationUrl:verifyLink(certificateId)});
     }catch(err){console.error('Certificate verification failed',err);res.status(500).json({valid:false,message:'Unable to verify certificate'})}
   });
 }
