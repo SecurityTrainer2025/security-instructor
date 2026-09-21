@@ -138,26 +138,42 @@ $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>lo
 <script src="../certificates-center.js?v=20260921"></script>
 <script>
 (function(){
+  const ADMIN_HOME='https://securitytrainer2025.github.io/security-instructor/frontend/admin/?dashboard=1&return=dashboard';
+
   function applyAdminReturn(){
     const active=document.querySelector('.tab.active');
     const isHome=!active||active.dataset.tab==='trainees';
     document.querySelectorAll('.si-admin-home').forEach(b=>b.remove());
     if(isHome)return;
+
     const pane=document.getElementById(active.dataset.tab);
     if(!pane||pane.classList.contains('hidden'))return;
+
     const b=document.createElement('a');
     b.className='btn alt si-admin-home';
-    b.href='#dashboard';
+    b.href=ADMIN_HOME;
     b.textContent='↩ العودة إلى لوحة الإدارة / Back to Admin Dashboard';
-    b.onclick=function(e){e.preventDefault();goAdminHome();};
+    b.setAttribute('role','button');
     b.style.cssText='display:block!important;width:max-content;margin:0 0 16px auto!important;position:relative;z-index:1000;text-decoration:none;cursor:pointer;';
+
+    // Explicit navigation for browsers/webviews that interfere with normal anchor navigation.
+    b.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.assign(ADMIN_HOME);
+    },false);
+
     pane.insertBefore(b,pane.firstChild);
   }
+
   document.addEventListener('click',function(e){
     if(e.target.closest&&e.target.closest('.tab'))setTimeout(applyAdminReturn,50);
   },true);
-  new MutationObserver(function(){setTimeout(applyAdminReturn,0);}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(applyAdminReturn,100);});
+
+  new MutationObserver(function(){
+    setTimeout(applyAdminReturn,0);
+  }).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+
   setTimeout(applyAdminReturn,300);
 })();
 </script>
