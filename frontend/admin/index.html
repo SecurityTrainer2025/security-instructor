@@ -87,6 +87,18 @@ function installAdminHomeLinks(){
   pane.insertBefore(b,pane.firstChild);
 }
 
+window.SIAdminHome=function(){goAdminHome()};
+
+// Global delegated handler for dynamically injected "Back to Admin Dashboard" buttons.
+// This remains reliable for Reports, Operations, Certificates, and other dynamic tabs.
+document.addEventListener('click',function(e){
+  const b=e.target.closest&&e.target.closest('.si-admin-home');
+  if(!b)return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  goAdminHome();
+},true);
+
 function syncAdminNavigation(){
   const active=document.querySelector('.tab.active');
   const isHome=!active||active.dataset.tab==='trainees';
