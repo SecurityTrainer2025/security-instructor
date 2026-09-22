@@ -27,14 +27,11 @@
     if(!ok){alert('Excel styling library could not be loaded.');return}
     const XLSX=window.XLSX,n=current.columns.length;
     const table=document.querySelector('#reportTable');
-    const header=[...table.querySelectorAll('thead th')].map(x=>x.textContent.trim());
-    const body=[...table.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim())).filter(row=>row.length===n);
-    const rows=body.length?body:current.rows.map(r=>current.columns.map(c=>r[c]??''));
+    const visibleHeader=[...table.querySelectorAll('thead th')].map(x=>x.textContent.trim());
+    const visibleRows=[...table.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.trim())).filter(row=>row.length===n);
+    const rows=visibleRows.length?visibleRows:current.rows.map(r=>current.columns.map(c=>r[c]??''));
     const ws=XLSX.utils.aoa_to_sheet([]);
     const set=(r,c,v)=>{const addr=XLSX.utils.encode_cell({r,c});ws[addr]={v:v==null?'':v,t:'s'}};
-    header.forEach((c,i)=>set(0,i,c));
-    rows.forEach((row,ri)=>row.forEach((v,ci)=>set(ri+1,ci,v)));
-    const lastRow=5+rows.length,lastCol=colLetter(n-1);
     ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:n-1}},{s:{r:1,c:0},e:{r:1,c:n-1}},{s:{r:2,c:0},e:{r:2,c:n-1}},{s:{r:3,c:0},e:{r:3,c:n-1}}];
     setCell(ws,'A1','SI  |  SECURITY INSTRUCTOR',{fill:{fgColor:{rgb:NAVY}},font:{color:{rgb:GOLD},bold:true,sz:16},alignment:{horizontal:'center',vertical:'center'}});
     setCell(ws,'A2',current.title||'Report',{fill:{fgColor:{rgb:NAVY2}},font:{color:{rgb:WHITE},bold:true,sz:14},alignment:{horizontal:'center',vertical:'center'}});
@@ -42,9 +39,13 @@
     setCell(ws,'A4',filterText()+' | Generated: '+(current.generatedAt||stamp()),{fill:{fgColor:{rgb:NAVY2}},font:{color:{rgb:MUTED},sz:10},alignment:{horizontal:'center',vertical:'center'}});
     for(let c=0;c<n;c++){
       const a=colLetter(c)+'5';
-      setCell(ws,a,header[c]||current.columns[c],{fill:{fgColor:{rgb:NAVY}},font:{color:{rgb:GOLD},bold:true},alignment:{horizontal:'center',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:LINE}},bottom:{style:'thin',color:{rgb:LINE}},left:{style:'thin',color:{rgb:LINE}},right:{style:'thin',color:{rgb:LINE}}}});
-      for(let r=0;r<rows.length;r++){const addr=colLetter(c)+(r+6);if(ws[addr])ws[addr].s={font:{color:{rgb:'1F2937'}},alignment:{vertical:'top',wrapText:true},border:{bottom:{style:'thin',color:{rgb:'D9E0E6'}}}}}
+      setCell(ws,a,visibleHeader[c]||current.columns[c],{fill:{fgColor:{rgb:NAVY}},font:{color:{rgb:GOLD},bold:true},alignment:{horizontal:'center',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:LINE}},bottom:{style:'thin',color:{rgb:LINE}},left:{style:'thin',color:{rgb:LINE}},right:{style:'thin',color:{rgb:LINE}}}});
     }
+    rows.forEach((row,ri)=>row.forEach((v,ci)=>{
+      const addr=colLetter(ci)+(ri+6);
+      setCell(ws,addr,v,{font:{color:{rgb:'1F2937'}},alignment:{vertical:'top',wrapText:true},border:{bottom:{style:'thin',color:{rgb:'D9E0E6'}}}});
+    }));
+    const lastRow=5+rows.length,lastCol=colLetter(n-1);
     ws['!ref']='A1:'+lastCol+lastRow;
     ws['!cols']=current.columns.map(c=>({wch:Math.min(42,Math.max(12,String(c).length+3))}));
     ws['!autofilter']={ref:'A5:'+lastCol+lastRow};
