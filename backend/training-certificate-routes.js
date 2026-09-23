@@ -1,7 +1,6 @@
 const express=require('express');
 const mongoose=require('mongoose');
 const crypto=require('crypto');
-const nodemailer=require('nodemailer');
 const QRCode=require('qrcode');
 require('dotenv').config();
 
@@ -11,14 +10,36 @@ const Trainee=mongoose.model('TrainingCertificateTrainee',new mongoose.Schema({}
 const Enrollment=mongoose.model('TrainingCertificateEnrollment',new mongoose.Schema({}, {strict:false}),'enrollments');
 const Certificate=mongoose.model('TrainingCertificate',new mongoose.Schema({certificateId:{type:String,unique:true,index:true},traineeId:{type:String,required:true,index:true},enrollmentId:{type:String,required:true,unique:true,index:true},courseId:{type:String,required:true,index:true},courseNameEn:String,courseNameAr:String,trainingId:String,durationHours:Number,level:String,trainingTopics:Array,trainerName:String,signatureName:String,recipientNameEn:String,recipientNameAr:String,idType:String,idNumber:String,email:String,score:Number,issuedAt:{type:Date,default:Date.now},verificationStatus:{type:String,enum:['valid','revoked'],default:'valid'},verificationUrl:String,emailStatus:{type:String,default:'pending'},emailSentAt:Date,emailError:String},{timestamps:true}),'trainingcertificates');
 const adminAuth=async req=>{try{const h=String(req.headers.authorization||'');if(!h.startsWith('Bearer '))return false;const r=await fetch('http://127.0.0.1:'+(process.env.PORT||10000)+'/api/admin/me',{headers:{Authorization:h}});return r.ok}catch{return false}};
-const transport=()=>{const user=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim(),clientId=(process.env.MS_CLIENT_ID||'').trim(),clientSecret=(process.env.MS_CLIENT_SECRET||'').trim(),refreshToken=(process.env.MS_REFRESH_TOKEN||'').trim();if(!user||!clientId||!clientSecret||!refreshToken)return null;return nodemailer.createTransport({host:'smtp-mail.outlook.com',port:587,secure:false,auth:{type:'OAuth2',user,clientId,clientSecret,refreshToken}})};
+
+// Brevo transactional email. The API key is read only from the server environment.
+async function send(to,subject,text,html){
+  const apiKey=(process.env.BREVO_API_KEY||'').trim();
+  const from=(process.env.MAIL_FROM||'').trim();
+  if(!apiKey||!from)return false;
+  const response=await fetch('https://api.brevo.com/v3/smtp/email',{
+    method:'POST',
+    headers:{'accept':'application/json','api-key':apiKey,'content-type':'application/json'},
+    body:JSON.stringify({
+      sender:{name:'SECURITY INSTRUCTOR',email:from},
+      replyTo:{email:from},
+      to:[{email:to}],
+      subject,
+      textContent:text,
+      htmlContent:html
+    })
+  });
+  if(!response.ok){
+    const detail=await response.text().catch(()=> '');
+    throw new Error(`Brevo email failed (${response.status}): ${detail.slice(0,300)}`);
+  }
+  return true;
+}
 const courseLink=slug=>`${FRONTEND}/assessment-gateway.html?course=${encodeURIComponent(slug)}`;
 const LEGACY_COURSE_META={'CRS-FIRE-001':{durationHours:24,level:'Level 1 / المستوى الأول',trainingTopics:[['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],['Fire Classifications & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],['Emergency Evacuation & Egress Safety','الإخلاء ومخارج الطوارئ','●'],['RACE Emergency Response','الاستجابة للطوارئ باستخدام RACE','↗'],['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙'],['Fire Emergency Plans & Security','خطط الطوارئ وأمن المنشآت','▣']]}};
 const PUBLIC_VERIFY='https://securitytrainer2025.github.io/security-instructor/frontend/verify.html';
 const verifyLink=id=>`${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
 const certificateLink=id=>`${FRONTEND}/certificate.html?id=${encodeURIComponent(id)}`;
 const nextId=()=>`SI-CERT-${new Date().getFullYear()}-${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
-async function send(to,subject,text,html){const t=transport();if(!t)return false;const from=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim();await t.sendMail({from,replyTo:from,to,subject,text,html});return true}
 async function issueForEnrollment(enrollmentId){
   const e=await Enrollment.findOne({enrollmentId}).lean();
   if(!e)throw new Error('Enrollment not found');
@@ -45,7 +66,7 @@ async function issueForEnrollment(enrollmentId){
   const link=certificateLink(certificateId);
   const text=`Dear ${nameEn},\n\nCongratulations on completing ${e.courseNameEn}.\nYour training certificate is now available.\n\nCertificate ID: ${certificateId}\nView certificate: ${link}\nVerify certificate: ${verificationUrl}\n\nRegards,\nSECURITY INSTRUCTOR`;
   const html=`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#0B1F33"><h2>SECURITY INSTRUCTOR</h2><p>Dear ${nameEn},</p><p>Congratulations on completing <strong>${e.courseNameEn}</strong>.</p><p>Your training certificate is now available.</p><p><strong>Certificate ID:</strong> ${certificateId}</p><p><a href="${link}" style="background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">View Certificate / عرض الشهادة</a></p><p style="font-size:12px;color:#5F6B76">Verification: <a href="${verificationUrl}">${verificationUrl}</a></p></div>`;
-  try{const sent=await send(t.email,subject,text,html);await Certificate.updateOne({certificateId},{$set:{emailStatus:sent?'sent':'not_configured',emailSentAt:sent?new Date():null}})}catch(err){console.error('Certificate email failed',err);await Certificate.updateOne({certificateId},{$set:{emailStatus:'failed',emailError:clean(err.message,300)}})}
+  try{const sent=await send(t.email,subject,text,html);await Certificate.updateOne({certificateId},{$set:{emailStatus:sent?'sent':'not_configured',emailSentAt:sent?new Date():null,emailError:null}})}catch(err){console.error('Certificate email failed',err);await Certificate.updateOne({certificateId},{$set:{emailStatus:'failed',emailError:clean(err.message,300)}})}
   return Certificate.findOne({certificateId}).lean();
 }
 const install=(method,path,handler)=>{const key='__si_training_cert_'+method+'_'+path.replace(/[^a-z0-9]/gi,'_');if(express.application[key])return;express.application[key]=true;const original=express.application[method];express.application[method]=function(route,...handlers){if(route===path)original.call(this,route,handler);return original.call(this,route,...handlers)}};
@@ -83,7 +104,7 @@ function registerTrainingCertificateDirectRoutes(app){
     try{
       const certificateId=clean(req.params.certificateId,100);
       const cert=await Certificate.findOne({certificateId}).lean();
-      if(!cert)return res.status(404).json({message:'Certificate not found'});
+      if(!cert)return res.status(404).end();
       const verificationUrl=verifyLink(certificateId);
       const svg=await QRCode.toString(verificationUrl,{type:'svg',width:300,margin:2,errorCorrectionLevel:'H',color:{dark:'#0B1F33',light:'#FFFFFF'}});
       res.set('Cache-Control','no-store').type('image/svg+xml').send(svg);
