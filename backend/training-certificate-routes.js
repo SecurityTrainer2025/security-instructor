@@ -35,13 +35,14 @@ async function send(to,subject,text,html){
   return true;
 }
 const htmlEsc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-async function getTrainingMaterialLink(courseId,slug){
-  try{
-    const ids=[courseId,slug].filter(Boolean);
-    const row=await mongoose.connection.collection('coursematerials').findOne({courseId:{$in:ids},status:{$ne:'archived'},url:{$type:'string',$ne:''}},{sort:{order:1,createdAt:1}});
-    return row?.url||'';
-  }catch(err){console.error('Training material lookup failed',err);return ''}
-}
+const TRAINING_MATERIAL_LINKS={
+  'crowd-management-event-security':'https://docs.google.com/presentation/d/1kU0u8P39R0eNOd5PydOB6HTU20VJ1aNA/edit?usp=sharing',
+  'traffic-management-vehicle-control':'https://docs.google.com/presentation/d/1i22gLHuR-EJ3cQbahCI9wldVqX4fiwKx/edit?usp=sharing',
+  'fire-safety-emergency-response':'https://docs.google.com/presentation/d/1LQ-1faypsf0gZHMVmDOynl618uy6d-zf/edit?usp=sharing',
+  'vehicle-search-security-inspection':'https://docs.google.com/presentation/d/1FMkl3eCPEpKHTuM9AFpKaQ0xAbcD3yz4/edit?usp=sharing',
+  'person-search-security-screening':'https://docs.google.com/presentation/d/1Rn7zs0MIZz6ebH7sA8y__RR2a-xDu5C9/edit?usp=sharing'
+};
+function getTrainingMaterialLink(courseId,slug){return TRAINING_MATERIAL_LINKS[String(slug||'').trim()]||''}
 const LEGACY_COURSE_META={'CRS-FIRE-001':{durationHours:24,level:'Level 1 / المستوى الأول',trainingTopics:[['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],['Fire Classifications & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],['Emergency Evacuation & Egress Safety','الإخلاء ومخارج الطوارئ','●'],['RACE Emergency Response','الاستجابة للطوارئ باستخدام RACE','↗'],['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙'],['Fire Emergency Plans & Security','خطط الطوارئ وأمن المنشآت','▣']]}};
 const PUBLIC_VERIFY='https://securitytrainer2025.github.io/security-instructor/frontend/verify.html';
 const verifyLink=id=>`${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
