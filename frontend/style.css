@@ -70,3 +70,40 @@ img{max-width:100%}.course-card,.project-grid article,.timeline article,.panel,.
 .certificate-placeholder{padding:22px;border:1px dashed rgba(200,169,107,.55);background:rgba(255,255,255,.03)}
 .certificate-placeholder strong{display:block;color:#C8A96B;margin-bottom:6px}.certificate-placeholder span{display:block;color:#C9D2DB;font-size:.93rem;line-height:1.7}
 @media(max-width:900px){.motivation-grid,.client-gallery{grid-template-columns:1fr}.media-note,.certificate-gallery{grid-template-columns:1fr}.client-gallery img{height:240px}}
+
+/* Professional Studio — bilingual certificate presentation */
+.studio-section{background:#F1F4F7}
+.studio-intro{max-width:900px;font-size:18px;color:#596674;margin:-12px 0 42px;line-height:1.9}
+.studio-group{margin:42px 0 0}
+.studio-group-head{display:flex;gap:18px;align-items:flex-start;margin-bottom:20px}
+.studio-group-head>span{display:inline-flex;width:42px;height:42px;align-items:center;justify-content:center;border:1px solid #C8A96B;color:#8E6D32;font-weight:800;flex:0 0 auto}
+.studio-group-head h3{margin:0;color:#0B1F33;font-size:25px}
+.studio-group-head p{margin:4px 0 0;color:#6A7681}
+.studio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.studio-card{background:#fff;border:1px solid #D7DDE2;box-shadow:0 8px 24px rgba(11,31,51,.07);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.cert-visual{height:190px;background:linear-gradient(135deg,#0B1F33,#183B56);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#C8A96B;position:relative;overflow:hidden}
+.cert-visual:before{content:"";position:absolute;inset:14px;border:1px solid rgba(200,169,107,.35)}
+.cert-visual span{font-size:42px;font-weight:900;letter-spacing:2px;z-index:1}
+.cert-visual small{font-size:11px;letter-spacing:2px;color:#E6EAF0;margin-top:4px;z-index:1;text-align:center}
+.cert-degree{background:linear-gradient(135deg,#102A43,#35536D)}
+.cert-accredit{background:linear-gradient(135deg,#173B52,#567487)}
+.cert-design{background:linear-gradient(135deg,#283C50,#102A43)}
+.cert-ifpo{background:linear-gradient(135deg,#102A43,#274E70)}
+.cert-ssmp{background:linear-gradient(135deg,#173C5B,#0B1F33)}
+.cert-supervisor{background:linear-gradient(135deg,#3C4854,#17232D)}
+.cert-fire{background:linear-gradient(135deg,#5A3A27,#102A43)}
+.cert-highfield{background:linear-gradient(135deg,#244A67,#102A43)}
+.cert-tot{background:linear-gradient(135deg,#6A5633,#102A43)}
+.cert-exp{background:linear-gradient(135deg,#314252,#0B1F33)}
+.cert-license{background:linear-gradient(135deg,#4A4F54,#102A43)}
+.studio-body{padding:20px 20px 22px;display:flex;flex-direction:column;flex:1}
+.studio-tag{display:inline-block;width:max-content;max-width:100%;font-size:10px;letter-spacing:1.2px;font-weight:800;color:#8E6D32;background:#F7F1E5;border:1px solid #E5D6B7;padding:5px 8px}
+.studio-body h4{font-size:20px;line-height:1.35;margin:14px 0 4px;color:#0B1F33}
+.ar-title{direction:rtl;text-align:right;color:#7A8792;font-family:Cairo,Tahoma,Arial,sans-serif;margin:0 0 10px}
+.studio-body p:not(.ar-title){color:#596674;line-height:1.75;margin:0}
+.studio-note{margin-top:12px;color:#8A6D39;font-size:12px;border-top:1px solid #E2E6EA;padding-top:10px}
+.studio-footer-note{margin-top:42px;padding:24px 28px;background:#102A43;color:#F5F7FA;border-left:4px solid #C8A96B}
+.studio-footer-note strong{color:#C8A96B;font-size:20px}
+.studio-footer-note p{margin:7px 0 0;color:#D5DDE5}
+@media(max-width:1000px){.studio-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.studio-grid{grid-template-columns:1fr}.studio-group-head h3{font-size:22px}.studio-intro{font-size:16px}.cert-visual{height:175px}}
