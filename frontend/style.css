@@ -28,3 +28,23 @@ img{max-width:100%}.course-card,.project-grid article,.timeline article,.panel,.
 /* Challenge is a one-time entry gate, not a site navigation item or homepage section. */
 .topbar nav a[href="challenge-free.html"],
 #securityChallengePromo{display:none !important}
+
+
+/* Client-facing readiness and credentials refinement */
+.readiness-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:28px}
+.readiness-card{position:relative;padding:30px 28px;min-height:210px;border:1px solid rgba(200,169,107,.28);background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(200,169,107,.06));border-radius:14px}
+.readiness-mark{display:inline-flex;width:38px;height:38px;align-items:center;justify-content:center;border:1px solid #C8A96B;color:#C8A96B;font-weight:800;border-radius:50%;margin-bottom:20px}
+.readiness-card h3{font-size:1.35rem;margin:0 0 12px}
+.readiness-card p{font-size:1.03rem;line-height:1.9;margin:0;color:inherit}
+.readiness-banner{margin-top:24px;padding:24px 28px;border-left:4px solid #C8A96B;background:rgba(200,169,107,.09);font-size:1.2rem;line-height:1.7}
+.credentials-showcase{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center}
+.credential-profile{display:flex;gap:20px;align-items:center}
+.credential-profile img{width:110px;height:110px;object-fit:cover;border-radius:12px;border:2px solid #C8A96B}
+.credential-profile h3{font-size:1.35rem;margin:0 0 8px}
+.credential-profile p{font-size:1rem;line-height:1.7;margin:0}
+.credential-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.credential-list span{padding:10px 14px;border:1px solid rgba(200,169,107,.45);border-radius:999px;color:#C8A96B;font-weight:700;font-size:.95rem}
+.credential-note{grid-column:1/-1;padding:22px 24px;border-top:1px solid rgba(255,255,255,.12)}
+.credential-note p{font-size:1.03rem;line-height:1.9;margin:0 0 18px}
+@media(max-width:900px){.readiness-grid{grid-template-columns:1fr}.credentials-showcase{grid-template-columns:1fr}.credential-note{grid-column:auto}}
+@media(max-width:600px){.readiness-card{padding:24px 20px}.readiness-card p,.credential-note p{font-size:.98rem}.readiness-banner{font-size:1.05rem}.credential-profile{align-items:flex-start}.credential-profile img{width:90px;height:90px}}
