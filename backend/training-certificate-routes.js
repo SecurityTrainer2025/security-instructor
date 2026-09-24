@@ -34,7 +34,14 @@ async function send(to,subject,text,html){
   }
   return true;
 }
-const courseLink=slug=>`${FRONTEND}/assessment-gateway.html?course=${encodeURIComponent(slug)}`;
+const htmlEsc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+async function getTrainingMaterialLink(courseId,slug){
+  try{
+    const ids=[courseId,slug].filter(Boolean);
+    const row=await mongoose.connection.collection('coursematerials').findOne({courseId:{$in:ids},status:{$ne:'archived'},url:{$type:'string',$ne:''}},{sort:{order:1,createdAt:1}});
+    return row?.url||'';
+  }catch(err){console.error('Training material lookup failed',err);return ''}
+}
 const LEGACY_COURSE_META={'CRS-FIRE-001':{durationHours:24,level:'Level 1 / المستوى الأول',trainingTopics:[['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],['Fire Classifications & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],['Emergency Evacuation & Egress Safety','الإخلاء ومخارج الطوارئ','●'],['RACE Emergency Response','الاستجابة للطوارئ باستخدام RACE','↗'],['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙'],['Fire Emergency Plans & Security','خطط الطوارئ وأمن المنشآت','▣']]}};
 const PUBLIC_VERIFY='https://securitytrainer2025.github.io/security-instructor/frontend/verify.html';
 const verifyLink=id=>`${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
@@ -62,19 +69,91 @@ async function issueForEnrollment(enrollmentId){
   const trainingId=course?.code||e.courseId||'';
   const verificationUrl=verifyLink(certificateId);
   const cert=await Certificate.create({certificateId,traineeId:t.traineeId,enrollmentId,courseId:e.courseId,courseNameEn:e.courseNameEn,courseNameAr:e.courseNameAr,trainingId,durationHours,level,trainingTopics,trainerName,signatureName,recipientNameEn:nameEn,recipientNameAr:nameAr,idType:t.idType||'',idNumber:t.idNumber||'',email:t.email,score:typeof e.score==='number'?e.score:undefined,verificationUrl});
-  const subject=`SECURITY INSTRUCTOR | Training Certificate | ${e.courseNameEn}`;
+  const subject=`SECURITY INSTRUCTOR | الشهادة | Certificate | ${e.courseNameEn}`;
   const link=certificateLink(certificateId);
-  const text=`Dear ${nameEn},\n\nCongratulations on completing ${e.courseNameEn}.\nYour training certificate is now available.\n\nCertificate ID: ${certificateId}\nView certificate: ${link}\nVerify certificate: ${verificationUrl}\n\nRegards,\nSECURITY INSTRUCTOR`;
-  const html=`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#0B1F33"><h2>SECURITY INSTRUCTOR</h2><p>Dear ${nameEn},</p><p>Congratulations on completing <strong>${e.courseNameEn}</strong>.</p><p>Your training certificate is now available.</p><p><strong>Certificate ID:</strong> ${certificateId}</p><p><a href="${link}" style="background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">View Certificate / عرض الشهادة</a></p><p style="font-size:12px;color:#5F6B76">Verification: <a href="${verificationUrl}">${verificationUrl}</a></p></div>`;
-  try{const sent=await send(t.email,subject,text,html);await Certificate.updateOne({certificateId},{$set:{emailStatus:sent?'sent':'not_configured',emailSentAt:sent?new Date():null,emailError:null}})}catch(err){console.error('Certificate email failed',err);await Certificate.updateOne({certificateId},{$set:{emailStatus:'failed',emailError:clean(err.message,300)}})}
+  const text=[
+    'العربية','',
+    `عزيزي/عزيزتي ${nameAr}،`,'',
+    'شكرًا لحضورك ومشاركتك في دورة:',
+    e.courseNameAr,'',
+    'نقدّر التزامك ومشاركتك خلال البرنامج التدريبي، ويسعدنا تأكيد إتمامك لمتطلبات الدورة.','',
+    'الشهادة:',
+    `عرض الشهادة: ${link}`,
+    `التحقق من الشهادة: ${verificationUrl}`,
+    `رقم الشهادة: ${certificateId}`,'',
+    'نتمنى لك دوام التوفيق والنجاح في مسيرتك المهنية.','',
+    'مع خالص التحية،','فريق التدريب - SECURITY INSTRUCTOR','',
+    '----------------------------------------','',
+    'English','',
+    `Dear ${nameEn},`,'',
+    'Thank you for attending and participating in:',
+    e.courseNameEn,'',
+    'We appreciate your commitment and participation throughout the training program, and we are pleased to confirm that you have completed the course requirements.','',
+    'Certificate:',
+    `View Certificate: ${link}`,
+    `Verify Certificate: ${verificationUrl}`,
+    `Certificate ID: ${certificateId}`,'',
+    'We wish you continued success in your professional career.','',
+    'Best regards,','Training Team - SECURITY INSTRUCTOR'
+  ].join('\n');
+  const html=`<div style="font-family:Arial,sans-serif;line-height:1.8;color:#0B1F33"><div dir="rtl"><h2>SECURITY INSTRUCTOR</h2><p>عزيزي/عزيزتي <strong>${htmlEsc(nameAr)}</strong>،</p><p>شكرًا لحضورك ومشاركتك في دورة:</p><p><strong>${htmlEsc(e.courseNameAr)}</strong></p><p>نقدّر التزامك ومشاركتك خلال البرنامج التدريبي، ويسعدنا تأكيد إتمامك لمتطلبات الدورة.</p><p><strong>الشهادة</strong><br>رقم الشهادة: ${htmlEsc(certificateId)}</p><p><a href="${htmlEsc(link)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">عرض الشهادة</a></p><p><a href="${htmlEsc(verificationUrl)}">التحقق من الشهادة</a></p><p>نتمنى لك دوام التوفيق والنجاح في مسيرتك المهنية.</p><p>مع خالص التحية،<br><strong>فريق التدريب - SECURITY INSTRUCTOR</strong></p></div><hr style="border:0;border-top:1px solid #ddd;margin:24px 0"><div dir="ltr"><h2>SECURITY INSTRUCTOR</h2><p>Dear <strong>${htmlEsc(nameEn)}</strong>,</p><p>Thank you for attending and participating in:</p><p><strong>${htmlEsc(e.courseNameEn)}</strong></p><p>We appreciate your commitment and participation throughout the training program, and we are pleased to confirm that you have completed the course requirements.</p><p><strong>Certificate</strong><br>Certificate ID: ${htmlEsc(certificateId)}</p><p><a href="${htmlEsc(link)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">View Certificate</a></p><p><a href="${htmlEsc(verificationUrl)}">Verify Certificate</a></p><p>We wish you continued success in your professional career.</p><p>Best regards,<br><strong>Training Team - SECURITY INSTRUCTOR</strong></p></div></div>`;  try{const sent=await send(t.email,subject,text,html);await Certificate.updateOne({certificateId},{$set:{emailStatus:sent?'sent':'not_configured',emailSentAt:sent?new Date():null,emailError:null}})}catch(err){console.error('Certificate email failed',err);await Certificate.updateOne({certificateId},{$set:{emailStatus:'failed',emailError:clean(err.message,300)}})}
   return Certificate.findOne({certificateId}).lean();
 }
 const install=(method,path,handler)=>{const key='__si_training_cert_'+method+'_'+path.replace(/[^a-z0-9]/gi,'_');if(express.application[key])return;express.application[key]=true;const original=express.application[method];express.application[method]=function(route,...handlers){if(route===path)original.call(this,route,handler);return original.call(this,route,...handlers)}};
 
-// Registration email: send the direct course access/initial-assessment link after a successful registration.
-install('post','/api/course-registration',async(req,res,next)=>{const originalJson=res.json.bind(res);res.json=body=>{try{if(body?.ok&&body?.traineeId&&body?.course?.id){const slug=clean(req.body?.courseSlug,100);Trainee.findOne({traineeId:body.traineeId}).lean().then(async t=>{if(!t?.email)return;const name=[t.englishFirstName,t.englishMiddleName,t.englishLastName].filter(Boolean).join(' '),link=courseLink(slug),subject=`SECURITY INSTRUCTOR | Course Access | ${body.course.en}`,text=`Dear ${name},\n\nYour registration for ${body.course.en} has been received.\n\nCourse access and initial assessment:\n${link}\n\nTrainee ID: ${body.traineeId}\nEnrollment ID: ${body.enrollmentId}\n\nRegards,\nSECURITY INSTRUCTOR`,html=`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#0B1F33"><h2>SECURITY INSTRUCTOR</h2><p>Dear ${name},</p><p>Your registration for <strong>${body.course.en}</strong> has been received.</p><p><a href="${link}" style="background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">Course Access / الدخول للدورة</a></p><p style="font-size:13px;color:#5F6B76">Trainee ID: ${body.traineeId}<br>Enrollment ID: ${body.enrollmentId}</p></div>`;try{await send(t.email,subject,text,html)}catch(err){console.error('Course access email failed',err)}}).catch(err=>console.error('Registration email lookup failed',err))}}catch(err){console.error('Registration email hook failed',err)}return originalJson(body)};next()});
-
-// Completion email + certificate: Admin marking an enrollment completed is the completion event.
+// Registration email: send a bilingual welcome message with the course-specific training material link.
+install('post','/api/course-registration',async(req,res,next)=>{
+  const originalJson=res.json.bind(res);
+  res.json=body=>{
+    try{
+      if(body?.ok&&body?.traineeId&&body?.course?.id){
+        const slug=clean(req.body?.courseSlug,100);
+        Trainee.findOne({traineeId:body.traineeId}).lean().then(async t=>{
+          if(!t?.email)return;
+          const nameEn=[t.englishFirstName,t.englishMiddleName,t.englishLastName].filter(Boolean).join(' ');
+          const nameAr=[t.arabicFirstName,t.arabicMiddleName,t.arabicLastName].filter(Boolean).join(' ');
+          const materialLink=await getTrainingMaterialLink(body.course.id,slug);
+          const subject=`SECURITY INSTRUCTOR | تأكيد التسجيل | Registration Confirmation | ${body.course.en}`;
+          const text=[
+            'العربية','',
+            `عزيزي/عزيزتي ${nameAr}،`,'',
+            'نرحب بك في SECURITY INSTRUCTOR.','',
+            'يسرنا تأكيد استلام تسجيلك في دورة:',
+            body.course.ar,'',
+            'بيانات التسجيل:',
+            `رقم المتدرب: ${body.traineeId}`,
+            `رقم التسجيل: ${body.enrollmentId}`,'',
+            materialLink?'المادة التدريبية:\n'+materialLink:'المادة التدريبية ستكون متاحة من خلال نظام التدريب عند تجهيزها للدورة.','',
+            'نتمنى لك تجربة تدريبية مميزة وموفقة.','',
+            'مع خالص التحية،','فريق التدريب - SECURITY INSTRUCTOR','',
+            '----------------------------------------','',
+            'English','',
+            `Dear ${nameEn},`,'',
+            'Welcome to SECURITY INSTRUCTOR.','',
+            'We are pleased to confirm that your registration for the following course has been received:',
+            body.course.en,'',
+            'Registration Details:',
+            `Trainee ID: ${body.traineeId}`,
+            `Enrollment ID: ${body.enrollmentId}`,'',
+            materialLink?'Training Material:\n'+materialLink:'Training material will be made available through the training system when ready for the course.','',
+            'We wish you a successful and valuable training experience.','',
+            'Best regards,','Training Team - SECURITY INSTRUCTOR'
+          ].join('\n');
+          const materialAr=materialLink?`<p><a href="${htmlEsc(materialLink)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">الدخول إلى المادة التدريبية</a></p>`:'<p>المادة التدريبية ستكون متاحة من خلال نظام التدريب عند تجهيزها للدورة.</p>';
+          const materialEn=materialLink?`<p><a href="${htmlEsc(materialLink)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">Access Training Material</a></p>`:'<p>Training material will be made available through the training system when ready for the course.</p>';
+          const html=`<div style="font-family:Arial,sans-serif;line-height:1.8;color:#0B1F33">
+            <div dir="rtl"><h2>SECURITY INSTRUCTOR</h2><p>عزيزي/عزيزتي <strong>${htmlEsc(nameAr)}</strong>،</p><p>نرحب بك في <strong>SECURITY INSTRUCTOR</strong>.</p><p>يسرنا تأكيد استلام تسجيلك في دورة:</p><p><strong>${htmlEsc(body.course.ar)}</strong></p><p><strong>بيانات التسجيل</strong><br>رقم المتدرب: ${htmlEsc(body.traineeId)}<br>رقم التسجيل: ${htmlEsc(body.enrollmentId)}</p><p><strong>المادة التدريبية</strong></p>${materialAr}<p>نتمنى لك تجربة تدريبية مميزة وموفقة.</p><p>مع خالص التحية،<br><strong>فريق التدريب - SECURITY INSTRUCTOR</strong></p></div>
+            <hr style="border:0;border-top:1px solid #ddd;margin:24px 0">
+            <div dir="ltr"><h2>SECURITY INSTRUCTOR</h2><p>Dear <strong>${htmlEsc(nameEn)}</strong>,</p><p>Welcome to <strong>SECURITY INSTRUCTOR</strong>.</p><p>We are pleased to confirm that your registration for the following course has been received:</p><p><strong>${htmlEsc(body.course.en)}</strong></p><p><strong>Registration Details</strong><br>Trainee ID: ${htmlEsc(body.traineeId)}<br>Enrollment ID: ${htmlEsc(body.enrollmentId)}</p><p><strong>Training Material</strong></p>${materialEn}<p>We wish you a successful and valuable training experience.</p><p>Best regards,<br><strong>Training Team - SECURITY INSTRUCTOR</strong></p></div>
+          </div>`;
+          try{await send(t.email,subject,text,html)}catch(err){console.error('Course access email failed',err)}
+        }).catch(err=>console.error('Registration email lookup failed',err))
+      }
+    }catch(err){console.error('Registration email hook failed',err)}
+    return originalJson(body)
+  };
+  next()
+});
 install('patch','/api/admin/enrollments/:enrollmentId/status',async(req,res,next)=>{const originalJson=res.json.bind(res);res.json=async body=>{try{if(body?.enrollmentId&&body.status==='completed'){const cert=await issueForEnrollment(body.enrollmentId);if(cert){body.certificateId=cert.certificateId;body.certificateIssued=true;body.certificateEmailStatus=cert.emailStatus}}}catch(err){console.error('Auto certificate hook failed',err)}return originalJson(body)};next()});
 
 install('post','/api/admin/training-certificates/issue',async(req,res)=>{if(!(await adminAuth(req)))return res.status(401).json({message:'Admin authentication required'});try{const enrollmentId=clean(req.body?.enrollmentId,100);const cert=await issueForEnrollment(enrollmentId);if(!cert)return res.status(400).json({message:'Certificate can only be issued for a completed enrollment with a valid trainee email'});res.status(201).json({ok:true,certificate:cert})}catch(err){console.error(err);res.status(500).json({message:'Unable to issue training certificate'})}});
