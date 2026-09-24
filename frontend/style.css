@@ -119,3 +119,5 @@ img{max-width:100%}.course-card,.project-grid article,.timeline article,.panel,.
 .training-video-card>div{padding:15px 18px}
 .training-video-card strong{display:block;color:#fff;font-size:1rem}
 .training-video-card span{display:block;margin-top:5px;color:#C8A96B;font-size:.9rem}
+
+@media(max-width:700px){.training-video-grid{grid-template-columns:1fr}.video-section-head{display:block}.video-section-head>p{margin-top:8px}.training-video-card video{height:240px}}
