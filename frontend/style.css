@@ -48,3 +48,25 @@ img{max-width:100%}.course-card,.project-grid article,.timeline article,.panel,.
 .credential-note p{font-size:1.03rem;line-height:1.9;margin:0 0 18px}
 @media(max-width:900px){.readiness-grid{grid-template-columns:1fr}.credentials-showcase{grid-template-columns:1fr}.credential-note{grid-column:auto}}
 @media(max-width:600px){.readiness-card{padding:24px 20px}.readiness-card p,.credential-note p{font-size:.98rem}.readiness-banner{font-size:1.05rem}.credential-profile{align-items:flex-start}.credential-profile img{width:90px;height:90px}}
+
+/* Client presentation refinement */
+.motivation-section{background:#F1F4F7;padding-top:72px;padding-bottom:72px}
+.motivation-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.motivation-grid article{padding:28px;border-top:3px solid #C8A96B;background:#fff;box-shadow:0 10px 28px rgba(11,31,51,.06);min-height:220px}
+.motivation-grid article>span{display:block;color:#C8A96B;font-weight:800;font-size:13px;letter-spacing:1px;margin-bottom:18px}
+.motivation-grid h3{font-size:1.35rem;margin:0 0 12px;color:#0B1F33}
+.motivation-grid p{font-size:1rem;line-height:1.85;color:#5F6B76;margin:0}
+.client-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.client-gallery figure{margin:0;background:#0D2439;border:1px solid #294158;padding:0;overflow:hidden}
+.client-gallery img{width:100%;height:270px;display:block;object-fit:cover}
+.client-gallery figcaption{padding:15px 18px;color:#fff;font-weight:700;font-size:1rem}
+.media-note{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}
+.media-note>div,.video-slot{padding:24px;border:1px solid rgba(200,169,107,.3);background:rgba(255,255,255,.04)}
+.media-note strong{color:#C8A96B;font-size:1.1rem}.media-note p{margin:7px 0 0;color:#C9D2DB;line-height:1.8}
+.video-slot{display:flex;align-items:center;gap:16px}.video-slot>span{width:52px;height:52px;border:1px solid #C8A96B;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#C8A96B;font-size:20px}
+.credential-badge{display:flex;align-items:center;gap:14px;margin:18px 0;padding:15px 18px;background:rgba(200,169,107,.09);border:1px solid rgba(200,169,107,.35)}
+.credential-badge strong{font-size:1.25rem;color:#C8A96B}.credential-badge span{font-weight:700}
+.certificate-gallery{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0 22px}
+.certificate-placeholder{padding:22px;border:1px dashed rgba(200,169,107,.55);background:rgba(255,255,255,.03)}
+.certificate-placeholder strong{display:block;color:#C8A96B;margin-bottom:6px}.certificate-placeholder span{display:block;color:#C9D2DB;font-size:.93rem;line-height:1.7}
+@media(max-width:900px){.motivation-grid,.client-gallery{grid-template-columns:1fr}.media-note,.certificate-gallery{grid-template-columns:1fr}.client-gallery img{height:240px}}
