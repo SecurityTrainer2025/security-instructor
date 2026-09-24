@@ -12,7 +12,7 @@ const Certificate=mongoose.model('TrainingCertificate',new mongoose.Schema({cert
 const adminAuth=async req=>{try{const h=String(req.headers.authorization||'');if(!h.startsWith('Bearer '))return false;const r=await fetch('http://127.0.0.1:'+(process.env.PORT||10000)+'/api/admin/me',{headers:{Authorization:h}});return r.ok}catch{return false}};
 
 // Brevo transactional email. The API key is read only from the server environment.
-async function send(to,subject,text,html){
+async function send(to,subject,text,html,attachments=[]){
   const apiKey=(process.env.BREVO_API_KEY||'').trim();
   const from=(process.env.MAIL_FROM||'').trim();
   if(!apiKey||!from)return false;
@@ -25,7 +25,8 @@ async function send(to,subject,text,html){
       to:[{email:to}],
       subject,
       textContent:text,
-      htmlContent:html
+      htmlContent:html,
+      ...(attachments.length?{attachment:attachments}: {})
     })
   });
   if(!response.ok){
@@ -36,13 +37,37 @@ async function send(to,subject,text,html){
 }
 const htmlEsc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const TRAINING_MATERIAL_LINKS={
-  'crowd-management-event-security':'https://docs.google.com/presentation/d/1kU0u8P39R0eNOd5PydOB6HTU20VJ1aNA/edit?usp=sharing',
-  'traffic-management-vehicle-control':'https://docs.google.com/presentation/d/1i22gLHuR-EJ3cQbahCI9wldVqX4fiwKx/edit?usp=sharing',
-  'fire-safety-emergency-response':'https://docs.google.com/presentation/d/1LQ-1faypsf0gZHMVmDOynl618uy6d-zf/edit?usp=sharing',
-  'vehicle-search-security-inspection':'https://docs.google.com/presentation/d/1FMkl3eCPEpKHTuM9AFpKaQ0xAbcD3yz4/edit?usp=sharing',
-  'person-search-security-screening':'https://docs.google.com/presentation/d/1Rn7zs0MIZz6ebH7sA8y__RR2a-xDu5C9/edit?usp=sharing'
+  'crowd-management-event-security':'https://docs.google.com/presentation/d/1kU0u8P39R0eNOd5PydOB6HTU20VJ1aNA/preview',
+  'traffic-management-vehicle-control':'https://docs.google.com/presentation/d/1i22gLHuR-EJ3cQbahCI9wldVqX4fiwKx/preview',
+  'fire-safety-emergency-response':'https://docs.google.com/presentation/d/1LQ-1faypsf0gZHMVmDOynl618uy6d-zf/preview',
+  'vehicle-search-security-inspection':'https://docs.google.com/presentation/d/1FMkl3eCPEpKHTuM9AFpKaQ0xAbcD3yz4/preview',
+  'person-search-security-screening':'https://docs.google.com/presentation/d/1Rn7zs0MIZz6ebH7sA8y__RR2a-xDu5C9/preview'
 };
 function getTrainingMaterialLink(courseId,slug){return TRAINING_MATERIAL_LINKS[String(slug||'').trim()]||''}
+const COURSE_INSTRUCTIONS_AR=[
+  'الالتزام بالمواعيد المحددة للدورة والحضور في الوقت المحدد.',
+  'يجب تحقيق 80% على الأقل من نسبة الحضور للحصول على الشهادة.',
+  'إكمال جميع الأنشطة والتقييمات والمتطلبات المطلوبة للدورة.',
+  'مراجعة المادة التدريبية والاستعداد للتقييمات.',
+  'المشاركة والتفاعل مع المدرب أثناء البرنامج التدريبي.',
+  'استخدام رابط المادة التدريبية للمشاهدة والمذاكرة فقط وعدم تعديل أو حذف المحتوى.',
+  'المحافظة على السلوك المهني والالتزام بتعليمات المدرب وإدارة التدريب.',
+  'في حال وجود مشكلة تقنية، التواصل مع فريق التدريب في أقرب وقت.',
+  'تصدر الشهادة بعد استكمال متطلبات الدورة واجتياز المتطلبات المحددة.'
+];
+const COURSE_INSTRUCTIONS_EN=[
+  'Please attend the course on time and adhere to the scheduled training dates and times.',
+  'A minimum attendance rate of 80% is required to receive the certificate.',
+  'Complete all required course activities, assessments, and learning requirements.',
+  'Review the training material and prepare for the assessments.',
+  'Participate actively and professionally during the training.',
+  'Use the training-material link for viewing and study only; do not edit or delete any content.',
+  'Maintain professional conduct and follow the instructions of the trainer and training administration.',
+  'If you experience a technical issue, contact the training team as soon as possible.',
+  'The certificate is issued after completion of the required course requirements and successful completion of applicable requirements.'
+];
+const assessmentLink=slug=>`${FRONTEND}/assessment-gateway.html?course=${encodeURIComponent(slug)}`;
+const trainingInstructionsHtml=(items,dir)=>'<ul dir="'+dir+'" style="line-height:1.8">'+items.map(x=>'<li>'+htmlEsc(x)+'</li>').join('')+'</ul>';
 const LEGACY_COURSE_META={'CRS-FIRE-001':{durationHours:24,level:'Level 1 / المستوى الأول',trainingTopics:[['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],['Fire Classifications & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],['Emergency Evacuation & Egress Safety','الإخلاء ومخارج الطوارئ','●'],['RACE Emergency Response','الاستجابة للطوارئ باستخدام RACE','↗'],['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙'],['Fire Emergency Plans & Security','خطط الطوارئ وأمن المنشآت','▣']]}};
 const PUBLIC_VERIFY='https://securitytrainer2025.github.io/security-instructor/frontend/verify.html';
 const verifyLink=id=>`${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
@@ -75,7 +100,7 @@ async function issueForEnrollment(enrollmentId){
   const text=[
     'العربية','',
     `عزيزي/عزيزتي ${nameAr}،`,'',
-    'شكرًا لحضورك ومشاركتك في دورة:',
+    'شكرًا لحضورك والتزامك ومشاركتك في دورة:',
     e.courseNameAr,'',
     'نقدّر التزامك ومشاركتك خلال البرنامج التدريبي، ويسعدنا تأكيد إتمامك لمتطلبات الدورة.','',
     'الشهادة:',
@@ -87,7 +112,7 @@ async function issueForEnrollment(enrollmentId){
     '----------------------------------------','',
     'English','',
     `Dear ${nameEn},`,'',
-    'Thank you for attending and participating in:',
+    'Thank you for attending, participating, and completing the requirements for:',
     e.courseNameEn,'',
     'We appreciate your commitment and participation throughout the training program, and we are pleased to confirm that you have completed the course requirements.','',
     'Certificate:',
@@ -102,7 +127,7 @@ async function issueForEnrollment(enrollmentId){
 }
 const install=(method,path,handler)=>{const key='__si_training_cert_'+method+'_'+path.replace(/[^a-z0-9]/gi,'_');if(express.application[key])return;express.application[key]=true;const original=express.application[method];express.application[method]=function(route,...handlers){if(route===path)original.call(this,route,handler);return original.call(this,route,...handlers)}};
 
-// Registration email: send a bilingual welcome message with the course-specific training material link.
+// Registration email: bilingual welcome + training material + initial assessment + fixed course instructions.
 install('post','/api/course-registration',async(req,res,next)=>{
   const originalJson=res.json.bind(res);
   res.json=body=>{
@@ -114,40 +139,82 @@ install('post','/api/course-registration',async(req,res,next)=>{
           const nameEn=[t.englishFirstName,t.englishMiddleName,t.englishLastName].filter(Boolean).join(' ');
           const nameAr=[t.arabicFirstName,t.arabicMiddleName,t.arabicLastName].filter(Boolean).join(' ');
           const materialLink=await getTrainingMaterialLink(body.course.id,slug);
-          const subject=`SECURITY INSTRUCTOR | تأكيد التسجيل | Registration Confirmation | ${body.course.en}`;
+          const assessLink=assessmentLink(slug);
+          const subject=`SECURITY INSTRUCTOR | Welcome & Registration | الترحيب وتأكيد التسجيل | ${body.course.en}`;
           const text=[
             'العربية','',
             `عزيزي/عزيزتي ${nameAr}،`,'',
-            'نرحب بك في SECURITY INSTRUCTOR.','',
-            'يسرنا تأكيد استلام تسجيلك في دورة:',
+            'مرحبًا بك في SECURITY INSTRUCTOR.',
+            'يسرنا تأكيد تسجيلك في الدورة التالية:',
             body.course.ar,'',
             'بيانات التسجيل:',
             `رقم المتدرب: ${body.traineeId}`,
             `رقم التسجيل: ${body.enrollmentId}`,'',
-            materialLink?'المادة التدريبية:\n'+materialLink:'المادة التدريبية ستكون متاحة من خلال نظام التدريب عند تجهيزها للدورة.','',
-            'نتمنى لك تجربة تدريبية مميزة وموفقة.','',
-            'مع خالص التحية،','فريق التدريب - SECURITY INSTRUCTOR','',
+            'المادة التدريبية:',
+            materialLink||'ستتوفر المادة من خلال نظام التدريب عند تجهيزها للدورة.','',
+            'التقييم المبدئي:',
+            assessLink,'',
+            'تعليمات الدورة:',
+            ...COURSE_INSTRUCTIONS_AR.map((x,i)=>`${i+1}. ${x}`),'',
+            'نتمنى لك تجربة تدريبية مميزة وموفقة.',
+            'مع خالص التحية،',
+            'فريق التدريب - SECURITY INSTRUCTOR','',
             '----------------------------------------','',
             'English','',
             `Dear ${nameEn},`,'',
-            'Welcome to SECURITY INSTRUCTOR.','',
-            'We are pleased to confirm that your registration for the following course has been received:',
+            'Welcome to SECURITY INSTRUCTOR.',
+            'We are pleased to confirm your registration for:',
             body.course.en,'',
             'Registration Details:',
             `Trainee ID: ${body.traineeId}`,
             `Enrollment ID: ${body.enrollmentId}`,'',
-            materialLink?'Training Material:\n'+materialLink:'Training material will be made available through the training system when ready for the course.','',
-            'We wish you a successful and valuable training experience.','',
-            'Best regards,','Training Team - SECURITY INSTRUCTOR'
-          ].join('\n');
-          const materialAr=materialLink?`<p><a href="${htmlEsc(materialLink)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">الدخول إلى المادة التدريبية</a></p>`:'<p>المادة التدريبية ستكون متاحة من خلال نظام التدريب عند تجهيزها للدورة.</p>';
-          const materialEn=materialLink?`<p><a href="${htmlEsc(materialLink)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">Access Training Material</a></p>`:'<p>Training material will be made available through the training system when ready for the course.</p>';
+            'Training Material:',
+            materialLink||'Training material will be made available through the training system when ready.','',
+            'Initial Assessment:',
+            assessLink,'',
+            'Course Instructions:',
+            ...COURSE_INSTRUCTIONS_EN.map((x,i)=>`${i+1}. ${x}`),'',
+            'We wish you a successful and valuable training experience.',
+            'Best regards,',
+            'Training Team - SECURITY INSTRUCTOR'
+          ].join('\\n');
+
           const html=`<div style="font-family:Arial,sans-serif;line-height:1.8;color:#0B1F33">
-            <div dir="rtl"><h2>SECURITY INSTRUCTOR</h2><p>عزيزي/عزيزتي <strong>${htmlEsc(nameAr)}</strong>،</p><p>نرحب بك في <strong>SECURITY INSTRUCTOR</strong>.</p><p>يسرنا تأكيد استلام تسجيلك في دورة:</p><p><strong>${htmlEsc(body.course.ar)}</strong></p><p><strong>بيانات التسجيل</strong><br>رقم المتدرب: ${htmlEsc(body.traineeId)}<br>رقم التسجيل: ${htmlEsc(body.enrollmentId)}</p><p><strong>المادة التدريبية</strong></p>${materialAr}<p>نتمنى لك تجربة تدريبية مميزة وموفقة.</p><p>مع خالص التحية،<br><strong>فريق التدريب - SECURITY INSTRUCTOR</strong></p></div>
+            <div dir="rtl">
+              <h2>SECURITY INSTRUCTOR</h2>
+              <p>عزيزي/عزيزتي <strong>${htmlEsc(nameAr)}</strong>،</p>
+              <p>مرحبًا بك في <strong>SECURITY INSTRUCTOR</strong>.</p>
+              <p>يسرنا تأكيد تسجيلك في الدورة التالية:</p>
+              <p><strong>${htmlEsc(body.course.ar)}</strong></p>
+              <p><strong>بيانات التسجيل</strong><br>رقم المتدرب: ${htmlEsc(body.traineeId)}<br>رقم التسجيل: ${htmlEsc(body.enrollmentId)}</p>
+              <p><strong>المادة التدريبية</strong></p>
+              ${materialLink?`<p><a href="${htmlEsc(materialLink)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">الدخول إلى المادة التدريبية</a></p>`:'<p>ستتوفر المادة من خلال نظام التدريب عند تجهيزها للدورة.</p>'}
+              <p><strong>التقييم المبدئي</strong></p>
+              <p><a href="${htmlEsc(assessLink)}" style="display:inline-block;background:#0B1F33;color:#fff;padding:10px 16px;text-decoration:none;font-weight:700">بدء التقييم المبدئي</a></p>
+              <p><strong>تعليمات الدورة</strong></p>
+              ${trainingInstructionsHtml(COURSE_INSTRUCTIONS_AR,'rtl')}
+              <p>نتمنى لك تجربة تدريبية مميزة وموفقة.</p>
+              <p>مع خالص التحية،<br><strong>فريق التدريب - SECURITY INSTRUCTOR</strong></p>
+            </div>
             <hr style="border:0;border-top:1px solid #ddd;margin:24px 0">
-            <div dir="ltr"><h2>SECURITY INSTRUCTOR</h2><p>Dear <strong>${htmlEsc(nameEn)}</strong>,</p><p>Welcome to <strong>SECURITY INSTRUCTOR</strong>.</p><p>We are pleased to confirm that your registration for the following course has been received:</p><p><strong>${htmlEsc(body.course.en)}</strong></p><p><strong>Registration Details</strong><br>Trainee ID: ${htmlEsc(body.traineeId)}<br>Enrollment ID: ${htmlEsc(body.enrollmentId)}</p><p><strong>Training Material</strong></p>${materialEn}<p>We wish you a successful and valuable training experience.</p><p>Best regards,<br><strong>Training Team - SECURITY INSTRUCTOR</strong></p></div>
+            <div dir="ltr">
+              <h2>SECURITY INSTRUCTOR</h2>
+              <p>Dear <strong>${htmlEsc(nameEn)}</strong>,</p>
+              <p>Welcome to <strong>SECURITY INSTRUCTOR</strong>.</p>
+              <p>We are pleased to confirm your registration for:</p>
+              <p><strong>${htmlEsc(body.course.en)}</strong></p>
+              <p><strong>Registration Details</strong><br>Trainee ID: ${htmlEsc(body.traineeId)}<br>Enrollment ID: ${htmlEsc(body.enrollmentId)}</p>
+              <p><strong>Training Material</strong></p>
+              ${materialLink?`<p><a href="${htmlEsc(materialLink)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">Access Training Material</a></p>`:'<p>Training material will be made available through the training system when ready.</p>'}
+              <p><strong>Initial Assessment</strong></p>
+              <p><a href="${htmlEsc(assessLink)}" style="display:inline-block;background:#0B1F33;color:#fff;padding:10px 16px;text-decoration:none;font-weight:700">Start Initial Assessment</a></p>
+              <p><strong>Course Instructions</strong></p>
+              ${trainingInstructionsHtml(COURSE_INSTRUCTIONS_EN,'ltr')}
+              <p>We wish you a successful and valuable training experience.</p>
+              <p>Best regards,<br><strong>Training Team - SECURITY INSTRUCTOR</strong></p>
+            </div>
           </div>`;
-          try{await send(t.email,subject,text,html)}catch(err){console.error('Course access email failed',err)}
+          try{await send(t.email,subject,text,html)}catch(err){console.error('Course welcome email failed',err)}
         }).catch(err=>console.error('Registration email lookup failed',err))
       }
     }catch(err){console.error('Registration email hook failed',err)}
