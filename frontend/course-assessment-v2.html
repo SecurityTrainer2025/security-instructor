@@ -63,11 +63,14 @@ person:[
 const data={traffic:{en:'TRAFFIC MANAGEMENT & VEHICLE CONTROL',ar:'إدارة حركة المرور والتحكم في المركبات في الموقع'},crowd:{en:'CROWD MANAGEMENT & EVENT SECURITY',ar:'إدارة الحشود وتأمين الفعاليات والمناسبات الكبرى'},fire:{en:'FIRE SAFETY & EMERGENCY RESPONSE',ar:'السلامة من الحرائق وتدابير الاستجابة للطوارئ'},vehicle:{en:'VEHICLE SEARCH & SECURITY INSPECTION',ar:'تفتيش المركبات والتفتيش الأمني'},person:{en:'PERSON SEARCH & SECURITY SCREENING',ar:'تفتيش الأشخاص وإجراءات التفتيش الأمني'}};
 const slug=new URLSearchParams(location.search).get('course')||'traffic-management-vehicle-control';const key=slug.startsWith('traffic')?'traffic':slug.startsWith('crowd')?'crowd':slug.startsWith('fire')?'fire':slug.startsWith('vehicle')?'vehicle':'person';const c=data[key];document.getElementById('courseEn').textContent=c.en;document.getElementById('courseAr').textContent=c.ar;let questions=[...Q[key]].sort(()=>Math.random()-.5);function shuffleAssessmentOptions(){questions=questions.map(function(q){var pairs=[];for(var n=0;n<q[2].length;n+=2){pairs.push({en:q[2][n],ar:q[2][n+1],correct:(n/2)===q[3]});}for(var j=pairs.length-1;j>0;j--){var k=Math.floor(Math.random()*(j+1));var tmp=pairs[j];pairs[j]=pairs[k];pairs[k]=tmp;}var correct=pairs.findIndex(function(x){return x.correct;});var options=[];pairs.forEach(function(x){options.push(x.en,x.ar);});return [q[0],q[1],options,correct];});}shuffleAssessmentOptions();let i=0,score=0,selected=null,assessmentGate=null;
 async function startAssessmentTracking(){
-  if(window.__SI_ASSESSMENT_GATEWAY__) return render();
   try{
     if(window.SIVisitorSecurity){
       assessmentGate=await window.SIVisitorSecurity.startAttempt('assessment',slug);
       if(assessmentGate&&assessmentGate.error) console.warn('Assessment tracking:',assessmentGate.error);
+      if(assessmentGate&&assessmentGate.attemptId){
+        window.__siAssessmentAttemptId=assessmentGate.attemptId;
+        window.__siAssessmentAttemptNumber=assessmentGate.attemptNumber||null;
+      }
     }
   }catch(e){console.warn('Assessment tracking unavailable:',e)}
   render();
@@ -128,7 +131,7 @@ async function issueThankYouLetter(){
   const visitorId=window.SIVisitorSecurity?window.SIVisitorSecurity.visitorId():'';
   const r=await fetch((window.APP_CONFIG&&window.APP_CONFIG.API_BASE||'https://security-instructor.onrender.com')+'/api/visitor/thank-you-letter',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({visitorId,attemptId:activeAttemptId,recipientName:name.trim()})
+    body:JSON.stringify({visitorId,attemptId:activeAttemptId,courseSlug:slug,recipientName:name.trim()})
   });
   let d={};try{d=await r.json()}catch{}
   if(!r.ok){alert(d.message||'Unable to issue the thank-you letter. / تعذر إصدار خطاب الشكر.');return}
