@@ -30,7 +30,7 @@
     try{
       button.disabled=true;
       button.textContent='Issuing… / جارٍ الإصدار';
-      const r=await fetch(API+'/api/visitor/thank-you-letter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitorId:visitorId(),attemptId:id,courseSlug:course,recipientName:name})});
+      const r=await fetch(API+'/api/visitor/thank-you-letter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitorId:visitorId(),attemptId:id||'',courseSlug:course,recipientName:name})});
       let d={};try{d=await r.json()}catch{}
       if(!r.ok)throw new Error(d.message||'Unable to issue thank-you letter');
       location.href='visitor-letter.html?id='+encodeURIComponent(d.letterId);
@@ -78,12 +78,13 @@
 
     if(score>=7){
       showNotice('siVisitorPassNotice','Congratulations on successfully completing the initial assessment. / تهانينا على اجتياز التقييم المبدئي بنجاح. Your result reflects a good level of initial knowledge. We invite you to register for this course to further develop your knowledge and practical skills. / تعكس نتيجتك مستوى جيدًا من المعرفة الأولية، وندعوك للتسجيل في هذه الدورة لتطوير معارفك ومهاراتك العملية.');
-      if(eligibleAttempt){
-        showLetterBox(eligibleAttempt);
-      }else if(attemptId){
-        showLetterBox({attemptId,attemptNumber:attemptNumber||1,score});
-        const retry=document.getElementById('retry');if(retry)retry.style.display='none';
-      }
+      const letterAttempt=eligibleAttempt||(
+        savedAttempt&&savedAttempt.attemptId
+          ? {attemptId:savedAttempt.attemptId,attemptNumber:savedAttempt.attemptNumber||attemptNumber||1,score:savedAttempt.score||score}
+          : {attemptId:attemptId||'',attemptNumber:attemptNumber||1,score}
+      );
+      showLetterBox(letterAttempt);
+      const retry=document.getElementById('retry');if(retry)retry.style.display='none';
     }else{
       const retry=document.getElementById('retry');
       const retryText=attemptNumber===1
@@ -155,7 +156,7 @@
   }
 
   const s=document.createElement('script');
-  s.src='security-visitor.js?v=20260927-04';
+  s.src='security-visitor.js?v=20260927-05';
   s.onload=waitSecurity;
   s.onerror=()=>{status.textContent='Security module unavailable / تعذر تحميل وحدة الحماية'};
   document.head.appendChild(s);
