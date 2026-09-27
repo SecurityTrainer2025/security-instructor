@@ -103,7 +103,7 @@
     if(key===processedKey)return;
     processedKey=key;
     checking=true;
-    stopPolling();
+    if(pollTimer){clearInterval(pollTimer);pollTimer=null}
     status.textContent=score>=7?'Passed 7/10+ / اجتياز':'Below 7/10 / أقل من 7 من 10';
     try{
       if(attemptId&&window.SIVisitorSecurity?.completeAttempt){
