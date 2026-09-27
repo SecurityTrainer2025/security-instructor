@@ -80,6 +80,8 @@
       showNotice('siVisitorPassNotice','Congratulations on successfully completing the initial assessment. / تهانينا على اجتياز التقييم المبدئي بنجاح. Your result reflects a good level of initial knowledge. We invite you to register for this course to further develop your knowledge and practical skills. / تعكس نتيجتك مستوى جيدًا من المعرفة الأولية، وندعوك للتسجيل في هذه الدورة لتطوير معارفك ومهاراتك العملية.');
       if(eligibleAttempt){
         showLetterBox(eligibleAttempt);
+      }else if(attemptId){
+        showLetterBox({attemptId,attemptNumber:attemptNumber||1,score});
         const retry=document.getElementById('retry');if(retry)retry.style.display='none';
       }
     }else{
