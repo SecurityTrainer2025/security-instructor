@@ -124,11 +124,16 @@
   }
 
   async function start(){
-    const existingAttemptId=window.__siAssessmentAttemptId||'';
-    const existingAttemptNumber=Number(window.__siAssessmentAttemptNumber)||null;
-    const gate=existingAttemptId
-      ? {attemptId:existingAttemptId,attemptNumber:existingAttemptNumber}
-      : await window.SIVisitorSecurity.startAttempt('assessment',course);
+    let gate=null;
+    if(window.__siAssessmentAttemptPromise){
+      gate=await window.__siAssessmentAttemptPromise;
+    }else{
+      const existingAttemptId=window.__siAssessmentAttemptId||'';
+      const existingAttemptNumber=Number(window.__siAssessmentAttemptNumber)||null;
+      gate=existingAttemptId
+        ? {attemptId:existingAttemptId,attemptNumber:existingAttemptNumber}
+        : await window.SIVisitorSecurity.startAttempt('assessment',course);
+    }
     if(gate.error){
       attemptId=null;attemptNumber=null;
       status.textContent='Assessment result / نتيجة التقييم';
@@ -150,7 +155,7 @@
   }
 
   const s=document.createElement('script');
-  s.src='security-visitor.js?v=20260927-03';
+  s.src='security-visitor.js?v=20260927-04';
   s.onload=waitSecurity;
   s.onerror=()=>{status.textContent='Security module unavailable / تعذر تحميل وحدة الحماية'};
   document.head.appendChild(s);
