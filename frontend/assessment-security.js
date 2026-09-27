@@ -74,20 +74,20 @@
     if(stopped)return;
     const server=await getAssessmentStatus();
     if(stopped)return;
-    const first=server?.firstAttempt||null;
-    const second=server?.secondAttempt||null;
-    const firstPassed=!!(server?.letterEligible&&first?.attemptId);
-    const eligibleAttempt=firstPassed?first:null;
+    const eligibleAttempt=server?.eligibleAttempt||null;
 
     if(score>=7){
-      if(firstPassed){
+      showNotice('siVisitorPassNotice','Congratulations on successfully completing the initial assessment. / تهانينا على اجتياز التقييم المبدئي بنجاح. Your result reflects a good level of initial knowledge. We invite you to register for this course to further develop your knowledge and practical skills. / تعكس نتيجتك مستوى جيدًا من المعرفة الأولية، وندعوك للتسجيل في هذه الدورة لتطوير معارفك ومهاراتك العملية.');
+      if(eligibleAttempt){
         showLetterBox(eligibleAttempt);
         const retry=document.getElementById('retry');if(retry)retry.style.display='none';
-      }else if(attemptNumber===2||second?.passed){
-        showNotice('siVisitorSecondPass','Congratulations on passing. The visitor thank-you letter is issued only for a passing first attempt. / تهانينا على الاجتياز. يُصدر خطاب شكر الزائر فقط عند اجتياز المحاولة الأولى.');
       }
-    }else if(attemptNumber===1){
-      showNotice('siVisitorFailNotice','First attempt did not reach 7/10. You may use one more attempt. / المحاولة الأولى لم تصل إلى 7 من 10، ويمكنك استخدام محاولة أخرى.');
+    }else{
+      const retry=document.getElementById('retry');
+      const retryText=attemptNumber===1
+        ?'Thank you for completing the initial assessment. Your result shows areas that can be developed, and you may use your second attempt or register for the course to strengthen your knowledge and skills. / شكرًا لك على إكمال التقييم المبدئي. توضح نتيجتك بعض الجوانب التي يمكن تطويرها، ويمكنك استخدام المحاولة الثانية أو التسجيل في الدورة لتعزيز معرفتك ومهاراتك.'
+        :'Thank you for completing the initial assessment. We encourage you to register for the course to benefit from the training content and further develop your knowledge and practical skills. / شكرًا لك على إكمال التقييم المبدئي. نشجعك على التسجيل في الدورة للاستفادة من المحتوى التدريبي وتطوير معرفتك ومهاراتك العملية.';
+      showNotice('siVisitorFailNotice',retryText);
     }
   }
 
@@ -106,10 +106,10 @@
     stopPolling();
     status.textContent=score>=7?'Passed 7/10+ / اجتياز':'Below 7/10 / أقل من 7 من 10';
     try{
-      await handleResult(score);
       if(attemptId&&window.SIVisitorSecurity?.completeAttempt){
-        Promise.resolve(window.SIVisitorSecurity.completeAttempt(attemptId,score)).catch(err=>console.warn('Visitor attempt save failed:',err));
+        try{await window.SIVisitorSecurity.completeAttempt(attemptId,score)}catch(err){console.warn('Visitor attempt save failed:',err)}
       }
+      await handleResult(score);
     }finally{checking=false}
   }
 
