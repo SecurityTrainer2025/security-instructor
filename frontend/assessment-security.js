@@ -70,11 +70,11 @@
     if(pollTimer){clearInterval(pollTimer);pollTimer=null}
   }
 
-  async function handleResult(score){
+  async function handleResult(score,savedAttempt){
     if(stopped)return;
     const server=await getAssessmentStatus();
     if(stopped)return;
-    const eligibleAttempt=server?.eligibleAttempt||null;
+    const eligibleAttempt=server?.eligibleAttempt || (savedAttempt&&savedAttempt.passed&&Number(savedAttempt.score)>=7 ? {attemptId:savedAttempt.attemptId,attemptNumber:savedAttempt.attemptNumber,score:savedAttempt.score}:null);
 
     if(score>=7){
       showNotice('siVisitorPassNotice','Congratulations on successfully completing the initial assessment. / تهانينا على اجتياز التقييم المبدئي بنجاح. Your result reflects a good level of initial knowledge. We invite you to register for this course to further develop your knowledge and practical skills. / تعكس نتيجتك مستوى جيدًا من المعرفة الأولية، وندعوك للتسجيل في هذه الدورة لتطوير معارفك ومهاراتك العملية.');
@@ -106,10 +106,11 @@
     if(pollTimer){clearInterval(pollTimer);pollTimer=null}
     status.textContent=score>=7?'Passed 7/10+ / اجتياز':'Below 7/10 / أقل من 7 من 10';
     try{
+      let savedAttempt=null;
       if(attemptId&&window.SIVisitorSecurity?.completeAttempt){
-        try{await window.SIVisitorSecurity.completeAttempt(attemptId,score)}catch(err){console.warn('Visitor attempt save failed:',err)}
+        try{savedAttempt=await window.SIVisitorSecurity.completeAttempt(attemptId,score);if(savedAttempt?.error)console.warn('Visitor attempt save failed:',savedAttempt.error)}catch(err){console.warn('Visitor attempt save failed:',err)}
       }
-      await handleResult(score);
+      await handleResult(score,savedAttempt);
     }finally{checking=false}
   }
 
