@@ -30,7 +30,7 @@
     try{
       button.disabled=true;
       button.textContent='Issuing… / جارٍ الإصدار';
-      const r=await fetch(API+'/api/visitor/thank-you-letter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitorId:visitorId(),attemptId:id,recipientName:name})});
+      const r=await fetch(API+'/api/visitor/thank-you-letter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitorId:visitorId(),attemptId:id,courseSlug:course,recipientName:name})});
       let d={};try{d=await r.json()}catch{}
       if(!r.ok)throw new Error(d.message||'Unable to issue thank-you letter');
       location.href='visitor-letter.html?id='+encodeURIComponent(d.letterId);
@@ -124,7 +124,11 @@
   }
 
   async function start(){
-    const gate=await window.SIVisitorSecurity.startAttempt('assessment',course);
+    const existingAttemptId=window.__siAssessmentAttemptId||'';
+    const existingAttemptNumber=Number(window.__siAssessmentAttemptNumber)||null;
+    const gate=existingAttemptId
+      ? {attemptId:existingAttemptId,attemptNumber:existingAttemptNumber}
+      : await window.SIVisitorSecurity.startAttempt('assessment',course);
     if(gate.error){
       attemptId=null;attemptNumber=null;
       status.textContent='Assessment result / نتيجة التقييم';
@@ -146,7 +150,7 @@
   }
 
   const s=document.createElement('script');
-  s.src='security-visitor.js?v=20260917-13';
+  s.src='security-visitor.js?v=20260927-03';
   s.onload=waitSecurity;
   s.onerror=()=>{status.textContent='Security module unavailable / تعذر تحميل وحدة الحماية'};
   document.head.appendChild(s);
