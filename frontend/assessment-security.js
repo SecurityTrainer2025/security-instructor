@@ -30,9 +30,19 @@
     try{
       button.disabled=true;
       button.textContent='Issuing… / جارٍ الإصدار';
-      const r=await fetch(API+'/api/visitor/thank-you-letter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitorId:visitorId(),attemptId:id||'',courseSlug:course,recipientName:name})});
-      let d={};try{d=await r.json()}catch{}
-      if(!r.ok)throw new Error(d.message||'Unable to issue thank-you letter');
+      const payload={visitorId:visitorId(),attemptId:id||'',courseSlug:course,recipientName:name};
+      let r=null,d={};
+      for(let n=0;n<2;n++){
+        try{
+          r=await fetch(API+'/api/visitor/thank-you-letter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),cache:'no-store'});
+          d={};try{d=await r.json()}catch{}
+          if(r.ok)break;
+        }catch(err){
+          if(n===1)throw err;
+          await new Promise(resolve=>setTimeout(resolve,1500));
+        }
+      }
+      if(!r?.ok)throw new Error(d.message||'Unable to issue thank-you letter');
       location.href='visitor-letter.html?id='+encodeURIComponent(d.letterId);
     }catch(e){
       button.disabled=false;
@@ -156,7 +166,7 @@
   }
 
   const s=document.createElement('script');
-  s.src='security-visitor.js?v=20260927-05';
+  s.src='security-visitor.js?v=20260927-06';
   s.onload=waitSecurity;
   s.onerror=()=>{status.textContent='Security module unavailable / تعذر تحميل وحدة الحماية'};
   document.head.appendChild(s);
