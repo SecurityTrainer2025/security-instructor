@@ -7,7 +7,7 @@ const crypto=require('crypto');
 const nodemailer=require('nodemailer');
 require('dotenv').config();
 const {issueForEnrollment,registerTrainingCertificateDirectRoutes}=require('./training-certificate-routes.js');
-const app=express();app.set('trust proxy',1);
+const app=express();app.set('trust proxy',1);global.__siVisitorApp=app;require('./visitor-security-routes.js');
 const origins=(process.env.FRONTEND_URL||'').split(',').map(x=>x.trim()).filter(Boolean);app.use(helmet());app.use(cors({origin:origins.length?origins:true,credentials:false}));app.use(express.json({limit:'100kb'}));app.use(rateLimit({windowMs:60*1000,max:120,standardHeaders:true,legacyHeaders:false}));registerTrainingCertificateDirectRoutes(app);
 const ADMIN_EMAIL=(process.env.ADMIN_EMAIL||'Abdallah-Shalaby1@outlook.com').trim().toLowerCase(),ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||'',ADMIN_SESSION_SECRET=process.env.ADMIN_SESSION_SECRET||'';
 const adminLoginLimiter=rateLimit({windowMs:15*60*1000,max:10,standardHeaders:true,legacyHeaders:false,message:{message:'Too many login attempts. Please try again later.'}});
