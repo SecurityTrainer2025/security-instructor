@@ -26,11 +26,11 @@
     }catch{return null}
   }
 
-  async function issueLetter(id,name,button){
+  async function issueLetter(id,name,button,score){
     try{
       button.disabled=true;
       button.textContent='Issuing… / جارٍ الإصدار';
-      const payload={visitorId:visitorId(),attemptId:id||'',courseSlug:course,recipientName:name,score:Number(arguments[3]||0)};
+      const payload={visitorId:visitorId(),attemptId:id||'',courseSlug:course,recipientName:name,score:Number(score||0)};
       let r=null,d={};
       for(let n=0;n<2;n++){
         try{
