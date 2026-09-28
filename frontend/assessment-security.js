@@ -30,7 +30,7 @@
     try{
       button.disabled=true;
       button.textContent='Issuing… / جارٍ الإصدار';
-      const payload={visitorId:visitorId(),attemptId:id||'',courseSlug:course,recipientName:name};
+      const payload={visitorId:visitorId(),attemptId:id||'',courseSlug:course,recipientName:name,score:Number(arguments[3]||0)};
       let r=null,d={};
       for(let n=0;n<2;n++){
         try{
@@ -63,7 +63,7 @@
     button.onclick=()=>{
       const name=input.value.trim(),err=box.querySelector('#siLetterError');
       if(!validThreePartName(name)){err.textContent='Please enter your full three-part name / يرجى إدخال الاسم الثلاثي (ثلاثة أسماء على الأقل)';return}
-      issueLetter(attempt.attemptId,name,button);
+      issueLetter(attempt.attemptId,name,button,attempt.score);
     };
   }
 
