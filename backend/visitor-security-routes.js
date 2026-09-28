@@ -15,7 +15,8 @@ const courses={
   'fire-safety-emergency-response':{en:'FIRE SAFETY & EMERGENCY RESPONSE',ar:'السلامة من الحرائق وتدابير الاستجابة للطوارئ'},
   'vehicle-search-security-inspection':{en:'VEHICLE SEARCH & SECURITY INSPECTION',ar:'تفتيش المركبات والتفتيش الأمني'},
   'person-search-security-screening':{en:'PERSON SEARCH & SECURITY SCREENING',ar:'تفتيش الأشخاص وإجراءات التفتيش الأمني'}
-};\nconst courseInfo=(slug)=>courses[slug]||{en:String(slug||'').split('-').filter(Boolean).map((x,i)=>i?x.charAt(0).toUpperCase()+x.slice(1):x.toUpperCase()).join(' '),ar:'الدورة التدريبية'};
+};
+const courseInfo=(slug)=>courses[slug]||{en:String(slug||'').split('-').filter(Boolean).map((x,i)=>i?x.charAt(0).toUpperCase()+x.slice(1):x.toUpperCase()).join(' '),ar:'الدورة التدريبية'};
 
 function sourceFrom(req){const raw=clean(req.body?.source||req.query?.utm_source||'',40).toLowerCase();if(['linkedin','instagram','tiktok','facebook','youtube','x'].includes(raw))return raw;const ref=String(req.body?.referrer||'').toLowerCase();if(ref.includes('linkedin'))return 'linkedin';if(ref.includes('instagram'))return 'instagram';if(ref.includes('tiktok'))return 'tiktok';if(ref.includes('facebook'))return 'facebook';if(ref.includes('youtube'))return 'youtube';return raw||'direct';}
 async function adminAuth(req){try{const h=String(req.headers.authorization||'');if(!h.startsWith('Bearer '))return false;const r=await fetch('http://127.0.0.1:'+(process.env.PORT||10000)+'/api/admin/me',{headers:{Authorization:h}});return r.ok}catch{return false}}
