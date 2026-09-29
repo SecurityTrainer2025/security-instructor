@@ -47,6 +47,17 @@
 .certificate-preview-head h2{margin:8px 0;font-size:clamp(1.5rem,3vw,2.2rem)}
 .certificate-preview-head p{margin:0;opacity:.8}
 </style>
+
+<style id="certificates-preview-all-style">
+#certificatesPreviewBody{display:grid;gap:26px}
+#certificatesPreviewBody .studio-group{margin:0}
+#certificatesPreviewBody .studio-group-head{margin-bottom:16px}
+#certificatesPreviewBody .studio-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#certificatesPreviewBody .studio-card{height:100%}
+#certificatesPreviewBody .certificate-image-link{cursor:zoom-in}
+#certificatesPreviewBody .preview-hsi{margin:0}
+@media(max-width:760px){#certificatesPreviewBody .studio-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -213,25 +224,9 @@
     <div class="certificate-preview-head">
       <span>CREDENTIALS</span>
       <h2 data-en="Certificates & Professional Credentials" data-ar="الشهادات والاعتمادات المهنية">Certificates & Professional Credentials</h2>
-      <p data-en="Verified professional credentials and instructor authorizations." data-ar="الاعتمادات المهنية الموثقة وتراخيص المدربين.">Verified professional credentials and instructor authorizations.</p>
+      <p data-en="All verified qualifications, security and training certifications, and professional experience records presented on the platform." data-ar="جميع المؤهلات الموثقة وشهادات الأمن والتدريب وسجلات الخبرة المهنية المعروضة على المنصة.">All verified qualifications, security and training certifications, and professional experience records presented on the platform.</p>
     </div>
-    <div class="credential-gallery-grid">
-      <article class="credential-gallery-card">
-        <span>HSI</span>
-        <div>
-          <strong>HSI Level 2 Instructor</strong>
-          <p>Registration No. 12024974<br>Valid through September 28, 2027.</p>
-          <p dir="rtl">رقم التسجيل 12024974<br>ساري حتى 28 سبتمبر 2027.</p>
-        </div>
-      </article>
-      <article class="credential-gallery-card credential-gallery-placeholder">
-        <span>+</span>
-        <div>
-          <strong data-en="More Verified Credentials" data-ar="المزيد من الاعتمادات الموثقة">More Verified Credentials</strong>
-          <p data-en="Additional verified certificates can be displayed here when prepared for public viewing." data-ar="يمكن عرض الشهادات الموثقة الإضافية هنا عند تجهيزها للعرض العام.">Additional verified certificates can be displayed here when prepared for public viewing.</p>
-        </div>
-      </article>
-    </div>
+    <div id="certificatesPreviewBody"></div>
   </div>
 </div>
 <div id="courseModal" class="modal" aria-hidden="true"><div class="modal-panel"><button class="modal-close" data-close="courseModal">×</button><div id="courseModalBody"></div></div></div>
@@ -241,7 +236,20 @@
 (function(){
   const btn=document.getElementById('openCertificatesPreview');
   const modal=document.getElementById('certificatesPreviewModal');
-  if(!btn||!modal)return;
+  const body=document.getElementById('certificatesPreviewBody');
+  if(!btn||!modal||!body)return;
+  const source=document.querySelector('#studio');
+  if(source){
+    source.querySelectorAll('.studio-group').forEach(group=>{
+      const clone=group.cloneNode(true);
+      clone.classList.add('preview-studio-group');
+      body.appendChild(clone);
+    });
+  }
+  const hsi=document.createElement('div');
+  hsi.className='credential-gallery-grid preview-hsi';
+  hsi.innerHTML='<article class="credential-gallery-card"><span>HSI</span><div><strong>HSI Level 2 Instructor</strong><p>Registration No. 12024974<br>Valid through September 28, 2027.</p><p dir="rtl">رقم التسجيل 12024974<br>ساري حتى 28 سبتمبر 2027.</p></div></article></div>';
+  body.prepend(hsi);
   const close=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open');};
   btn.addEventListener('click',()=>{modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');});
   modal.querySelector('[data-close="certificatesPreviewModal"]').addEventListener('click',close);
