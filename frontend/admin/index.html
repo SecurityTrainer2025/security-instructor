@@ -150,7 +150,7 @@ function loadAll(){tabs();Promise.all([loadDashboard(),loadTrainees()]).catch(e=
 $('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>loadEnrollments();$('#statusFilter').onchange=()=>loadEnrollments();$('#traineeRefresh').onclick=loadTrainees;$('#enrollRefresh').onclick=loadEnrollments;$('#visitorRefresh').onclick=loadVisitors;$('#visitorLetterRefresh').onclick=loadVisitorLetters;$('#visitorLetterSearch').oninput=loadVisitorLetters;$('#statsRefresh').onclick=loadStats;$('#feedbackRefresh').onclick=loadFeedback;$('#challengeResetBrowser').onclick=resetBrowserChallenge;$('#challengeOpenTest').onclick=openAdminChallenge;$('#challengeShowResults').onclick=showChallengeResults;check();
 })();
 </script>
-<script src="../admin-center.js?v=20260929-02"></script>
+<script src="../admin-center.js?v=20260929-03"></script>
 <script src="../batches-center.js?v=20260929-02"></script>
 <script src="../media-center.js?v=20260929-02"></script>
 <script src="../visitor-analytics.js?v=20260929-02"></script>
