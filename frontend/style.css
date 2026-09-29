@@ -25,9 +25,7 @@ img{max-width:100%}.course-card,.project-grid article,.timeline article,.panel,.
 }
 @media (max-width:360px){.hero-highlights{grid-template-columns:1fr}.top-actions .admin-link{display:none}.hero h1{font-size:42px}.section-head h2{font-size:25px}}
 
-/* Challenge is a one-time entry gate, not a site navigation item or homepage section. */
-.topbar nav a[href="challenge-free.html"],
-#securityChallengePromo{display:none !important}
+/* The security challenge is optional and promoted through the navigation and homepage banner. */
 
 
 /* Client-facing readiness and credentials refinement */
