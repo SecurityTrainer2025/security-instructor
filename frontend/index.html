@@ -64,6 +64,22 @@
 body #studio{display:none!important}
 #certificatesPreviewModal .preview-studio-group{display:block!important}
 </style>
+
+<style id="gallery-media-preview-style">
+#gallery .gallery-source{display:none!important}
+#gallery .gallery-action-button{border:1px solid rgba(200,169,107,.55)}
+.media-preview-panel{max-width:1100px!important;width:min(94vw,1100px);max-height:90vh;overflow:auto}
+.media-preview-body{display:grid;gap:22px}
+#photosPreviewBody .client-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+#photosPreviewBody figure{margin:0;background:#fff;border:1px solid #d5dbe0;padding:10px;border-radius:4px;overflow:hidden}
+#photosPreviewBody figure img{display:block;width:100%;height:300px;object-fit:cover}
+#photosPreviewBody figcaption{padding:12px 8px 6px;font-weight:700}
+#videosPreviewBody .training-video-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+#videosPreviewBody .training-video-card{margin:0}
+#videosPreviewBody video{width:100%;display:block;border-radius:4px}
+#videosPreviewBody .training-video-card>div{padding-top:12px}
+@media(max-width:800px){#photosPreviewBody .client-gallery,#videosPreviewBody .training-video-grid{grid-template-columns:1fr}#photosPreviewBody figure img{height:auto;max-height:420px}}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -135,41 +151,32 @@ body #studio{display:none!important}
     <p data-en="Explore selected training media, professional photographs and verified credentials from the training and security portfolio." data-ar="استكشف مختارات من مواد التدريب والصور المهنية والاعتمادات الموثقة من الملف التدريبي والأمني.">Explore selected training media, professional photographs and verified credentials from the training and security portfolio.</p>
   </div>
   <div class="gallery-action-buttons" role="navigation" aria-label="Training gallery navigation">
-    <a class="btn gold gallery-action-button" href="#gallery-videos">
+    <button type="button" class="btn gold gallery-action-button" id="openVideosPreview">
       <span aria-hidden="true">🎥</span>
       <strong data-en="Explore Training Videos" data-ar="استكشف فيديوهات التدريب">Explore Training Videos</strong>
-    </a>
-    <a class="btn outline gallery-action-button" href="#gallery-photos">
+    </button>
+    <button type="button" class="btn outline gallery-action-button" id="openPhotosPreview">
       <span aria-hidden="true">📸</span>
       <strong data-en="Explore Training Photos" data-ar="استكشف صور التدريب">Explore Training Photos</strong>
-    </a>
+    </button>
     <button type="button" class="btn outline gallery-action-button" id="openCertificatesPreview">
       <span aria-hidden="true">🎓</span>
       <strong data-en="View Certificates & Credentials" data-ar="استعرض الشهادات والاعتمادات">View Certificates & Credentials</strong>
     </button>
   </div>
 
-  <div id="gallery-photos" class="gallery-subsection">
-    <div class="gallery-subhead"><span>PHOTOS</span><h3 data-en="Training & Professional Photos" data-ar="صور التدريب والأعمال المهنية">Training & Professional Photos</h3><p data-en="Selected photographs from security, safety and professional training activities." data-ar="صور مختارة من أنشطة الأمن والسلامة والتدريب المهني.">Selected photographs from security, safety and professional training activities.</p></div>
-    <div class="client-gallery">
-      <figure><img src="assets/WhatsApp%20Image%202026-08-11%20at%2010.05.20%20AM.jpeg" alt="Professional training activity"><figcaption data-en="Professional Training Activity" data-ar="نشاط تدريبي مهني">Professional Training Activity</figcaption></figure>
-      <figure><img src="assets/WhatsApp%20Image%202026-08-11%20at%2010.05.20%20AM%20(1).jpeg" alt="Security training environment"><figcaption data-en="Security Training Environment" data-ar="بيئة تدريب أمني">Security Training Environment</figcaption></figure>
-      <figure><img src="assets/b354a4ca-3451-45fb-a901-aa4253f83da2.jpg" alt="Training and professional development"><figcaption data-en="Training & Professional Development" data-ar="التدريب والتطوير المهني">Training & Professional Development</figcaption></figure>
-    </div>
-  </div>
+  <div id="gallery-photos" class="gallery-subsection gallery-source"><div class="gallery-subhead"><span>PHOTOS</span><h3>Training & Professional Photos</h3></div><div class="client-gallery">
+      <figure><img src="assets/WhatsApp%20Image%202026-08-11%20at%2010.05.20%20AM.jpeg" alt="Professional training activity"><figcaption>Professional Training Activity</figcaption></figure>
+      <figure><img src="assets/WhatsApp%20Image%202026-08-11%20at%2010.05.20%20AM%20(1).jpeg" alt="Security training environment"><figcaption>Security Training Environment</figcaption></figure>
+      <figure><img src="assets/b354a4ca-3451-45fb-a901-aa4253f83da2.jpg" alt="Training and professional development"><figcaption>Training & Professional Development</figcaption></figure>
+    </div></div>
 
-  <div id="gallery-videos" class="gallery-subsection">
-    <div class="gallery-subhead"><span>VIDEO</span><h3 data-en="Training Videos" data-ar="فيديوهات التدريب">Training Videos</h3><p data-en="Practical demonstrations and real training activities." data-ar="عروض تطبيقية وأنشطة تدريبية واقعية.">Practical demonstrations and real training activities.</p></div>
-    <div class="training-video-grid">
-      <article class="training-video-card"><video controls playsinline preload="metadata"><source src="assets/training-videos/WhatsApp%20Video%202026-09-24%20at%201.56.11%20PM.mp4" type="video/mp4"></video><div><strong data-en="Training Demonstration 01" data-ar="عرض تدريبي 01">Training Demonstration 01</strong><span data-en="Practical training activity" data-ar="نشاط تدريبي عملي">Practical training activity</span></div></article>
-      <article class="training-video-card"><video controls playsinline preload="metadata"><source src="assets/training-videos/WhatsApp%20Video%202026-09-24%20at%202.55.17%20PM.mp4" type="video/mp4"></video><div><strong data-en="Training Demonstration 02" data-ar="عرض تدريبي 02">Training Demonstration 02</strong><span data-en="Practical training activity" data-ar="نشاط تدريبي عملي">Practical training activity</span></div></article>
-      <article class="training-video-card"><video controls playsinline preload="metadata"><source src="assets/training-videos/WhatsApp%20Video%202026-09-24%20at%202.55.23%20PM.mp4" type="video/mp4"></video><div><strong data-en="Training Demonstration 03" data-ar="عرض تدريبي 03">Training Demonstration 03</strong><span data-en="Practical training activity" data-ar="نشاط تدريبي عملي">Practical training activity</span></div></article>
-      <article class="training-video-card"><video controls playsinline preload="metadata"><source src="assets/training-videos/WhatsApp%20Video%202026-09-24%20at%202.55.32%20PM.mp4" type="video/mp4"></video><div><strong data-en="Training Demonstration 04" data-ar="عرض تدريبي 04">Training Demonstration 04</strong><span data-en="Practical training activity" data-ar="نشاط تدريبي عملي">Practical training activity</span></div></article>
-    </div>
-  </div>
-
-
-  </div>
+  <div id="gallery-videos" class="gallery-subsection gallery-source"><div class="gallery-subhead"><span>VIDEO</span><h3>Training Videos</h3></div><div class="training-video-grid">
+      <article class="training-video-card"><video controls playsinline preload="metadata"><source src="assets/training-videos/WhatsApp%20Video%202026-09-24%20at%201.56.11%20PM.mp4" type="video/mp4"></video><div><strong>Training Demonstration 01</strong><span>Practical training activity</span></div></article>
+      <article class="training-video-card"><video controls playsinline preload="metadata"><source src="assets/training-videos/WhatsApp%20Video%202026-09-24%20at%202.55.17%20PM.mp4" type="video/mp4"></video><div><strong>Training Demonstration 02</strong><span>Practical training activity</span></div></article>
+      <article class="training-video-card"><video controls playsinline preload="metadata"><source src="assets/training-videos/WhatsApp%20Video%202026-09-24%20at%202.55.23%20PM.mp4" type="video/mp4"></video><div><strong>Training Demonstration 03</strong><span>Practical training activity</span></div></article>
+      <article class="training-video-card"><video controls playsinline preload="metadata"><source src="assets/training-videos/WhatsApp%20Video%202026-09-24%20at%202.55.32%20PM.mp4" type="video/mp4"></video><div><strong>Training Demonstration 04</strong><span>Practical training activity</span></div></article>
+    </div></div>
 </section>
 <section class="section motivation-section">
   <div class="motivation-grid">
@@ -224,6 +231,9 @@ body #studio{display:none!important}
 <section id="contact" class="section dark"><div class="section-head"><span>10</span><h2 data-en="Contact Me" data-ar="تواصل معي">Contact Me</h2></div><div class="contact"><div><h2 data-en="Professional Training • Practical Skills • Safer Workplaces" data-ar="تدريب احترافي • مهارات عملية • بيئات عمل أكثر أمانًا">Professional Training • Practical Skills • Safer Workplaces</h2><p class="contact-message" data-en="Professionalism | Integrity | People Development | Safety for a Better Future" data-ar="الاحترافية | النزاهة | تطوير الأفراد | السلامة من أجل مستقبل أفضل">Professionalism | Integrity | People Development | Safety for a Better Future</p></div><div class="contact-card"><a href="mailto:abdallahabdalaziz@yahoo.com">abdallahabdalaziz@yahoo.com</a><a href="tel:+966506340246">+966 50 634 0246</a><span data-en="Riyadh, Saudi Arabia" data-ar="الرياض، المملكة العربية السعودية">Riyadh, Saudi Arabia</span></div></div><form id="contactForm" class="contact-form"><input name="name" required maxlength="120" placeholder="Name / الاسم"><input name="email" type="email" required placeholder="Email / البريد الإلكتروني"><textarea name="message" required maxlength="5000" rows="5" placeholder="Message / الرسالة"></textarea><button class="btn gold" type="submit" data-en="Send Message" data-ar="إرسال الرسالة">Send Message</button><div id="contactStatus" class="status"></div></form></section>
 </main><div style="text-align:center;margin:20px 0"><a id="publicAdminLink" href="admin/" style="color:#c8a96b;text-decoration:none;font-weight:800;border:1px solid #c8a96b;padding:8px 12px;display:inline-block">🔐 Admin Login / دخول الإدارة</a></div><footer><span data-en="SECURITY INSTRUCTOR | Abdallah Abdelaziz Shalaby" data-ar="SECURITY INSTRUCTOR | عبدالله عبدالعزيز شلبي">SECURITY INSTRUCTOR | Abdallah Abdelaziz Shalaby</span></footer>
 
+
+<div id="mediaPhotosPreviewModal" class="modal" aria-hidden="true"><div class="modal-panel media-preview-panel"><button class="modal-close" data-close="mediaPhotosPreviewModal" aria-label="Close">×</button><div class="certificate-preview-head"><span>PHOTOS</span><h2 data-en="Training & Professional Photos" data-ar="صور التدريب والأعمال المهنية">Training & Professional Photos</h2><p data-en="Selected professional training photographs." data-ar="صور مختارة من أنشطة التدريب المهني.">Selected professional training photographs.</p></div><div id="photosPreviewBody" class="media-preview-body"></div></div></div>
+<div id="mediaVideosPreviewModal" class="modal" aria-hidden="true"><div class="modal-panel media-preview-panel"><button class="modal-close" data-close="mediaVideosPreviewModal" aria-label="Close">×</button><div class="certificate-preview-head"><span>VIDEO</span><h2 data-en="Training Videos" data-ar="فيديوهات التدريب">Training Videos</h2><p data-en="Practical demonstrations and real training activities." data-ar="عروض تطبيقية وأنشطة تدريبية واقعية.">Practical demonstrations and real training activities.</p></div><div id="videosPreviewBody" class="media-preview-body"></div></div></div>
 <div id="certificatesPreviewModal" class="modal" aria-hidden="true">
   <div class="modal-panel certificate-preview-panel">
     <button class="modal-close" data-close="certificatesPreviewModal" aria-label="Close">×</button>
@@ -240,27 +250,19 @@ body #studio{display:none!important}
 
 <script>
 (function(){
-  const btn=document.getElementById('openCertificatesPreview');
-  const modal=document.getElementById('certificatesPreviewModal');
-  const body=document.getElementById('certificatesPreviewBody');
-  if(!btn||!modal||!body)return;
-  const source=document.querySelector('#studio');
-  if(source){
-    source.querySelectorAll('.studio-group').forEach(group=>{
-      const clone=group.cloneNode(true);
-      clone.classList.add('preview-studio-group');
-      body.appendChild(clone);
-    });
-  }
-  const hsi=document.createElement('div');
-  hsi.className='credential-gallery-grid preview-hsi';
-  hsi.innerHTML='<article class="credential-gallery-card"><span>HSI</span><div><strong>HSI Level 2 Instructor</strong><p>Registration No. 12024974<br>Valid through September 28, 2027.</p><p dir="rtl">رقم التسجيل 12024974<br>ساري حتى 28 سبتمبر 2027.</p></div></article></div>';
-  body.prepend(hsi);
-  const close=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open');};
-  btn.addEventListener('click',()=>{modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');});
-  modal.querySelector('[data-close="certificatesPreviewModal"]').addEventListener('click',close);
-  modal.addEventListener('click',e=>{if(e.target===modal)close();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close();});
+  const configs=[
+    ['openPhotosPreview','mediaPhotosPreviewModal','photosPreviewBody','#gallery-photos .client-gallery'],
+    ['openVideosPreview','mediaVideosPreviewModal','videosPreviewBody','#gallery-videos .training-video-grid']
+  ];
+  configs.forEach(([btnId,modalId,bodyId,sourceSelector])=>{
+    const btn=document.getElementById(btnId), modal=document.getElementById(modalId), body=document.getElementById(bodyId), source=document.querySelector(sourceSelector);
+    if(!btn||!modal||!body||!source)return;
+    body.appendChild(source.cloneNode(true));
+    const close=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open');};
+    btn.addEventListener('click',()=>{modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');});
+    modal.querySelector('[data-close="'+modalId+'"]').addEventListener('click',close);
+    modal.addEventListener('click',e=>{if(e.target===modal)close();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close();});
+  });
 })();
-</script>
-<script src="script.js" defer></script><script src="contact-handler.js"></script><script src="courses-experience.js"></script></body></html>
+</script></body></html>
