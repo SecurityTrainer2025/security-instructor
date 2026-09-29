@@ -11,7 +11,6 @@
   function addTab(){let b=document.querySelector('[data-tab="course-management"]');if(b)return b;const tabs=document.querySelector('.tabs');if(!tabs)return null;b=document.createElement('button');b.className='tab';b.dataset.tab='course-management';b.textContent='Course Management / إدارة الدورات';tabs.appendChild(b);return b}
   const input=(id,label,type='text',extra='')=>`<label style="display:block;color:#dce5eb;font-weight:700">${label}<input id="${id}" type="${type}" ${extra} style="width:100%;margin-top:6px;padding:10px;background:#0B1F33;color:#fff;border:1px solid #526577"></label>`;
   const select=(id,label,options)=>`<label style="display:block;color:#dce5eb;font-weight:700">${label}<select id="${id}" style="width:100%;margin-top:6px;padding:10px;background:#0B1F33;color:#fff;border:1px solid #526577">${options.map(([v,t])=>`<option value="${v}">${t}</option>`).join('')}</select></label>`;
-  const courseOptions=CATALOG.map(([en,ar,ab])=>`<option value="${esc(en)}" data-ar="${esc(ar)}" data-abbr="${ab}">${esc(en)} | ${esc(ar)}</option>`).join('');
 
   function pane(){let p=document.getElementById('course-management');if(p)return p;const host=document.querySelector('.tabs')?.parentElement;if(!host)return null;p=document.createElement('div');p.id='course-management';p.className='tabpane hidden';p.innerHTML=`
     <div class="toolbar"><button class="btn" id="cmAdd">+ Add Course / إضافة دورة</button><button class="btn alt" id="cmRefresh">Refresh / تحديث</button></div>
