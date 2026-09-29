@@ -265,4 +265,28 @@ body #studio{display:none!important}
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close();});
   });
 })();
-</script></body></html>
+</script>
+<script>
+(function(){
+  const btn=document.getElementById('openCertificatesPreview'), modal=document.getElementById('certificatesPreviewModal'), body=document.getElementById('certificatesPreviewBody');
+  if(!btn||!modal||!body)return;
+  const source=document.querySelector('#studio');
+  if(source){
+    source.querySelectorAll('.studio-group').forEach(group=>{
+      const clone=group.cloneNode(true);
+      clone.classList.add('preview-studio-group');
+      body.appendChild(clone);
+    });
+  }
+  const hsi=document.createElement('div');
+  hsi.className='credential-gallery-grid preview-hsi';
+  hsi.innerHTML='<article class="credential-gallery-card"><span>HSI</span><div><strong>HSI Level 2 Instructor</strong><p>Registration No. 12024974<br>Valid through September 28, 2027.</p><p dir="rtl">رقم التسجيل 12024974<br>ساري حتى 28 سبتمبر 2027.</p></div></article></div>';
+  body.prepend(hsi);
+  const close=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open');};
+  btn.addEventListener('click',()=>{modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');});
+  modal.querySelector('[data-close="certificatesPreviewModal"]').addEventListener('click',close);
+  modal.addEventListener('click',e=>{if(e.target===modal)close();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close();});
+})();
+</script>
+<script src="script.js" defer></script><script src="contact-handler.js"></script><script src="courses-experience.js"></script></body></html>
