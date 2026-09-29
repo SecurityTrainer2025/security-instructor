@@ -29,6 +29,14 @@
 .credential-gallery-placeholder{background:#f1f4f7}
 @media(max-width:800px){.gallery-explore-grid,.credential-gallery-grid{grid-template-columns:1fr}}
 </style>
+
+<style id="gallery-buttons-fix">
+#gallery .gallery-action-buttons{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:24px 0 34px}
+#gallery .gallery-action-button{display:inline-flex!important;align-items:center;justify-content:center;gap:10px;min-width:220px;padding:14px 22px;text-decoration:none!important;cursor:pointer}
+#gallery .gallery-action-button>span{font-size:18px;line-height:1}
+#gallery .gallery-subsection{scroll-margin-top:90px}
+@media(max-width:700px){#gallery .gallery-action-buttons{flex-direction:column;align-items:stretch}#gallery .gallery-action-button{width:100%;min-width:0}}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -99,24 +107,18 @@
   <div class="gallery-intro">
     <p data-en="Explore selected training media, professional photographs and verified credentials from the training and security portfolio." data-ar="استكشف مختارات من مواد التدريب والصور المهنية والاعتمادات الموثقة من الملف التدريبي والأمني.">Explore selected training media, professional photographs and verified credentials from the training and security portfolio.</p>
   </div>
-  <div class="gallery-explore-grid">
-    <a class="gallery-explore-card" href="#gallery-videos">
-      <span class="gallery-explore-number">01</span>
+  <div class="gallery-action-buttons" role="navigation" aria-label="Training gallery navigation">
+    <a class="btn gold gallery-action-button" href="#gallery-videos">
+      <span aria-hidden="true">🎥</span>
       <strong data-en="Explore Training Videos" data-ar="استكشف فيديوهات التدريب">Explore Training Videos</strong>
-      <span data-en="Practical demonstrations and real training activities." data-ar="عروض تطبيقية وأنشطة تدريبية واقعية.">Practical demonstrations and real training activities.</span>
-      <b data-en="View Videos →" data-ar="عرض الفيديوهات ←">View Videos →</b>
     </a>
-    <a class="gallery-explore-card" href="#gallery-photos">
-      <span class="gallery-explore-number">02</span>
+    <a class="btn outline gallery-action-button" href="#gallery-photos">
+      <span aria-hidden="true">📸</span>
       <strong data-en="Explore Training Photos" data-ar="استكشف صور التدريب">Explore Training Photos</strong>
-      <span data-en="Selected photographs from professional training environments." data-ar="صور مختارة من بيئات التدريب المهنية.">Selected photographs from professional training environments.</span>
-      <b data-en="View Photos →" data-ar="عرض الصور ←">View Photos →</b>
     </a>
-    <a class="gallery-explore-card" href="#gallery-certificates">
-      <span class="gallery-explore-number">03</span>
+    <a class="btn outline gallery-action-button" href="#gallery-certificates">
+      <span aria-hidden="true">🎓</span>
       <strong data-en="View Certificates & Credentials" data-ar="استعرض الشهادات والاعتمادات">View Certificates & Credentials</strong>
-      <span data-en="Verified professional credentials and instructor authorizations." data-ar="الاعتمادات المهنية الموثقة وتراخيص المدربين.">Verified professional credentials and instructor authorizations.</span>
-      <b data-en="View Credentials →" data-ar="عرض الاعتمادات ←">View Credentials →</b>
     </a>
   </div>
 
