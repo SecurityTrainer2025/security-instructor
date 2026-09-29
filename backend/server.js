@@ -10,7 +10,7 @@ const {issueForEnrollment,registerTrainingCertificateDirectRoutes}=require('./tr
 require('./course-management-routes.js');
 require('./media-assets-routes.js');
 const app=express();app.set('trust proxy',1);const {registerVisitorRoutes}=require('./visitor-security-routes.js');
-const origins=(process.env.FRONTEND_URL||'').split(',').map(x=>x.trim()).filter(Boolean);app.use(helmet());app.use(cors({origin:origins.length?origins:true,credentials:false}));app.use(express.json({limit:'100kb'}));app.use(rateLimit({windowMs:60*1000,max:120,standardHeaders:true,legacyHeaders:false}));registerVisitorRoutes(app);registerTrainingCertificateDirectRoutes(app);
+const origins=(process.env.FRONTEND_URL||'').split(',').map(x=>x.trim()).filter(Boolean);app.use(helmet());app.use(cors({origin:origins.length?origins:true,credentials:false}));app.use(express.json({limit:'12mb'}));app.use(rateLimit({windowMs:60*1000,max:120,standardHeaders:true,legacyHeaders:false}));registerVisitorRoutes(app);registerTrainingCertificateDirectRoutes(app);
 const ADMIN_EMAIL=(process.env.ADMIN_EMAIL||'Abdallah-Shalaby1@outlook.com').trim().toLowerCase(),ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||'',ADMIN_SESSION_SECRET=process.env.ADMIN_SESSION_SECRET||'';
 const adminLoginLimiter=rateLimit({windowMs:15*60*1000,max:10,standardHeaders:true,legacyHeaders:false,message:{message:'Too many login attempts. Please try again later.'}});
 const Stat=mongoose.model('CourseStat',new mongoose.Schema({slug:{type:String,unique:true,index:true},views:{type:Number,default:0},entries:{type:Number,default:0},positiveRatings:{type:Number,default:0},ratingSum:{type:Number,default:0},ratingCount:{type:Number,default:0}},{timestamps:true}));
