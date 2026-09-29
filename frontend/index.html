@@ -37,6 +37,16 @@
 #gallery .gallery-subsection{scroll-margin-top:90px}
 @media(max-width:700px){#gallery .gallery-action-buttons{flex-direction:column;align-items:stretch}#gallery .gallery-action-button{width:100%;min-width:0}}
 </style>
+
+<style id="certificates-preview-style">
+#openCertificatesPreview{font:inherit}
+#certificatesPreviewModal{z-index:9999}
+#certificatesPreviewModal .certificate-preview-panel{max-width:900px;width:min(92vw,900px);max-height:88vh;overflow:auto}
+.certificate-preview-head{padding:8px 0 24px;text-align:center}
+.certificate-preview-head>span{color:#c8a96b;font-size:.78rem;font-weight:800;letter-spacing:.18em}
+.certificate-preview-head h2{margin:8px 0;font-size:clamp(1.5rem,3vw,2.2rem)}
+.certificate-preview-head p{margin:0;opacity:.8}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -116,10 +126,10 @@
       <span aria-hidden="true">📸</span>
       <strong data-en="Explore Training Photos" data-ar="استكشف صور التدريب">Explore Training Photos</strong>
     </a>
-    <a class="btn outline gallery-action-button" href="#gallery-certificates">
+    <button type="button" class="btn outline gallery-action-button" id="openCertificatesPreview">
       <span aria-hidden="true">🎓</span>
       <strong data-en="View Certificates & Credentials" data-ar="استعرض الشهادات والاعتمادات">View Certificates & Credentials</strong>
-    </a>
+    </button>
   </div>
 
   <div id="gallery-photos" class="gallery-subsection">
@@ -141,12 +151,7 @@
     </div>
   </div>
 
-  <div id="gallery-certificates" class="gallery-subsection">
-    <div class="gallery-subhead"><span>CREDENTIALS</span><h3 data-en="Certificates & Professional Credentials" data-ar="الشهادات والاعتمادات المهنية">Certificates & Professional Credentials</h3><p data-en="Verified credentials presented as part of the professional training portfolio." data-ar="اعتمادات موثقة معروضة ضمن الملف المهني والتدريبي.">Verified credentials presented as part of the professional training portfolio.</p></div>
-    <div class="credential-gallery-grid">
-      <article class="credential-gallery-card"><span>HSI</span><div><strong>HSI Level 2 Instructor</strong><p>Registration No. 12024974<br>Valid through September 28, 2027.</p><p dir="rtl">رقم التسجيل 12024974<br>ساري حتى 28 سبتمبر 2027.</p></div></article>
-      <article class="credential-gallery-card credential-gallery-placeholder"><span>+</span><div><strong data-en="More Verified Credentials" data-ar="المزيد من الاعتمادات الموثقة">More Verified Credentials</strong><p data-en="Additional certificates can be added here as verified documents are prepared for public display." data-ar="يمكن إضافة الشهادات الأخرى هنا بعد تجهيز المستندات الموثقة للعرض العام.">Additional certificates can be added here as verified documents are prepared for public display.</p></div></article>
-    </div>
+
   </div>
 </section>
 <section class="section motivation-section">
@@ -201,6 +206,47 @@
 <section id="projects" class="section"><div class="section-head"><span>09</span><h2 data-content-key="projectsTitle" data-en="Projects & Ideas" data-ar="المشاريع والأفكار">Projects & Ideas</h2></div><div class="project-grid"><article><span>01</span><h3 data-en="Security Instructor Platform" data-ar="منصة المدرب الأمني">Security Instructor Platform</h3><p data-en="A professional portfolio evolving into a structured online training and LMS platform." data-ar="منصة مهنية تتطور إلى منصة تدريب إلكتروني ونظام إدارة تعلّم متكامل.">A professional portfolio evolving into a structured online training and LMS platform.</p></article><article><span>02</span><h3 data-en="Practical Training Content" data-ar="المحتوى التدريبي العملي">Practical Training Content</h3><p data-en="Scenario-based learning, demonstrations, assessments and digital course materials." data-ar="تعلم قائم على السيناريوهات والتطبيقات العملية والعروض والتقييمات والمواد التعليمية الرقمية.">Scenario-based learning, demonstrations, assessments and digital course materials.</p></article><article><span>03</span><h3 data-en="LMS-Supported Training Operations" data-ar="عمليات التدريب المدعومة بنظام إدارة التعلّم">LMS-Supported Training Operations</h3><p data-en="Connecting training delivery, course materials, assessments and reporting in one workflow." data-ar="ربط تنفيذ التدريب والمواد التعليمية والتقييمات والتقارير ضمن سير عمل واحد.">Connecting training delivery, course materials, assessments and reporting in one workflow.</p></article></div></section>
 <section id="contact" class="section dark"><div class="section-head"><span>10</span><h2 data-en="Contact Me" data-ar="تواصل معي">Contact Me</h2></div><div class="contact"><div><h2 data-en="Professional Training • Practical Skills • Safer Workplaces" data-ar="تدريب احترافي • مهارات عملية • بيئات عمل أكثر أمانًا">Professional Training • Practical Skills • Safer Workplaces</h2><p class="contact-message" data-en="Professionalism | Integrity | People Development | Safety for a Better Future" data-ar="الاحترافية | النزاهة | تطوير الأفراد | السلامة من أجل مستقبل أفضل">Professionalism | Integrity | People Development | Safety for a Better Future</p></div><div class="contact-card"><a href="mailto:abdallahabdalaziz@yahoo.com">abdallahabdalaziz@yahoo.com</a><a href="tel:+966506340246">+966 50 634 0246</a><span data-en="Riyadh, Saudi Arabia" data-ar="الرياض، المملكة العربية السعودية">Riyadh, Saudi Arabia</span></div></div><form id="contactForm" class="contact-form"><input name="name" required maxlength="120" placeholder="Name / الاسم"><input name="email" type="email" required placeholder="Email / البريد الإلكتروني"><textarea name="message" required maxlength="5000" rows="5" placeholder="Message / الرسالة"></textarea><button class="btn gold" type="submit" data-en="Send Message" data-ar="إرسال الرسالة">Send Message</button><div id="contactStatus" class="status"></div></form></section>
 </main><div style="text-align:center;margin:20px 0"><a id="publicAdminLink" href="admin/" style="color:#c8a96b;text-decoration:none;font-weight:800;border:1px solid #c8a96b;padding:8px 12px;display:inline-block">🔐 Admin Login / دخول الإدارة</a></div><footer><span data-en="SECURITY INSTRUCTOR | Abdallah Abdelaziz Shalaby" data-ar="SECURITY INSTRUCTOR | عبدالله عبدالعزيز شلبي">SECURITY INSTRUCTOR | Abdallah Abdelaziz Shalaby</span></footer>
+
+<div id="certificatesPreviewModal" class="modal" aria-hidden="true">
+  <div class="modal-panel certificate-preview-panel">
+    <button class="modal-close" data-close="certificatesPreviewModal" aria-label="Close">×</button>
+    <div class="certificate-preview-head">
+      <span>CREDENTIALS</span>
+      <h2 data-en="Certificates & Professional Credentials" data-ar="الشهادات والاعتمادات المهنية">Certificates & Professional Credentials</h2>
+      <p data-en="Verified professional credentials and instructor authorizations." data-ar="الاعتمادات المهنية الموثقة وتراخيص المدربين.">Verified professional credentials and instructor authorizations.</p>
+    </div>
+    <div class="credential-gallery-grid">
+      <article class="credential-gallery-card">
+        <span>HSI</span>
+        <div>
+          <strong>HSI Level 2 Instructor</strong>
+          <p>Registration No. 12024974<br>Valid through September 28, 2027.</p>
+          <p dir="rtl">رقم التسجيل 12024974<br>ساري حتى 28 سبتمبر 2027.</p>
+        </div>
+      </article>
+      <article class="credential-gallery-card credential-gallery-placeholder">
+        <span>+</span>
+        <div>
+          <strong data-en="More Verified Credentials" data-ar="المزيد من الاعتمادات الموثقة">More Verified Credentials</strong>
+          <p data-en="Additional verified certificates can be displayed here when prepared for public viewing." data-ar="يمكن عرض الشهادات الموثقة الإضافية هنا عند تجهيزها للعرض العام.">Additional verified certificates can be displayed here when prepared for public viewing.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
 <div id="courseModal" class="modal" aria-hidden="true"><div class="modal-panel"><button class="modal-close" data-close="courseModal">×</button><div id="courseModalBody"></div></div></div>
 <div id="adminModal" class="modal" aria-hidden="true"><div class="modal-panel admin-panel"><button class="modal-close" data-close="adminModal">×</button><div id="adminContent"></div></div></div>
+
+<script>
+(function(){
+  const btn=document.getElementById('openCertificatesPreview');
+  const modal=document.getElementById('certificatesPreviewModal');
+  if(!btn||!modal)return;
+  const close=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open');};
+  btn.addEventListener('click',()=>{modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');});
+  modal.querySelector('[data-close="certificatesPreviewModal"]').addEventListener('click',close);
+  modal.addEventListener('click',e=>{if(e.target===modal)close();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close();});
+})();
+</script>
 <script src="script.js" defer></script><script src="contact-handler.js"></script><script src="courses-experience.js"></script></body></html>
