@@ -26,7 +26,7 @@ var isHome=location.pathname.endsWith('/index.html')||location.pathname.endsWith
 var isLegacyChallenge=location.pathname.endsWith('/challenge.html');
 if(isLegacyChallenge){location.replace('challenge-free.html');return;}
 var challengeDone=localStorage.getItem('securityKnowledgeChallengeCompleted')==='true';
-if(isHome&&!challengeDone){location.replace('challenge-free.html');return;}
+// The public homepage remains browsable; the challenge is offered voluntarily.
 var adminBtn=document.getElementById('adminBtn');
 if(adminBtn){adminBtn.id='adminLinkButton';adminBtn.addEventListener('click',function(e){e.preventDefault();location.href='admin.html';});}
 var nav=document.querySelector('.topbar nav');
