@@ -17,7 +17,7 @@ if(!express.application.__si_certificate_admin_list_route){
         try{
           const db=mongoose.connection.db;
           if(!db)throw new Error('Database connection is not ready');
-          const completed=await db.collection('enrollments').find({status:'completed'},{projection:{enrollmentId:1}}).limit(20000).toArray();for(const row of completed){try{await issueForEnrollment(row.enrollmentId)}catch(e){console.error('Certificate list repair failed for',row.enrollmentId,e)}}const rows=await db.collection('trainingcertificates').find({}).sort({issuedAt:-1}).limit(20000).toArray();
+          const completed=await db.collection('enrollments').find({status:'completed'},{projection:{enrollmentId:1}}).limit(20000).toArray();const existing=await db.collection('trainingcertificates').find({enrollmentId:{$in:completed.map(x=>x.enrollmentId)}} ,{projection:{enrollmentId:1}}).toArray();const issued=new Set(existing.map(x=>x.enrollmentId));for(const row of completed){if(issued.has(row.enrollmentId))continue;try{await issueForEnrollment(row.enrollmentId)}catch(e){console.error('Certificate list repair failed for',row.enrollmentId,e)}}const rows=await db.collection('trainingcertificates').find({}).sort({issuedAt:-1}).limit(20000).toArray();
           res.status(200).json({summary:{certificates:rows.length},certificates:rows});
         }catch(e){console.error('Certificate admin list error',e);res.status(500).json({message:'Unable to load training certificates: '+clean(e.message,240)})}
       });
