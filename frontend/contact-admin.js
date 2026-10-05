@@ -6,7 +6,7 @@
   const expectedSender='abdallah-shalaby1@outlook.com';
   function esc(s){return String(s??'').replace(/[&<>\"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]})}
   function htmlText(s){return esc(s).replace(/\r?\n/g,'<br>')}
-  function canonicalRedirect(){return window.location.origin+window.location.pathname}
+  function canonicalRedirect(){return 'https://securitytrainer2025.github.io/security-instructor/frontend/admin/'}
   function randomString(bytes){var a=new Uint8Array(bytes);crypto.getRandomValues(a);var s='';for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
   async function challenge(verifier){var data=new TextEncoder().encode(verifier),hash=await crypto.subtle.digest('SHA-256',data),a=new Uint8Array(hash),s='';for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
   async function getConfig(){var r=await fetch(API+'/api/public-config',{cache:'no-store'});var d={};try{d=await r.json()}catch{}if(!r.ok||!d.microsoftClientId)throw new Error('Microsoft Graph mail is not configured yet. / لم يتم إعداد بريد Microsoft بعد.');return d}
