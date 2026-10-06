@@ -231,7 +231,9 @@ const meHandler=async(req,res)=>{
   const p=row.progress||baseProgress();
   const q=Number(p.cumulativeQuestions||0),correct=Number(p.cumulativeCorrect||0);
   const cumulative=q?Math.round(correct/q*100):0;
-  res.json({ok:true,traineeId:row.traineeId,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed});
+  const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
+  const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
+  res.json({ok:true,traineeId:row.traineeId,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed});
 };
 
 const screenHandler=async(req,res)=>{
@@ -241,11 +243,13 @@ const screenHandler=async(req,res)=>{
     const p=req.selfStudy.progress||baseProgress();
     const pos=FIRE_SCREEN_LIST.findIndex(x=>x.id===s.id);
     if(pos>0){
-      const previous=FIRE_SCREEN_LIST[pos-1];
-      const previousScore=Number((p.screenScores||{})[previous.id]?.score||0);
-      if(previousScore<80)return res.status(403).json({message:'Complete the previous learning screen with at least 80% before continuing.'});
+      const previousAssessed=[...FIRE_SCREEN_LIST].slice(0,pos).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
+      if(previousAssessed){
+        const previousScore=Number((p.screenScores||{})[previousAssessed.id]?.score||0);
+        if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
+      }
     }
-    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',questions:s.questions.map(q=>({q:q.q,options:q.a}))});
+    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>({q:q.q,options:q.a}))});
   }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
 };
 const screenAssessmentHandler=async(req,res)=>{
@@ -296,21 +300,9 @@ const progressHandler=async(req,res)=>{
 };
 
 const finalHandler=async(req,res)=>{
-  try{
-    const score=Number(req.body?.score);
-    if(!Number.isFinite(score)||score<0||score>100)return res.status(400).json({message:'Invalid final assessment score'});
-    const p=req.selfStudy.progress||baseProgress();
-    const attempts=Array.isArray(p.finalAttempts)?p.finalAttempts:[];
-    if(attempts.length>=3)return res.status(400).json({message:'No final assessment attempts remaining'});
-    const passed=score>=70;
-    attempts.push({score,passed,attempt:attempts.length+1,submittedAt:new Date()});
-    p.finalAttempts=attempts;p.finalBestScore=Math.max(Number(p.finalBestScore||0),score);p.finalPassed=passed||Boolean(p.finalPassed);
-    const required=COURSE_META[req.selfStudy.courseSlug].modules.map(m=>m.id);
-    const mastered=required.every(id=>Number((p.modules||{})[id]||0)>=80);
-    const eligible=mastered&&p.finalPassed;
-    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:p,certificateEligible:eligible,updatedAt:new Date()}});
-    res.json({ok:true,score,passed,attempt:attempts.length,remaining:3-attempts.length,mastered,certificateEligible:eligible});
-  }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
+  // Intentionally disabled until the validated 30-question final bank is loaded server-side.
+  // Never accept a client-supplied score: that would allow a learner to forge a passing result.
+  return res.status(503).json({message:'The final assessment is not yet activated. Please complete the published learning screens first.'});
 };
 
 function register(app){
