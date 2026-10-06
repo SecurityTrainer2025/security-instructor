@@ -9,6 +9,55 @@ const ACCESS_HOURS=Number(process.env.SELF_STUDY_ACCESS_HOURS||72);
 const MAGIC_MINUTES=15;
 const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||72);
 const FIRE_SLUG='fire-safety-emergency-response';
+const baseProgress=()=>({
+  completedScreens:[],
+  screenScores:{},
+  modules:{},
+  cumulativeQuestions:0,
+  cumulativeCorrect:0,
+  finalAttempts:0,
+  finalBestScore:null,
+  finalPassed:false,
+  finalScores:[]
+});
+
+const FINAL_FIRE_ASSESSMENT=[
+{q:'What is the first priority during a fire emergency? / ما الأولوية الأولى أثناء طوارئ الحريق؟',a:['Life safety / سلامة الأرواح','Protecting records / حماية السجلات','Continuing routine work / استمرار العمل الروتيني','Collecting personal items / جمع الأغراض الشخصية'],correct:0},
+{q:'Which three elements form the basic fire triangle? / ما العناصر الثلاثة لمثلث الحريق؟',a:['Heat, fuel and oxygen / الحرارة والوقود والأكسجين','Smoke, water and alarm / الدخان والماء والإنذار','Fuel, alarm and light / الوقود والإنذار والضوء','Heat, hose and radio / الحرارة والخرطوم واللاسلكي'],correct:0},
+{q:'What fourth element is added in the fire tetrahedron? / ما العنصر الرابع الذي يضاف إلى رباعي أوجه الحريق؟',a:['Chemical chain reaction / التفاعل الكيميائي المتسلسل','Water pressure / ضغط الماء','Smoke / الدخان','Wind / الرياح'],correct:0},
+{q:'What does Heat Release Rate (HRR) describe? / ماذا يصف معدل إطلاق الحرارة (HRR)؟',a:['The rate of energy release / معدل إطلاق الطاقة','The number of alarms / عدد الإنذارات','The building height / ارتفاع المبنى','The number of exits / عدد المخارج'],correct:0},
+{q:'Which factor can affect fire growth? / أي عامل يمكن أن يؤثر في تطور الحريق؟',a:['Fuel and ventilation / الوقود والتهوية','Certificate format / شكل الشهادة','Visitor names / أسماء الزوار','Parking fees / رسوم المواقف'],correct:0},
+{q:'Which action supports fire prevention? / أي إجراء يدعم الوقاية من الحريق؟',a:['Good housekeeping and safe storage / النظافة الجيدة والتخزين الآمن','Blocking exits / إعاقة المخارج','Ignoring damaged equipment / تجاهل المعدات التالفة','Storing waste near heat sources / تخزين المخلفات قرب مصادر الحرارة'],correct:0},
+
+{q:'Which fire class is commonly associated with ordinary combustible materials? / بأي فئة ترتبط عادةً المواد الصلبة القابلة للاحتراق؟',a:['Class A / الفئة A','Class B / الفئة B','Class D / الفئة D','Class K / الفئة K'],correct:0},
+{q:'What should guide extinguisher selection? / ما الذي يجب أن يوجه اختيار الطفاية؟',a:['The extinguisher label, fire type and site guidance / ملصق الطفاية ونوع الحريق وتعليمات الموقع','Color alone / اللون فقط','Personal preference / التفضيل الشخصي','The size of the room only / مساحة الغرفة فقط'],correct:0},
+{q:'What is a key limitation of portable extinguishers? / ما أحد القيود المهمة للطفايات المحمولة؟',a:['They are intended for appropriate, limited fires and only when safe / تستخدم للحرائق المناسبة والمحدودة وفقط عندما يكون ذلك آمناً','They replace evacuation / تحل محل الإخلاء','They are suitable for every fire / مناسبة لكل حريق','They remove the need to raise an alarm / تلغي الحاجة إلى إطلاق الإنذار'],correct:0},
+{q:'In PASS, what does P stand for? / في PASS، ماذا يعني الحرف P؟',a:['Pull / اسحب','Protect / احمِ','Push / ادفع','Point / أشر'],correct:0},
+{q:'When should a person stop attempting to use an extinguisher? / متى يجب التوقف عن محاولة استخدام الطفاية؟',a:['When conditions become unsafe or the fire grows / عندما تصبح الظروف غير آمنة أو يكبر الحريق','Only after the extinguisher is empty / فقط بعد فراغ الطفاية','When someone asks for a photo / عندما يطلب أحد التقاط صورة','Never / أبداً'],correct:0},
+{q:'What should always be checked before using an extinguisher? / ما الذي يجب التحقق منه دائماً قبل استخدام الطفاية؟',a:['The label and site guidance / الملصق وتعليمات الموقع','Only the paint color / لون الطلاء فقط','The certificate design / تصميم الشهادة','The nearest parking space / أقرب موقف سيارات'],correct:0},
+
+{q:'Which device can initiate a fire alarm signal? / أي جهاز يمكن أن يبدأ إشارة إنذار الحريق؟',a:['A smoke detector / كاشف دخان','A visitor badge / بطاقة زائر','A parking ticket / تذكرة موقف','A training certificate / شهادة تدريب'],correct:0},
+{q:'What is a key function of a fire alarm control panel? / ما الوظيفة الأساسية للوحة تحكم إنذار الحريق؟',a:['Receive and process signals from the fire alarm system / استقبال ومعالجة الإشارات من نظام إنذار الحريق','Replace all emergency services / استبدال جميع خدمات الطوارئ','Store personal belongings / تخزين الأغراض الشخصية','Control training certificates / التحكم في الشهادات التدريبية'],correct:0},
+{q:'Why are fire doors important? / لماذا تعد أبواب الحريق مهمة؟',a:['They can help limit the spread of fire and smoke when properly installed and maintained / يمكن أن تساعد في الحد من انتشار الحريق والدخان عند تركيبها وصيانتها بشكل صحيح','They replace alarms / تحل محل الإنذارات','They guarantee zero smoke / تضمن عدم وجود دخان','They are only for decoration / تستخدم للزينة فقط'],correct:0},
+{q:'What is the main purpose of an automatic sprinkler system? / ما الهدف الأساسي من نظام الرشاشات الآلي؟',a:['Provide automatic fire suppression or control according to its design / توفير الإخماد أو السيطرة الآلية على الحريق وفق تصميم النظام','Replace evacuation / استبدال الإخلاء','Provide security access / توفير الدخول الأمني','Turn off all electricity / إيقاف جميع الكهرباء'],correct:0},
+{q:'What should security personnel do if a fire alarm or detector appears damaged? / ماذا يفعل أفراد الأمن إذا بدا أن إنذار الحريق أو الكاشف متضرر؟',a:['Report it through the site procedure / الإبلاغ عنه وفق إجراء الموقع','Ignore it / تجاهله','Remove it without authorization / إزالته دون تصريح','Post it online / نشره على الإنترنت'],correct:0},
+{q:'Why should smoke exposure be taken seriously? / لماذا يجب أخذ التعرض للدخان بجدية؟',a:['Smoke can create serious life-safety hazards / يمكن أن يسبب الدخان مخاطر خطيرة على سلامة الأرواح','Smoke is always harmless / الدخان غير ضار دائماً','Smoke only affects equipment / يؤثر فقط في المعدات','Smoke means the fire is already over / يعني أن الحريق انتهى'],correct:0},
+
+{q:'What should a comprehensive fire plan normally address? / ما الذي ينبغي أن تتناوله خطة الحريق الشاملة عادةً؟',a:['Alarm, evacuation, roles, communication, assembly and responder access / الإنذار والإخلاء والأدوار والتواصل والتجمع ووصول فرق الاستجابة','Only uniforms / الزي فقط','Only parking / مواقف السيارات فقط','Only certificates / الشهادات فقط'],correct:0},
+{q:'In the RACE memory aid, what does A represent? / في وسيلة التذكر RACE، ماذا يمثل الحرف A؟',a:['Alert / إطلاق الإنذار','Attack / الهجوم','Arrange / الترتيب','Assess property only / تقييم الممتلكات فقط'],correct:0},
+{q:'How should security personnel respond to suspected deliberate fire-setting? / كيف يستجيب أفراد الأمن للاشتباه في إشعال حريق متعمد؟',a:['Observe, report objective facts and follow site procedures / ملاحظة الحقائق والإبلاغ عنها واتباع إجراءات الموقع','Accuse a person without evidence / اتهام شخص دون دليل','Investigate beyond their authority / التحقيق خارج الصلاحية','Handle suspected ignition materials personally / التعامل شخصياً مع مواد الاشتعال المشتبه بها'],correct:0},
+{q:'During an evacuation, what is the security priority? / أثناء الإخلاء، ما أولوية الأمن؟',a:['Protect life, support safe movement and follow the emergency plan / حماية الأرواح ودعم الحركة الآمنة واتباع خطة الطوارئ','Protect property before people / حماية الممتلكات قبل الأشخاص','Keep everyone inside / إبقاء الجميع في الداخل','Allow uncontrolled re-entry / السماح بالعودة غير المنظمة'],correct:0},
+{q:'What should security do to help prevent unauthorized access after an evacuation? / ماذا يفعل الأمن للمساعدة في منع الدخول غير المصرح به بعد الإخلاء؟',a:['Control access according to the site security plan without obstructing responders / التحكم في الدخول وفق خطة أمن الموقع دون إعاقة فرق الاستجابة','Block emergency responders / إعاقة فرق الطوارئ','Invite evacuated people back inside / دعوة الأشخاص الذين تم إخلاؤهم للعودة','Ignore the site / تجاهل الموقع'],correct:0},
+{q:'What is the safe approach to standards such as NFPA 1600/1660 and NFPA 3000 in this course? / ما النهج الآمن تجاه معايير مثل NFPA 1600/1660 وNFPA 3000 في هذه الدورة؟',a:['Use them as relevant reference concepts and follow current applicable requirements and site procedures / استخدامها كمراجع ومفاهيم ذات صلة مع الالتزام بالمتطلبات السارية وإجراءات الموقع','Claim the certificate proves compliance / الادعاء بأن الشهادة تثبت الامتثال','Treat them as identical to local law everywhere / اعتبارها مطابقة للقانون المحلي في كل مكان','Ignore local requirements / تجاهل المتطلبات المحلية'],correct:0},
+
+{q:'What should an evacuation route provide? / ماذا ينبغي أن يوفر مسار الإخلاء؟',a:['A clear and usable path to a safe exit / مساراً واضحاً وقابلاً للاستخدام إلى مخرج آمن','A storage area / منطقة تخزين','A place for personal belongings / مكاناً للأغراض الشخصية','A return route into danger / مساراً للعودة إلى الخطر'],correct:0},
+{q:'Why are exit signs and emergency lighting important? / لماذا تعد علامات المخارج وإضاءة الطوارئ مهمة؟',a:['They help people identify and follow safe routes when normal conditions are affected / تساعد الأشخاص على تحديد المسارات الآمنة واتباعها عند تأثر الظروف العادية','They replace the emergency plan / تحل محل خطة الطوارئ','They guarantee no fire / تضمن عدم حدوث حريق','They replace emergency responders / تحل محل فرق الطوارئ'],correct:0},
+{q:'What is the purpose of an assembly area? / ما الهدف من نقطة التجمع؟',a:['Provide an organized location for evacuated people and accountability / توفير مكان منظم للأشخاص الذين تم إخلاؤهم وإحصائهم','Store fire equipment / تخزين معدات الحريق','Allow immediate re-entry / السماح بالعودة الفورية','Replace the alarm panel / استبدال لوحة الإنذار'],correct:0},
+{q:'What does the Incident Command System help organize? / ماذا يساعد نظام إدارة الحوادث على تنظيمه؟',a:['People, resources, information and decisions / الأشخاص والموارد والمعلومات والقرارات','Only uniforms / الزي فقط','Only vehicles / المركبات فقط','Only certificates / الشهادات فقط'],correct:0},
+{q:'How can security support public emergency services? / كيف يمكن للأمن دعم خدمات الطوارئ العامة؟',a:['Provide clear access, accurate site information and hazard awareness / توفير وصول واضح ومعلومات دقيقة عن الموقع ووعي بالمخاطر','Direct medical treatment without training / توجيه العلاج الطبي دون تدريب','Change responder command / تغيير قيادة فرق الاستجابة','Block emergency vehicles / إعاقة مركبات الطوارئ'],correct:0},
+{q:'Who should normally perform medical triage? / من الذي ينبغي أن يقوم عادةً بالفرز الطبي؟',a:['Trained medical responders according to protocol / المستجيبون الطبيون المدربون وفق البروتوكول','Any visitor / أي زائر','Untrained security staff / أفراد الأمن غير المدربين','Any bystander / أي شخص موجود'],correct:0}
+];
+
 
 const FIRE_SCREENS={
 m1:[
@@ -356,7 +405,7 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,traineeId:row.traineeId,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed});
+  res.json({ok:true,traineeId:row.traineeId,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
@@ -413,9 +462,35 @@ const progressHandler=async(req,res)=>{
   return res.status(410).json({message:'Direct progress updates are disabled. Submit the server-validated learning-screen assessment instead.'});
 };
 const finalHandler=async(req,res)=>{
-  // Intentionally disabled until the validated 30-question final bank is loaded server-side.
-  // Never accept a client-supplied score: that would allow a learner to forge a passing result.
-  return res.status(503).json({message:'The final assessment is not yet activated. Please complete the published learning screens first.'});
+  try{
+    const p=req.selfStudy.progress||baseProgress();
+    const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
+    const mastered=assessed.length>0&&assessed.every(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
+    if(!mastered)return res.status(403).json({message:'Complete all required learning screens with at least 80% before taking the final assessment.'});
+    const attempts=Number(p.finalAttempts||0);
+    if(attempts>=3)return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
+    const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
+    if(answers.length!==FINAL_FIRE_ASSESSMENT.length)return res.status(400).json({message:'Please answer all 30 questions.'});
+    const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>n+(Number(answers[i])===q.correct?1:0),0);
+    const score=Math.round(correct/FINAL_FIRE_ASSESSMENT.length*100);
+    const finalAttempts=attempts+1;
+    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
+    const finalPassed=!!p.finalPassed||score>=70;
+    const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>=70,updatedAt:new Date()}];
+    const updated={...p,finalAttempts,finalBestScore,finalPassed,finalScores};
+    let certificateId=null;
+    if(finalPassed){
+      const enrollments=mongoose.connection.collection('enrollments');
+      await enrollments.updateOne({enrollmentId:req.selfStudy.enrollmentId,selfStudy:true},{$set:{status:'completed',score:score,completedAt:new Date(),updatedAt:new Date()}});
+      try{
+        const {issueForEnrollment}=require('./training-certificate-routes.js');
+        const cert=await issueForEnrollment(req.selfStudy.enrollmentId);
+        certificateId=cert?.certificateId||null;
+      }catch(certErr){console.error('Self-study certificate issuance failed',certErr)}
+    }
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:updated,updatedAt:new Date()}});
+    res.json({ok:true,score,correct,total:FINAL_FIRE_ASSESSMENT.length,passed:score>=70||finalPassed,attempt:finalAttempts,attemptsRemaining:Math.max(0,3-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
+  }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
 };
 
 function register(app){
