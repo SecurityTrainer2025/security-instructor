@@ -165,6 +165,10 @@ const sha=v=>crypto.createHash('sha256').update(String(v)).digest('hex');
 const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
 const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const randomToken=bytes=>crypto.randomBytes(bytes).toString('hex');
+const questionOrder=q=>{
+  const seed=parseInt(sha(q.q).slice(0,8),16);
+  return [0,1,2,3].sort((a,b)=>((seed>>(a*3))&7)-((seed>>(b*3))&7)||a-b);
+};
 
 async function sendAccessEmail({to,name,course,token,expiresAt}){
   const apiKey=(process.env.BREVO_API_KEY||'').trim();
@@ -304,7 +308,7 @@ const screenHandler=async(req,res)=>{
         if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
       }
     }
-    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>({q:q.q,options:q.a}))});
+    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q);return {q:q.q,options:order.map(i=>q.a[i])}})});
   }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
 };
 const screenAssessmentHandler=async(req,res)=>{
@@ -322,7 +326,7 @@ const screenAssessmentHandler=async(req,res)=>{
     }
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
     if(answers.length!==s.questions.length)return res.status(400).json({message:'Please answer all questions'});
-    const correct=s.questions.reduce((n,q,i)=>n+(Number(answers[i])===q.correct?1:0),0);
+    const correct=s.questions.reduce((n,q,i)=>{const order=questionOrder(q);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/s.questions.length*100);
     const p=req.selfStudy.progress||baseProgress();
     const scores={...(p.screenScores||{})};
