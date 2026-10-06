@@ -9,6 +9,81 @@ const ACCESS_HOURS=Number(process.env.SELF_STUDY_ACCESS_HOURS||72);
 const MAGIC_MINUTES=15;
 const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||72);
 const FIRE_SLUG='fire-safety-emergency-response';
+
+const FIRE_SCREENS={
+m1:[
+{id:'m1s1',titleEn:'Why Fire Safety Matters',titleAr:'لماذا تعتبر السلامة من الحرائق مهمة؟',bodyEn:'Fire can injure people, damage property and stop normal operations. Security staff may be among the first to notice a fire or alarm.',bodyAr:'قد يؤدي الحريق إلى إصابات وخسائر مادية وتعطيل العمليات. وقد يكون أفراد الأمن من أوائل من يلاحظون الحريق أو الإنذار.',videoUrl:'',questions:[
+{q:'What is a key reason security staff need fire-safety awareness?',a:['To protect life and support safe response','To replace the fire service','To repair fire pumps','To ignore alarms'],correct:0},
+{q:'What should come first during a fire emergency?',a:['Life safety','Property protection','Routine paperwork','Vehicle parking'],correct:0},
+{q:'A security officer may be among the first people to:',a:['Notice a fire or alarm','Design a sprinkler system','Certify a building code','Repair an alarm panel'],correct:0}]},
+{id:'m1s2',titleEn:'The Fire Triangle',titleAr:'مثلث الحريق',bodyEn:'Combustion requires heat, fuel and oxygen. Removing one element can interrupt combustion.',bodyAr:'يحتاج الاحتراق إلى الحرارة والوقود والأكسجين. ويمكن أن يؤدي إزالة أحد هذه العناصر إلى إيقاف الاحتراق.',videoUrl:'',questions:[
+{q:'Which three elements form the basic fire triangle?',a:['Heat, fuel and oxygen','Water, smoke and air','Fuel, smoke and water','Heat, alarm and water'],correct:0},
+{q:'What happens when one triangle element is removed?',a:['Combustion can be interrupted','The fire must become larger','The alarm stops automatically','Evacuation is no longer needed'],correct:0},
+{q:'Which is an example of fuel?',a:['Wood','Oxygen','Heat','Alarm sound'],correct:0}]},
+{id:'m1s3',titleEn:'Heat, Fuel and Oxygen',titleAr:'الحرارة والوقود والأكسجين',bodyEn:'Heat can come from sparks, flames, hot surfaces or friction. Fuel may be solid, liquid, vapour or gas. Oxygen commonly comes from surrounding air.',bodyAr:'قد تأتي الحرارة من الشرر أو اللهب أو الأسطح الساخنة أو الاحتكاك. وقد يكون الوقود صلبًا أو سائلًا أو بخارًا أو غازًا. ويأتي الأكسجين عادةً من الهواء المحيط.',videoUrl:'',questions:[
+{q:'Which is a possible ignition source?',a:['Electrical spark','Assembly point','Emergency exit sign','Attendance sheet'],correct:0},
+{q:'Which can be a fuel?',a:['Propane gas','Oxygen only','Alarm signal','Escape route'],correct:0},
+{q:'Oxygen commonly comes from:',a:['Surrounding air','The alarm panel','The fire exit sign','The attendance list'],correct:0}]}
+],
+m2:[
+{id:'m2s1',titleEn:'Fire Classification',titleAr:'تصنيف الحرائق',bodyEn:'Classifying a fire by the fuel involved helps personnel select suitable equipment and communicate the hazard. Always follow current local procedures and extinguisher labels.',bodyAr:'يساعد تصنيف الحريق حسب نوع الوقود على اختيار وسيلة الإطفاء المناسبة والتواصل بشأن الخطر. يجب دائمًا اتباع الإجراءات المحلية الحالية وملصقات طفايات الحريق.',videoUrl:'',questions:[
+{q:'Why is fire classification useful?',a:['It helps identify suitable extinguishing equipment','It removes the need for evacuation','It replaces the emergency plan','It guarantees a fire is small'],correct:0},
+{q:'What should be checked before using an extinguisher?',a:['Its label and site procedures','Only its color','Only its weight','The parking plan'],correct:0},
+{q:'Who should use fire equipment?',a:['People trained and authorized to do so','Anyone who sees a fire','Only visitors','Only reception staff'],correct:0}]},
+{id:'m2s2',titleEn:'Portable Extinguishing Agents',titleAr:'وسائط الإطفاء المحمولة',bodyEn:'Different fires require suitable extinguishing agents. Equipment must match the fire type and be used only when conditions are safe and the person is trained.',bodyAr:'تتطلب أنواع الحرائق المختلفة وسائط إطفاء مناسبة. يجب أن تتوافق المعدة مع نوع الحريق وأن تستخدم فقط عندما تكون الظروف آمنة والشخص مدربًا.',videoUrl:'',questions:[
+{q:'Why must the extinguisher match the fire?',a:['An unsuitable agent can be ineffective or unsafe','All extinguishers work on every fire','It changes the alarm code','It removes the need for training'],correct:0},
+{q:'When should a portable extinguisher be used?',a:['Only when trained and conditions are safe','Whenever smoke is visible','Before raising the alarm','When an escape route is blocked'],correct:0},
+{q:'Where should the escape route be?',a:['Clear and available behind the user','Blocked by equipment','Outside the building only','Inside the fire room'],correct:0}]},
+{id:'m2s3',titleEn:'PASS and Fire Blankets',titleAr:'طريقة PASS وبطانيات الحريق',bodyEn:'PASS means Pull, Aim, Squeeze and Sweep. A fire blanket may be used on a small contained fire when appropriate and safe.',bodyAr:'تعني PASS: اسحب، وجّه، اضغط، وحرّك. ويمكن استخدام بطانية الحريق على حريق صغير ومحدود عندما يكون ذلك مناسبًا وآمنًا.',videoUrl:'',questions:[
+{q:'What does PASS begin with?',a:['Pull','Aim','Squeeze','Sweep'],correct:0},
+{q:'What is a fire blanket mainly intended to do?',a:['Smother a small contained fire','Increase oxygen','Cool an entire building','Replace evacuation'],correct:0},
+{q:'After using a fire blanket on a small fire, what should be done?',a:['Leave it in place and follow emergency procedures','Remove it immediately','Return to normal work','Ignore the alarm'],correct:0}]}
+],
+m3:[
+{id:'m3s1',titleEn:'Fire Detection and Alarm Systems',titleAr:'أنظمة كشف وإنذار الحريق',bodyEn:'Buildings may use detectors, alarms and a control panel. Security personnel should know the installed system and authorized response procedures.',bodyAr:'قد تستخدم المنشآت كواشف وإنذارات ولوحة تحكم. ويجب أن يعرف أفراد الأمن النظام المركب وإجراءات الاستجابة المعتمدة.',videoUrl:'',questions:[
+{q:'What should security personnel know about an alarm system?',a:['The installed system and authorized procedures','How to redesign it','How to disable it','Only its color'],correct:0},
+{q:'A control panel can help identify:',a:['The indicated alarm location','The final certificate score','The visitor list','The weather'],correct:0},
+{q:'Should alarms be ignored until smoke is visible?',a:['No','Yes','Only at night','Only during drills'],correct:0}]},
+{id:'m3s2',titleEn:'Responding to an Alarm',titleAr:'الاستجابة للإنذار',bodyEn:'Use the approved response sequence. Locate the indicated area, verify safely through authorized methods and escalate according to site procedures.',bodyAr:'استخدم تسلسل الاستجابة المعتمد. حدد المنطقة المشار إليها وتحقق بطريقة آمنة من خلال الوسائل المصرح بها وصعّد البلاغ وفق إجراءات الموقع.',videoUrl:'',questions:[
+{q:'How should an alarm be checked?',a:['Using authorized and safe procedures','By entering any fire area immediately','By switching off the alarm','By waiting for others to notice'],correct:0},
+{q:'If a fire is confirmed, what should happen?',a:['Raise the alarm and start emergency procedures','Hide the information','Continue routine duties','Block emergency access'],correct:0},
+{q:'What should guide the response?',a:['Site emergency procedures','Personal guesses','Social media posts','Visitor requests'],correct:0}]},
+{id:'m3s3',titleEn:'RACE: Discovering a Fire',titleAr:'RACE: عند اكتشاف حريق',bodyEn:'RACE: Rescue people from immediate danger when safe; Alert others; Confine by closing doors if safe; Extinguish only if trained, safe and the fire is small.',bodyAr:'RACE: إنقاذ الأشخاص من الخطر المباشر عندما يكون ذلك آمنًا؛ تنبيه الآخرين؛ حصر الحريق بإغلاق الأبواب إذا كان آمنًا؛ وإطفاؤه فقط عند التدريب وتوافر الأمان وصغر الحريق.',videoUrl:'',questions:[
+{q:'What does the A in RACE mean?',a:['Alert','Aim','Assess','Access'],correct:0},
+{q:'When should you extinguish a fire?',a:['Only if trained, safe and the fire is small','Whenever the alarm sounds','Before warning people','If smoke is heavy'],correct:0},
+{q:'What does Confine mean in RACE?',a:['Close doors if safe to limit fire spread','Move everyone into the fire room','Disable alarms','Open all doors'],correct:0}]}
+],
+m4:[
+{id:'m4s1',titleEn:'Before Fighting a Fire',titleAr:'قبل محاولة إطفاء الحريق',bodyEn:'Keep an escape route clear, warn people, begin evacuation when required and use equipment only within training and site procedures.',bodyAr:'حافظ على طريق هروب واضح، وحذّر الأشخاص، وابدأ الإخلاء عند الحاجة، واستخدم المعدات فقط ضمن التدريب وإجراءات الموقع.',videoUrl:'',questions:[
+{q:'What must remain available before using an extinguisher?',a:['A clear escape route','A locked exit','A blocked corridor','A closed alarm panel'],correct:0},
+{q:'When should you retreat?',a:['If the fire grows, smoke increases or escape is threatened','Only after the fire is extinguished','Never','Only when a supervisor leaves'],correct:0},
+{q:'What takes priority over property protection?',a:['Life safety','Vehicle movement','Paperwork','Cleaning'],correct:0}]},
+{id:'m4s2',titleEn:'Facility Fire Plans and Site Procedures',titleAr:'خطط الحريق وإجراءات المنشأة',bodyEn:'Know exits, alarm signals, emergency contacts, assembly points and the responsibilities assigned to security and fire wardens.',bodyAr:'اعرف المخارج وإشارات الإنذار وجهات الاتصال في الطوارئ ونقاط التجمع والمسؤوليات الموكلة إلى الأمن ومراقبي الحريق.',videoUrl:'',questions:[
+{q:'Why should security personnel know the fire plan?',a:['To support a coordinated and safe response','To replace emergency responders','To change building design','To avoid reporting incidents'],correct:0},
+{q:'Which location should be known in advance?',a:['Assembly point','Private office only','Parking payment desk','Cafeteria menu'],correct:0},
+{q:'Emergency contacts should be:',a:['Known and available through site procedures','Kept secret from security','Used only after evacuation ends','Stored only on paper in a locked room'],correct:0}]},
+{id:'m4s3',titleEn:'Security Vigilance and Deliberate Fire',titleAr:'اليقظة الأمنية والحريق المتعمد',bodyEn:'Observe and report facts such as suspicious activity, tampering with alarms or unusual ignition materials. Avoid unsupported accusations.',bodyAr:'راقب وأبلغ عن الحقائق مثل النشاط المشبوه أو العبث بأجهزة الإنذار أو وجود مواد إشعال غير معتادة. وتجنب الاتهامات غير المدعومة بالأدلة.',videoUrl:'',questions:[
+{q:'What should security staff report?',a:['Objective observations through site procedures','Rumors','Unsupported accusations','Personal social media posts'],correct:0},
+{q:'What may require attention?',a:['Tampering with alarms or detectors','A normal meeting','A clean exit','A posted emergency map'],correct:0},
+{q:'What should be avoided?',a:['Unsupported accusations','Factual reporting','Following procedures','Preserving evidence'],correct:0}]}
+],
+m5:[
+{id:'m5s1',titleEn:'Emergency Evacuation',titleAr:'الإخلاء في حالات الطوارئ',bodyEn:'Know exits, escape routes and assembly points. Keep emergency access, exits, hydrants and hose reels clear.',bodyAr:'اعرف المخارج ومسارات الهروب ونقاط التجمع. وحافظ على خلو مسارات الطوارئ والمخارج ومآخذ المياه وبكرات الخراطيم.',videoUrl:'',questions:[
+{q:'What should people know before an emergency?',a:['Exits, routes and assembly points','Only the nearest lift','Only the parking area','Only the reception desk'],correct:0},
+{q:'Emergency access should be:',a:['Kept clear','Used for parking','Blocked by equipment','Closed permanently'],correct:0},
+{q:'What is an assembly point for?',a:['Safe gathering and accountability after evacuation','Storing extinguishers','Parking vehicles','Replacing the alarm system'],correct:0}]},
+{id:'m5s2',titleEn:'Directing an Evacuation',titleAr:'توجيه عملية الإخلاء',bodyEn:'Stay calm, give clear directions, assist people who need support and support accountability at the assembly point.',bodyAr:'حافظ على الهدوء، وقدّم توجيهات واضحة، وساعد الأشخاص الذين يحتاجون إلى دعم، وساهم في حصر الأفراد عند نقطة التجمع.',videoUrl:'',questions:[
+{q:'How should evacuation directions be given?',a:['Calmly and clearly','By shouting conflicting instructions','Without following the plan','Only after everyone leaves'],correct:0},
+{q:'Who may need additional assistance?',a:['People requiring support','Only supervisors','Only visitors','No one'],correct:0},
+{q:'What is accountability used for?',a:['Checking who reached the assembly point','Counting vehicles','Checking room temperatures','Issuing certificates'],correct:0}]},
+{id:'m5s3',titleEn:'Incident Command and Final Review',titleAr:'إدارة الحوادث والمراجعة النهائية',bodyEn:'Incident command supports organized emergency response. Learners should connect fire recognition, alarm, evacuation, communication and safe decision-making.',bodyAr:'تساعد إدارة الحوادث على تنظيم الاستجابة للطوارئ. ويجب على المتدرب ربط التعرف على الحريق والإنذار والإخلاء والتواصل واتخاذ القرار الآمن.',videoUrl:'',questions:[
+{q:'What is a main purpose of incident command?',a:['Organize the emergency response','Replace all site procedures','Prevent communication','Delay evacuation'],correct:0},
+{q:'Which elements should be connected during the course?',a:['Recognition, alarm, evacuation and communication','Parking, catering and finance','Sales, marketing and travel','Only equipment cleaning'],correct:0},
+{q:'What is the course mastery threshold for a learning screen?',a:['80%','50%','60%','100%'],correct:0}]}
+]};
+const FIRE_SCREEN_LIST=Object.values(FIRE_SCREENS).flat();
+const screenById=new Map(FIRE_SCREEN_LIST.map(x=>[x.id,x]));
+
 const COURSE_META={
   [FIRE_SLUG]:{
     code:'CRS-FIRE-001',
@@ -177,6 +252,38 @@ const meHandler=async(req,res)=>{
   res.json({ok:true,traineeId:row.traineeId,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed});
 };
 
+const screenHandler=async(req,res)=>{
+  try{
+    const s=screenById.get(clean(req.params.screenId,100));
+    if(!s)return res.status(404).json({message:'Learning screen not found'});
+    res.json({id:s.id,moduleId:s.id.slice(0,2),titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',questions:s.questions.map(q=>({q:q.q,options:q.a}))});
+  }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
+};
+const screenAssessmentHandler=async(req,res)=>{
+  try{
+    const s=screenById.get(clean(req.params.screenId,100));
+    if(!s)return res.status(404).json({message:'Learning screen not found'});
+    const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
+    if(answers.length!==s.questions.length)return res.status(400).json({message:'Please answer all questions'});
+    const correct=s.questions.reduce((n,q,i)=>n+(Number(answers[i])===q.correct?1:0),0);
+    const score=Math.round(correct/s.questions.length*100);
+    const p=req.selfStudy.progress||baseProgress();
+    const scores={...(p.screenScores||{})};
+    const modules={...(p.modules||{})};
+    const previous=scores[s.id];
+    scores[s.id]={score,questions:s.questions.length,correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
+    if(score>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
+    modules[s.id.slice(0,2)]=Math.max(Number(modules[s.id.slice(0,2)]||0),score);
+    const all=Object.values(scores);
+    p.cumulativeQuestions=all.reduce((n,x)=>n+Number(x.questions||0),0);
+    p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.correct||0),0);
+    p.screenScores=scores;p.modules=modules;
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:p,updatedAt:new Date()}});
+    const cumulative=p.cumulativeQuestions?Math.round(p.cumulativeCorrect/p.cumulativeQuestions*100):0;
+    res.json({ok:true,score,passed:score>=80,correct,total:s.questions.length,cumulativeScore:cumulative,attempts:scores[s.id].attempts});
+  }catch(e){console.error('Self-study screen assessment error',e);res.status(500).json({message:'Unable to save screen assessment'});}
+};
+
 const progressHandler=async(req,res)=>{
   try{
     const b=req.body||{},screenId=clean(b.screenId,100),moduleId=clean(b.moduleId,50);
@@ -218,7 +325,9 @@ const finalHandler=async(req,res)=>{
 };
 
 function register(app){
-  app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json(c)});
+  app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:FIRE_SCREEN_LIST.length});});
+  app.get('/api/self-study/screens/:screenId',sessionHandler,screenHandler);
+  app.post('/api/self-study/screens/:screenId/assessment',sessionHandler,screenAssessmentHandler);
   app.post('/api/self-study/register',registerHandler);
   app.post('/api/self-study/access/request',requestAccessHandler);
   app.post('/api/self-study/session/exchange',exchangeHandler);
