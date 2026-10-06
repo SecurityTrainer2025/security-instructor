@@ -111,37 +111,19 @@ const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
 const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const randomToken=bytes=>crypto.randomBytes(bytes).toString('hex');
 
-function mailTransport(){
-  const user=(process.env.MAIL_FROM||process.env.ADMIN_EMAIL||'').trim();
-  const clientId=(process.env.MS_CLIENT_ID||'').trim();
-  const clientSecret=(process.env.MS_CLIENT_SECRET||'').trim();
-  const refreshToken=(process.env.MS_REFRESH_TOKEN||'').trim();
-  if(!user||!clientId||!clientSecret||!refreshToken)return null;
-  return nodemailer.createTransport({
-    host:'smtp-mail.outlook.com',port:587,secure:false,
-    auth:{type:'OAuth2',user,clientId,clientSecret,refreshToken}
-  });
-}
-
-async function nextNumber(collection,prefix,field){
-  const last=await collection.findOne({[field]:new RegExp('^'+prefix+'\\d+$')}).sort({[field]:-1});
-  return prefix+String(last?parseInt(String(last[field]).slice(prefix.length),10)+1:1).padStart(6,'0');
-}
-
-function baseProgress(){
-  return {modules:{},completedScreens:[],screenScores:{},cumulativeCorrect:0,cumulativeQuestions:0,finalAttempts:[],finalBestScore:null,finalPassed:false};
-}
-
 async function sendAccessEmail({to,name,course,token,expiresAt}){
-  const transport=mailTransport();
-  if(!transport)return {sent:false,error:'Mail transport is not configured'};
+  const apiKey=(process.env.BREVO_API_KEY||'').trim();
+  const from=(process.env.MAIL_FROM||'').trim();
+  if(!apiKey||!from)return {sent:false,error:'Brevo email settings are not configured'};
   const link=FRONTEND_URL+'#token='+encodeURIComponent(token);
-  const expiry=new Date(expiresAt).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'})+' UTC';
+  const expiry=new Date(expiresAt).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'});
+  const subject='SECURITY INSTRUCTOR — Fire Safety Self-Study Access';
+  const text='Dear '+name+',\\n\\nYour access to '+course.en+' / '+course.ar+' is ready.\\n\\nAccess window: '+course.accessHours+' hours.\\nStart: '+link+'\\nAccess expires: '+expiry+'\\n\\nComplete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.\\n\\nSECURITY INSTRUCTOR';
   const html='<!doctype html><html><body style="font-family:Arial,sans-serif;color:#0B1F33"><h2 style="color:#0B1F33">SECURITY INSTRUCTOR</h2><p>Dear '+name+',</p><p>Your access to <strong>'+course.en+'</strong> / <strong>'+course.ar+'</strong> is ready.</p><p>This is a self-study course. Your access window is <strong>'+course.accessHours+' hours</strong>.</p><p><a href="'+link+'" style="display:inline-block;padding:12px 18px;background:#C8A96B;color:#0B1F33;text-decoration:none;font-weight:bold">START SELF-STUDY / ابدأ الدراسة الذاتية</a></p><p>Access expires: '+expiry+'</p><p>Complete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.</p><p>SECURITY INSTRUCTOR<br>Knowledge • Skills • Safer Tomorrow</p></body></html>';
-  await transport.sendMail({from:process.env.MAIL_FROM||process.env.ADMIN_EMAIL,to,subject:'SECURITY INSTRUCTOR — Fire Safety Self-Study Access',html});
+  const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{accept:'application/json','api-key':apiKey,'content-type':'application/json'},body:JSON.stringify({sender:{name:'SECURITY INSTRUCTOR',email:from},replyTo:{email:from},to:[{email:to}],subject,textContent:text,htmlContent:html})});
+  if(!response.ok){const detail=await response.text().catch(()=> '');throw new Error('Brevo email failed ('+response.status+'): '+detail.slice(0,300));}
   return {sent:true,error:null};
 }
-
 async function findSession(req){
   const h=String(req.headers.authorization||'');
   if(!h.startsWith('Bearer '))return null;
