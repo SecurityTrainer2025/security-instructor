@@ -238,7 +238,14 @@ const screenHandler=async(req,res)=>{
   try{
     const s=screenById.get(clean(req.params.screenId,100));
     if(!s)return res.status(404).json({message:'Learning screen not found'});
-    res.json({id:s.id,moduleId:s.id.slice(0,2),titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',questions:s.questions.map(q=>({q:q.q,options:q.a}))});
+    const p=req.selfStudy.progress||baseProgress();
+    const pos=FIRE_SCREEN_LIST.findIndex(x=>x.id===s.id);
+    if(pos>0){
+      const previous=FIRE_SCREEN_LIST[pos-1];
+      const previousScore=Number((p.screenScores||{})[previous.id]?.score||0);
+      if(previousScore<80)return res.status(403).json({message:'Complete the previous learning screen with at least 80% before continuing.'});
+    }
+    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',questions:s.questions.map(q=>({q:q.q,options:q.a}))});
   }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
 };
 const screenAssessmentHandler=async(req,res)=>{
@@ -308,6 +315,7 @@ const finalHandler=async(req,res)=>{
 
 function register(app){
   app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:FIRE_SCREEN_LIST.length});});
+  app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:FIRE_SCREEN_LIST.map((s,i)=>({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
   app.get('/api/self-study/screens/:screenId',sessionHandler,screenHandler);
   app.post('/api/self-study/screens/:screenId/assessment',sessionHandler,screenAssessmentHandler);
   app.post('/api/self-study/register',registerHandler);
