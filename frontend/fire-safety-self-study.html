@@ -14,7 +14,7 @@ async function startAccess(){
   const x=await fetch(API+'/api/self-study/session/exchange',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:decodeURIComponent(token)})});
   const d=await x.json();
   if(!x.ok)throw new Error(d.message||'Access link is invalid or expired. Please request a new access email.');
-  session=d.sessionToken;sessionStorage.setItem('siSelfStudySession',session);
+  session=d.sessionToken;sessionStorage.setItem('siSelfStudySession',session);sessionStorage.removeItem('siSelfStudyIndex');
   history.replaceState({},document.title,location.pathname);
   location.hash='';
   await loadCourse();
