@@ -281,7 +281,10 @@ const COURSE_META={
 };
 
 async function nextNumber(collection,prefix,field){
-  const last=await collection.findOne({[field]:new RegExp('^'+prefix+'\\d+
+  const last=await collection.findOne({[field]:new RegExp('^'+prefix+'[0-9]+$')},{projection:{[field]:1}}).sort({[field]:-1});
+  const n=last&&last[field]?parseInt(String(last[field]).slice(prefix.length),10):0;
+  return prefix+String(n+1).padStart(6,'0');
+}
 const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
 const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const randomToken=bytes=>crypto.randomBytes(bytes).toString('hex');
