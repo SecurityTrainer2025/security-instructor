@@ -324,8 +324,10 @@ async function findSession(req){
   return row;
 }
 
+const normalizeAccessExpiry=async(row,now)=>{if(!row||!row.accessStartsAt)return row;const policyExpiry=new Date(new Date(row.accessStartsAt).getTime()+ACCESS_HOURS*3600000);if(row.accessExpiresAt&&new Date(row.accessExpiresAt)>policyExpiry){await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:policyExpiry,updatedAt:now}});return {...row,accessExpiresAt:policyExpiry};}return row;};
+
 const sessionHandler=async(req,res,next)=>{
-  try{req.selfStudy=await findSession(req);if(!req.selfStudy)return res.status(401).json({message:'Self-study access required'});next();}
+  try{req.selfStudy=await findSession(req);if(!req.selfStudy)return res.status(401).json({message:'Self-study access required'});req.selfStudy=await normalizeAccessExpiry(req.selfStudy,new Date());if(new Date(req.selfStudy.accessExpiresAt)<=new Date())return res.status(401).json({message:'Self-study access has expired. / انتهت مدة الوصول للدراسة الذاتية.'});next();}
   catch(e){console.error('Self-study session error',e);res.status(500).json({message:'Unable to validate self-study access'});}
 };
 
@@ -365,10 +367,11 @@ const registerHandler=async(req,res)=>{
     if(!row){
       row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:now,accessExpiresAt:new Date(now.getTime()+ACCESS_HOURS*3600000),progress:baseProgress(),createdAt:now,updatedAt:now};
       await access.insertOne(row);
-    }else if(!row.accessExpiresAt||new Date(row.accessExpiresAt)<=now){
-      const starts=now,expires=new Date(now.getTime()+ACCESS_HOURS*3600000);
-      await access.updateOne({_id:row._id},{$set:{status:'active',accessStartsAt:starts,accessExpiresAt:expires,progress:baseProgress(),updatedAt:now}});
-      row=await access.findOne({_id:row._id});
+    }else{
+      row=await normalizeAccessExpiry(row,now);
+      if(!row.accessExpiresAt||new Date(row.accessExpiresAt)<=now){
+        return res.status(410).json({message:'The 72-hour self-study access period has ended and cannot be restarted from registration. / انتهت مدة الوصول للدراسة الذاتية البالغة 72 ساعة ولا يمكن إعادة فتحها من خلال التسجيل.'});
+      }
     }
     const magic=randomToken(32),magicExpires=new Date(Date.now()+MAGIC_MINUTES*60000);
     await access.updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:magicExpires,magicUsedAt:null,updatedAt:new Date()}});
