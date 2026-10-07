@@ -289,6 +289,11 @@ const questionOrder=q=>{
   return [0,1,2,3].sort((a,b)=>((seed>>(a*3))&7)-((seed>>(b*3))&7)||a-b);
 };
 
+async function nextNumber(collection,prefix,field){
+  const last=await collection.find({[field]:new RegExp('^'+prefix+'\\d+$')},{projection:{[field]:1}}).sort({[field]:-1}).limit(1).next();
+  const n=last&&last[field]?parseInt(String(last[field]).slice(String(prefix).length),10):0;
+  return String(prefix)+String(n+1).padStart(6,'0');
+}
 async function sendAccessEmail({to,name,course,token,expiresAt}){
   const apiKey=(process.env.BREVO_API_KEY||'').trim();
   const from=(process.env.MAIL_FROM||'').trim();
@@ -339,7 +344,7 @@ const registerHandler=async(req,res)=>{
       await trainees.updateOne({_id:trainee._id},{$set:{arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,mobile,email,updatedAt:new Date()}});
       trainee=await trainees.findOne({_id:trainee._id});
     }else{
-      const traineeId=await nextNumber(trainees,'TRN-','traineeId');
+      const traineeId=new mongoose.Types.ObjectId().toString();
       trainee={traineeId,arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,idNumber,mobile,email,createdAt:new Date(),updatedAt:new Date()};
       await trainees.insertOne(trainee);
     }
@@ -365,8 +370,11 @@ const registerHandler=async(req,res)=>{
     const magic=randomToken(32),magicExpires=new Date(Date.now()+MAGIC_MINUTES*60000);
     await access.updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:magicExpires,magicUsedAt:null,updatedAt:new Date()}});
     const fullName=[en[0],en[1],en[2]].join(' ');
-    const mail=await sendAccessEmail({to:email,name:fullName,course,token:magic,expiresAt:row.accessExpiresAt});
-    res.status(201).json({ok:true,message:'Registration received. If the email address is valid, access instructions will be sent to it. / تم استلام التسجيل، وسيتم إرسال تعليمات الدخول إلى البريد الإلكتروني.',traineeId:trainee.traineeId,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
+    let mail={sent:false,error:null};
+    try{mail=await sendAccessEmail({to:email,name:fullName,course,token:magic,expiresAt:row.accessExpiresAt});}
+    catch(mailError){console.error('Self-study access email failed',mailError);mail={sent:false,error:'Access email could not be sent'};}
+    const message=mail.sent?'Registration received. Access instructions have been sent to your email. / تم استلام التسجيل، وتم إرسال تعليمات الدخول إلى بريدك الإلكتروني.':'Registration received. Your enrollment is saved. If you do not receive the access email, use your Enrollment ID and email to request a new link. / تم حفظ التسجيل. إذا لم تصلك رسالة الدخول، استخدم رقم التسجيل والبريد الإلكتروني لطلب رابط جديد.';
+    res.status(201).json({ok:true,message,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
   }catch(e){console.error('Self-study registration error',e);res.status(500).json({message:'Unable to complete self-study registration'});}
 };
 
@@ -411,7 +419,7 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,traineeId:row.traineeId,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
