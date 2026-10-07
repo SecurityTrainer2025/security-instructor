@@ -60,10 +60,7 @@ const FINAL_FIRE_ASSESSMENT=[
 
 
 if(FINAL_FIRE_ASSESSMENT.length!==30||FINAL_FIRE_ASSESSMENT.some(x=>!x.q||!Array.isArray(x.a)||x.a.length!==4||new Set(x.a).size!==4||x.correct<0||x.correct>3))throw new Error('Validated Fire Safety final assessment must contain 30 questions with four unique options each');
-const finalQuestionOrder=(q,accessId)=>{
-  const seed=parseInt(sha(String(q.q)+'|'+String(accessId)).slice(0,8),16);
-  return [0,1,2,3].sort((a,b)=>((seed>>(a*3))&7)-((seed>>(b*3))&7)||a-b);
-};
+const finalQuestionOrder=(q,accessId)=>shuffleOrder(String(q.q)+'|'+String(accessId));
 
 const FIRE_SCREENS={
 m1:[
@@ -284,10 +281,16 @@ const sha=v=>crypto.createHash('sha256').update(String(v)).digest('hex');
 const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
 const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const randomToken=bytes=>crypto.randomBytes(bytes).toString('hex');
-const questionOrder=q=>{
-  const seed=parseInt(sha(q.q).slice(0,8),16);
-  return [0,1,2,3].sort((a,b)=>((seed>>(a*3))&7)-((seed>>(b*3))&7)||a-b);
+const shuffleOrder=key=>{
+  const order=[0,1,2,3];
+  for(let i=order.length-1;i>0;i--){
+    const seed=parseInt(sha(String(key)+'|'+i).slice(0,8),16);
+    const j=seed%(i+1);
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  return order;
 };
+const questionOrder=q=>shuffleOrder(q.q);
 
 async function nextNumber(collection,prefix,field){
   const last=await collection.find({[field]:new RegExp('^'+prefix+'\\d+$')},{projection:{[field]:1}}).sort({[field]:-1}).limit(1).next();
