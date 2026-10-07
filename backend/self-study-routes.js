@@ -5,7 +5,7 @@ const nodemailer=require('nodemailer');
 require('dotenv').config();
 
 const FRONTEND_URL=(process.env.SELF_STUDY_FRONTEND_URL||'https://securitytrainer2025.github.io/security-instructor/frontend/fire-safety-self-study.html').trim();
-const ACCESS_HOURS=Number(process.env.SELF_STUDY_ACCESS_HOURS||72);
+const ACCESS_HOURS=72;
 const MAGIC_MINUTES=15;
 const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||72);
 const FIRE_SLUG='fire-safety-emergency-response';
