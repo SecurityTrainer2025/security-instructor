@@ -12,7 +12,7 @@ recoverBtn.onclick=async()=>{
   recoverMsg.style.display='none';recoverMsg.className='msg';
   let enrollmentId=document.getElementById('recoverEnrollment').value.trim().toUpperCase();
   const email=document.getElementById('recoverEmail').value.trim();
-  if(/^\\d+$/.test(enrollmentId)) enrollmentId='ENR-'+enrollmentId.padStart(6,'0');
+  if(/^\d+$/.test(enrollmentId)) enrollmentId='ENR-'+enrollmentId.padStart(6,'0');
   if(!enrollmentId||!email){recoverMsg.textContent='Please enter your Enrollment ID and email. / يرجى إدخال رقم التسجيل والبريد الإلكتروني.';recoverMsg.className='msg error';recoverMsg.style.display='block';return}
   recoverBtn.disabled=true;
   try{
