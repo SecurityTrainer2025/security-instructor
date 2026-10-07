@@ -551,10 +551,6 @@ function register(app){
   app.post('/api/self-study/final-assessment',sessionHandler,finalHandler);
 }
 module.exports={register};
-)},{projection:{[field]:1}}).sort({[field]:-1});
-  const n=last&&last[field]?parseInt(String(last[field]).slice(prefix.length),10):0;
-  return prefix+String(n+1).padStart(6,'0');
-}
 const sha=v=>crypto.createHash('sha256').update(String(v)).digest('hex');
 const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
 const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
