@@ -59,6 +59,12 @@ const FINAL_FIRE_ASSESSMENT=[
 ];
 
 
+if(FINAL_FIRE_ASSESSMENT.length!==30||FINAL_FIRE_ASSESSMENT.some(x=>!x.q||!Array.isArray(x.a)||x.a.length!==4||new Set(x.a).size!==4||x.correct<0||x.correct>3))throw new Error('Validated Fire Safety final assessment must contain 30 questions with four unique options each');
+const finalQuestionOrder=(q,accessId)=>{
+  const seed=parseInt(sha(String(q.q)+'|'+String(accessId)).slice(0,8),16);
+  return [0,1,2,3].sort((a,b)=>((seed>>(a*3))&7)-((seed>>(b*3))&7)||a-b);
+};
+
 const FIRE_SCREENS={
 m1:[
 {id:'m1s1',slide:4,titleEn:'Module 1 | Fire Science & Building Hazards',titleAr:'الوحدة الأولى | أساسيات علوم الحريق ومخاطر المنشآت',bodyEn:'This module explains the basic science of fire, heat release, heat transfer and common building hazards. The focus is awareness, prevention and safe first response within training and site procedures.',bodyAr:'تشرح هذه الوحدة أساسيات علوم الحريق وانتقال الحرارة ومعدل إطلاق الحرارة ومخاطر المنشآت الشائعة. ويركز المحتوى على الوعي والوقاية والاستجابة الأولية الآمنة ضمن التدريب وإجراءات الموقع.',assessmentRequired:false,videoUrl:''},
@@ -468,10 +474,11 @@ const finalHandler=async(req,res)=>{
     const mastered=assessed.length>0&&assessed.every(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
     if(!mastered)return res.status(403).json({message:'Complete all required learning screens with at least 80% before taking the final assessment.'});
     const attempts=Number(p.finalAttempts||0);
+    if(p.finalPassed)return res.status(409).json({message:'The final assessment has already been passed. / تم اجتياز الاختبار النهائي بالفعل.'});
     if(attempts>=3)return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
     if(answers.length!==FINAL_FIRE_ASSESSMENT.length)return res.status(400).json({message:'Please answer all 30 questions.'});
-    const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>n+(Number(answers[i])===q.correct?1:0),0);
+    const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/FINAL_FIRE_ASSESSMENT.length*100);
     const finalAttempts=attempts+1;
     const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
@@ -493,6 +500,17 @@ const finalHandler=async(req,res)=>{
   }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
 };
 
+const finalQuestionsHandler=async(req,res)=>{
+  try{
+    const p=req.selfStudy.progress||baseProgress();
+    const attempts=Number(p.finalAttempts||0);
+    const questions=FINAL_FIRE_ASSESSMENT.map((q,i)=>{
+      const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
+      return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
+    });
+    res.json({ok:true,total:questions.length,passScore:70,attempts,attemptsRemaining:Math.max(0,3-attempts),passed:!!p.finalPassed,questions});
+  }catch(e){console.error('Self-study final assessment load error',e);res.status(500).json({message:'Unable to load final assessment'});}
+};
 function register(app){
   app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:FIRE_SCREEN_LIST.length});});
   app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:FIRE_SCREEN_LIST.map((s,i)=>({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
@@ -503,6 +521,7 @@ function register(app){
   app.post('/api/self-study/session/exchange',exchangeHandler);
   app.get('/api/self-study/me',sessionHandler,meHandler);
   app.post('/api/self-study/progress',sessionHandler,progressHandler);
+  app.get('/api/self-study/final-assessment',sessionHandler,finalQuestionsHandler);
   app.post('/api/self-study/final-assessment',sessionHandler,finalHandler);
 }
 module.exports={register};
