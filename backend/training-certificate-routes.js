@@ -69,6 +69,48 @@ const COURSE_INSTRUCTIONS_EN=[
 const assessmentLink=slug=>`${FRONTEND}/assessment-gateway.html?course=${encodeURIComponent(slug)}`;
 const trainingInstructionsHtml=(items,dir)=>'<ul dir="'+dir+'" style="line-height:1.8">'+items.map(x=>'<li>'+htmlEsc(x)+'</li>').join('')+'</ul>';
 const LEGACY_COURSE_META={'CRS-FIRE-001':{durationHours:24,level:'Level 1 / المستوى الأول',trainingTopics:[['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],['Fire Classifications & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],['Emergency Evacuation & Egress Safety','الإخلاء ومخارج الطوارئ','●'],['RACE Emergency Response','الاستجابة للطوارئ باستخدام RACE','↗'],['Incident Command & Emergency Coordination','إدارة الحوادث والتنسيق في الطوارئ','⚙'],['Fire Emergency Plans & Security','خطط الطوارئ وأمن المنشآت','▣']]}};
+const CERTIFICATE_TOPIC_MAP={
+  'traffic-management-vehicle-control':[
+    ['Traffic Flow & Vehicle Control','إدارة حركة المرور والتحكم بالمركبات','↔'],
+    ['Access Control & Checkpoints','التحكم بالدخول ونقاط التفتيش','▣'],
+    ['Vehicle & Pedestrian Safety','سلامة المركبات والمشاة','●'],
+    ['Incident Management & Emergency Response','إدارة الحوادث والاستجابة للطوارئ','!'],
+    ['Traffic Procedures & Security Coordination','إجراءات المرور والتنسيق الأمني','⚙']
+  ],
+  'crowd-management-event-security':[
+    ['Crowd Dynamics & Risk Awareness','ديناميكيات الحشود والوعي بالمخاطر','◉'],
+    ['Crowd Control & Safe Movement','إدارة الحشود والحركة الآمنة','↔'],
+    ['Event Security & Access Control','أمن الفعاليات والتحكم بالدخول','▣'],
+    ['Emergency Response & Evacuation','الاستجابة للطوارئ والإخلاء','↗'],
+    ['Incident Management & Communication','إدارة الحوادث والتواصل','⚙']
+  ],
+  'fire-safety-emergency-response':[
+    ['Fire Science & Building Hazards','علوم الحريق ومخاطر المنشآت','♨'],
+    ['Fire Classification & Extinguishing Agents','تصنيف الحرائق ووسائط الإطفاء','▥'],
+    ['Fire Detection & Alarm Systems','أنظمة كشف وإنذار الحريق','◉'],
+    ['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],
+    ['Emergency Response, Evacuation & Incident Coordination','الاستجابة للطوارئ والإخلاء وإدارة الحوادث','↗']
+  ],
+  'vehicle-search-security-inspection':[
+    ['Vehicle Search Principles & Safety','مبادئ تفتيش المركبات والسلامة','◇'],
+    ['Search Procedures & Systematic Inspection','إجراءات التفتيش والفحص المنهجي','▣'],
+    ['Concealed Areas & Security Risks','المناطق المخفية والمخاطر الأمنية','◈'],
+    ['Search Equipment & Safe Handling','معدات التفتيش والتعامل الآمن','⚙'],
+    ['Documentation, Reporting & Incident Response','التوثيق والإبلاغ والاستجابة للحوادث','!']
+  ],
+  'person-search-security-screening':[
+    ['Person Search Principles & Professional Conduct','مبادئ تفتيش الأشخاص والسلوك المهني','◇'],
+    ['Search Methods & Systematic Screening','أساليب التفتيش والفحص المنهجي','▣'],
+    ['Prohibited Items & Risk Awareness','المواد المحظورة والوعي بالمخاطر','◈'],
+    ['Communication, Privacy & Respect','التواصل والخصوصية والاحترام','●'],
+    ['Documentation, Reporting & Incident Response','التوثيق والإبلاغ والاستجابة للحوادث','!']
+  ]
+};
+function certificateTopics(slug,courseTopics=[]){
+  const key=String(slug||'').trim().toLowerCase();
+  if(CERTIFICATE_TOPIC_MAP[key])return CERTIFICATE_TOPIC_MAP[key];
+  return Array.isArray(courseTopics)?courseTopics.slice(0,5):[];
+}
 const PUBLIC_VERIFY='https://securitytrainer2025.github.io/security-instructor/frontend/verify.html';
 const verifyLink=id=>`${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
 const certificateLink=id=>`${FRONTEND}/certificate.html?id=${encodeURIComponent(id)}`;
@@ -87,7 +129,7 @@ async function issueForEnrollment(enrollmentId){
   const certificateId=nextId();
   const courseQuery=mongoose.Types.ObjectId.isValid(String(e.courseId||''))?{_id:new mongoose.Types.ObjectId(String(e.courseId))}:{$or:[{code:e.courseId},{slug:e.courseId}]};
   const course=await mongoose.connection.collection('trainingcourses').findOne(courseQuery);
-  const trainingTopics=Array.isArray(course?.trainingTopics)?course.trainingTopics:[];
+  const trainingTopics=certificateTopics(course?.slug||e.courseId,course?.trainingTopics);
   const durationHours=course?.durationHours??e.durationHours??null;
   const level=course?.level||e.level||'';
   const trainerName=course?.trainerName||course?.instructor||e.trainerName||'';
@@ -241,7 +283,7 @@ function registerTrainingCertificateDirectRoutes(app){
       const legacy=LEGACY_COURSE_META[cert.trainingId||cert.courseId]||{};
       const durationHours=cert.durationHours??course?.durationHours??legacy.durationHours??'';
       const level=cert.level||course?.level||legacy.level||'';
-      const trainingTopics=Array.isArray(cert.trainingTopics)&&cert.trainingTopics.length?cert.trainingTopics:(Array.isArray(course?.trainingTopics)&&course.trainingTopics.length?course.trainingTopics:(legacy.trainingTopics||[]));
+      const trainingTopics=certificateTopics(course?.slug||cert.courseId,Array.isArray(cert.trainingTopics)&&cert.trainingTopics.length?cert.trainingTopics:(Array.isArray(course?.trainingTopics)?course.trainingTopics:(legacy.trainingTopics||[])));
       const trainerName=cert.trainerName||course?.trainerName||course?.instructor||'';
       const signatureName=cert.signatureName||trainerName;
       res.set('Cache-Control','no-store').json({...cert,idType:cert.idType||trainee?.idType||'',idNumber:cert.idNumber||trainee?.idNumber||'',trainingId:cert.trainingId||course?.code||cert.courseId||'',durationHours,level,trainingTopics,trainerName,signatureName});
