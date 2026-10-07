@@ -500,6 +500,22 @@ const finalHandler=async(req,res)=>{
   }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
 };
 
+const certificateRetryHandler=async(req,res)=>{
+  try{
+    const p=req.selfStudy.progress||baseProgress();
+    if(!p.finalPassed)return res.status(403).json({message:'Final assessment must be passed before certificate issuance.'});
+    const enrollments=mongoose.connection.collection('enrollments');
+    const enrollment=await enrollments.findOne({enrollmentId:req.selfStudy.enrollmentId,selfStudy:true});
+    if(!enrollment||enrollment.status!=='completed')return res.status(409).json({message:'Completed self-study enrollment not found.'});
+    const {issueForEnrollment}=require('./training-certificate-routes.js');
+    const cert=await issueForEnrollment(req.selfStudy.enrollmentId);
+    if(!cert)return res.status(503).json({message:'Certificate is not available yet. Please try again later.'});
+    const progress={...p,certificateId:cert.certificateId};
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress,updatedAt:new Date()}});
+    res.json({ok:true,certificateId:cert.certificateId,emailStatus:cert.emailStatus||'pending'});
+  }catch(e){console.error('Self-study certificate retry error',e);res.status(503).json({message:'Certificate issuance is temporarily unavailable. Please try again later.'});}
+};
+
 const finalQuestionsHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
@@ -522,6 +538,7 @@ function register(app){
   app.get('/api/self-study/me',sessionHandler,meHandler);
   app.post('/api/self-study/progress',sessionHandler,progressHandler);
   app.get('/api/self-study/final-assessment',sessionHandler,finalQuestionsHandler);
+  app.post('/api/self-study/certificate',sessionHandler,certificateRetryHandler);
   app.post('/api/self-study/final-assessment',sessionHandler,finalHandler);
 }
 module.exports={register};
