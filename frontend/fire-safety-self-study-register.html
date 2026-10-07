@@ -7,4 +7,22 @@ f.onsubmit=async e=>{e.preventDefault();m.style.display='none';if(!f.checkValidi
  const r=await fetch(API+'/api/self-study/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const out=await r.json();if(!r.ok)throw new Error(out.message||'Registration failed');
  m.innerHTML='<strong>Registration received / تم استلام التسجيل</strong><p>'+out.message+'</p><p><b>Enrollment ID:</b> '+out.enrollmentId+'</p><p>Check your email for the secure access link. / تحقق من بريدك الإلكتروني للحصول على رابط الدخول الآمن.</p>';m.style.display='block';f.querySelectorAll('input,select,button').forEach(x=>x.disabled=true);
 }catch(err){m.textContent=err.message;m.className='msg error';m.style.display='block'}};
+const recoverBtn=document.getElementById('recoverBtn'),recoverMsg=document.getElementById('recoverMsg');
+recoverBtn.onclick=async()=>{
+  recoverMsg.style.display='none';recoverMsg.className='msg';
+  let enrollmentId=document.getElementById('recoverEnrollment').value.trim().toUpperCase();
+  const email=document.getElementById('recoverEmail').value.trim();
+  if(/^\\d+$/.test(enrollmentId)) enrollmentId='ENR-'+enrollmentId.padStart(6,'0');
+  if(!enrollmentId||!email){recoverMsg.textContent='Please enter your Enrollment ID and email. / يرجى إدخال رقم التسجيل والبريد الإلكتروني.';recoverMsg.className='msg error';recoverMsg.style.display='block';return}
+  recoverBtn.disabled=true;
+  try{
+    const r=await fetch(API+'/api/self-study/request-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enrollmentId,email})});
+    const out=await r.json();
+    if(!r.ok)throw new Error(out.message||'Unable to request a new access link.');
+    recoverMsg.innerHTML='<strong>Access link requested / تم طلب رابط الدخول</strong><p>'+out.message+'</p><p>Check your email, including Spam/Junk, for the new secure access link. / تحقق من بريدك الإلكتروني، بما في ذلك البريد غير الهام، للحصول على رابط الدخول الجديد.</p>';
+    recoverMsg.style.display='block';
+  }catch(err){
+    recoverMsg.textContent=err.message;recoverMsg.className='msg error';recoverMsg.style.display='block';
+  }finally{recoverBtn.disabled=false}
+};
 </script></body></html>
