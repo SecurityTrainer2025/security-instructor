@@ -280,6 +280,278 @@ const COURSE_META={
   }
 };
 
+async function nextNumber(collection,prefix,field){
+  const last=await collection.findOne({[field]:new RegExp('^'+prefix+'\\d+
+const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
+const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const randomToken=bytes=>crypto.randomBytes(bytes).toString('hex');
+const questionOrder=q=>{
+  const seed=parseInt(sha(q.q).slice(0,8),16);
+  return [0,1,2,3].sort((a,b)=>((seed>>(a*3))&7)-((seed>>(b*3))&7)||a-b);
+};
+
+async function sendAccessEmail({to,name,course,token,expiresAt}){
+  const apiKey=(process.env.BREVO_API_KEY||'').trim();
+  const from=(process.env.MAIL_FROM||'').trim();
+  if(!apiKey||!from)return {sent:false,error:'Brevo email settings are not configured'};
+  const link=FRONTEND_URL+'#token='+encodeURIComponent(token);
+  const expiry=new Date(expiresAt).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'});
+  const subject='SECURITY INSTRUCTOR — Fire Safety Self-Study Access';
+  const text='Dear '+name+',\\n\\nYour access to '+course.en+' / '+course.ar+' is ready.\\n\\nAccess window: '+course.accessHours+' hours.\\nStart: '+link+'\\nAccess expires: '+expiry+'\\n\\nComplete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.\\n\\nSECURITY INSTRUCTOR';
+  const html='<!doctype html><html><body style="font-family:Arial,sans-serif;color:#0B1F33"><h2 style="color:#0B1F33">SECURITY INSTRUCTOR</h2><p>Dear '+name+',</p><p>Your access to <strong>'+course.en+'</strong> / <strong>'+course.ar+'</strong> is ready.</p><p>This is a self-study course. Your access window is <strong>'+course.accessHours+' hours</strong>.</p><p><a href="'+link+'" style="display:inline-block;padding:12px 18px;background:#C8A96B;color:#0B1F33;text-decoration:none;font-weight:bold">START SELF-STUDY / ابدأ الدراسة الذاتية</a></p><p>Access expires: '+expiry+'</p><p>Complete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.</p><p>SECURITY INSTRUCTOR<br>Knowledge • Skills • Safer Tomorrow</p></body></html>';
+  const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{accept:'application/json','api-key':apiKey,'content-type':'application/json'},body:JSON.stringify({sender:{name:'SECURITY INSTRUCTOR',email:from},replyTo:{email:from},to:[{email:to}],subject,textContent:text,htmlContent:html})});
+  if(!response.ok){const detail=await response.text().catch(()=> '');throw new Error('Brevo email failed ('+response.status+'): '+detail.slice(0,300));}
+  return {sent:true,error:null};
+}
+async function findSession(req){
+  const h=String(req.headers.authorization||'');
+  if(!h.startsWith('Bearer '))return null;
+  const token=h.slice(7).trim();
+  if(!token)return null;
+  const row=await mongoose.connection.collection('selfstudyaccess').findOne({sessionTokenHash:sha(token),status:'active'});
+  if(!row||!row.sessionExpiresAt||new Date(row.sessionExpiresAt)<=new Date())return null;
+  if(!row.accessExpiresAt||new Date(row.accessExpiresAt)<=new Date()){
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{status:'expired',updatedAt:new Date()}});
+    return null;
+  }
+  return row;
+}
+
+const sessionHandler=async(req,res,next)=>{
+  try{req.selfStudy=await findSession(req);if(!req.selfStudy)return res.status(401).json({message:'Self-study access required'});next();}
+  catch(e){console.error('Self-study session error',e);res.status(500).json({message:'Unable to validate self-study access'});}
+};
+
+const registerHandler=async(req,res)=>{
+  try{
+    const b=req.body||{};
+    const slug=clean(b.courseSlug,80)||FIRE_SLUG;
+    const course=COURSE_META[slug];
+    if(!course)return res.status(400).json({message:'Self-study course not available'});
+    const ar=clean(b.arabicName,180).replace(/\s+/g,' ').split(' ').filter(Boolean);
+    const en=clean(b.englishName,180).replace(/\s+/g,' ').split(' ').filter(Boolean);
+    const email=clean(b.email,180).toLowerCase();
+    const idType=clean(b.idType,30),idNumber=clean(b.idNumber,40),mobile=clean(b.mobile,40);
+    if(ar.length!==3||en.length!==3||!validEmail(email)||!idNumber||!mobile||!['national_id','iqama','passport'].includes(idType))return res.status(400).json({message:'Please complete all required registration fields / يرجى استكمال جميع بيانات التسجيل المطلوبة'});
+    const db=mongoose.connection;
+    const trainees=db.collection('trainees'), enrollments=db.collection('enrollments'), access=db.collection('selfstudyaccess');
+    let trainee=await trainees.findOne({idNumber});
+    if(trainee){
+      await trainees.updateOne({_id:trainee._id},{$set:{arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,mobile,email,updatedAt:new Date()}});
+      trainee=await trainees.findOne({_id:trainee._id});
+    }else{
+      const traineeId=await nextNumber(trainees,'TRN-','traineeId');
+      trainee={traineeId,arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,idNumber,mobile,email,createdAt:new Date(),updatedAt:new Date()};
+      await trainees.insertOne(trainee);
+    }
+    let enrollment=await enrollments.findOne({traineeId:trainee.traineeId,courseId:course.code});
+    if(!enrollment){
+      const enrollmentId=await nextNumber(enrollments,'ENR-','enrollmentId');
+      enrollment={enrollmentId,traineeId:trainee.traineeId,courseId:course.code,courseNameEn:course.en,courseNameAr:course.ar,registrationType:'individual',companyName:'',companyContact:'',companyEmail:'',status:'active',score:null,selfStudy:true,registeredAt:new Date(),createdAt:new Date(),updatedAt:new Date()};
+      await enrollments.insertOne(enrollment);
+    }else if(enrollment.status==='cancelled'){
+      await enrollments.updateOne({_id:enrollment._id},{$set:{status:'active',selfStudy:true,updatedAt:new Date()}});
+      enrollment=await enrollments.findOne({_id:enrollment._id});
+    }
+    const now=new Date();
+    let row=await access.findOne({enrollmentId:enrollment.enrollmentId,courseSlug:slug});
+    if(!row){
+      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:now,accessExpiresAt:new Date(now.getTime()+ACCESS_HOURS*3600000),progress:baseProgress(),createdAt:now,updatedAt:now};
+      await access.insertOne(row);
+    }else if(!row.accessExpiresAt||new Date(row.accessExpiresAt)<=now){
+      const starts=now,expires=new Date(now.getTime()+ACCESS_HOURS*3600000);
+      await access.updateOne({_id:row._id},{$set:{status:'active',accessStartsAt:starts,accessExpiresAt:expires,progress:baseProgress(),updatedAt:now}});
+      row=await access.findOne({_id:row._id});
+    }
+    const magic=randomToken(32),magicExpires=new Date(Date.now()+MAGIC_MINUTES*60000);
+    await access.updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:magicExpires,magicUsedAt:null,updatedAt:new Date()}});
+    const fullName=[en[0],en[1],en[2]].join(' ');
+    let mail={sent:false,error:null};
+    try{mail=await sendAccessEmail({to:email,name:fullName,course,token:magic,expiresAt:row.accessExpiresAt});}
+    catch(mailError){console.error('Self-study access email error',mailError);mail={sent:false,error:'Access email could not be sent'};}
+    const message=mail.sent
+      ? 'Registration received. Check your email for the secure access link. / تم استلام التسجيل. تحقق من بريدك الإلكتروني للحصول على رابط الدخول الآمن.'
+      : 'Registration received, but the access email could not be sent yet. Your registration is saved. Please use the access recovery section below or contact support. / تم استلام التسجيل، ولكن تعذر إرسال رسالة الدخول حالياً. تم حفظ التسجيل. استخدم قسم استعادة الدخول أدناه أو تواصل مع الدعم.';
+    res.status(201).json({ok:true,message,traineeId:trainee.traineeId,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
+  }catch(e){console.error('Self-study registration error',e);res.status(500).json({message:'Unable to complete self-study registration'});}
+};
+
+const requestAccessHandler=async(req,res)=>{
+  try{
+    const email=clean(req.body?.email,180).toLowerCase();
+    const enrollmentId=clean(req.body?.enrollmentId,100);
+    const generic={ok:true,message:'If the details match an active self-study registration, an access email has been sent. / إذا تطابقت البيانات مع تسجيل نشط للدراسة الذاتية، فسيتم إرسال رسالة الدخول.'};
+    if(!validEmail(email)||!enrollmentId)return res.json(generic);
+    const enroll=await mongoose.connection.collection('enrollments').findOne({enrollmentId,selfStudy:true});
+    if(!enroll)return res.json(generic);
+    const trainee=await mongoose.connection.collection('trainees').findOne({traineeId:enroll.traineeId,email});
+    if(!trainee)return res.json(generic);
+    const course=COURSE_META[FIRE_SLUG];
+    let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:FIRE_SLUG});
+    if(!row)return res.json(generic);
+    if(new Date(row.accessExpiresAt)<=new Date())return res.json(generic);
+    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:expires,magicUsedAt:null,updatedAt:new Date()}});
+    await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,expiresAt:row.accessExpiresAt});
+    res.json(generic);
+  }catch(e){console.error('Self-study access request error',e);res.json({ok:true,message:'If the details match an active self-study registration, an access email has been sent. / إذا تطابقت البيانات مع تسجيل نشط للدراسة الذاتية، فسيتم إرسال رسالة الدخول.'});}
+};
+
+const exchangeHandler=async(req,res)=>{
+  try{
+    const token=clean(req.body?.token,100);
+    if(!token)return res.status(400).json({message:'Invalid access token'});
+    const c=mongoose.connection.collection('selfstudyaccess');
+    const row=await c.findOne({magicTokenHash:sha(token),status:'active'});
+    if(!row||!row.magicTokenExpiresAt||new Date(row.magicTokenExpiresAt)<=new Date()||row.magicUsedAt)return res.status(401).json({message:'Access link is invalid or expired. Please request a new access email.'});
+    const session=randomToken(32),now=new Date();
+    await c.updateOne({_id:row._id},{$set:{magicUsedAt:now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(now.getTime()+SESSION_HOURS*3600000),updatedAt:now},$unset:{magicTokenHash:'',magicTokenExpiresAt:''}});
+    res.json({ok:true,sessionToken:session,courseSlug:row.courseSlug,accessExpiresAt:row.accessExpiresAt});
+  }catch(e){console.error('Self-study token exchange error',e);res.status(500).json({message:'Unable to start self-study session'});}
+};
+
+const meHandler=async(req,res)=>{
+  const row=req.selfStudy,course=COURSE_META[row.courseSlug];
+  const p=row.progress||baseProgress();
+  const q=Number(p.cumulativeQuestions||0),correct=Number(p.cumulativeCorrect||0);
+  const cumulative=q?Math.round(correct/q*100):0;
+  const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
+  const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
+  res.json({ok:true,traineeId:row.traineeId,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
+};
+
+const screenHandler=async(req,res)=>{
+  try{
+    const s=screenById.get(clean(req.params.screenId,100));
+    if(!s)return res.status(404).json({message:'Learning screen not found'});
+    const p=req.selfStudy.progress||baseProgress();
+    const pos=FIRE_SCREEN_LIST.findIndex(x=>x.id===s.id);
+    if(pos>0){
+      const previousAssessed=[...FIRE_SCREEN_LIST].slice(0,pos).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
+      if(previousAssessed){
+        const previousScore=Number((p.screenScores||{})[previousAssessed.id]?.score||0);
+        if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
+      }
+    }
+    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q);return {q:q.q,options:order.map(i=>q.a[i])}})});
+  }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
+};
+const screenAssessmentHandler=async(req,res)=>{
+  try{
+    const s=screenById.get(clean(req.params.screenId,100));
+    if(!s)return res.status(404).json({message:'Learning screen not found'});
+    const p0=req.selfStudy.progress||baseProgress();
+    const pos0=FIRE_SCREEN_LIST.findIndex(x=>x.id===s.id);
+    if(pos0>0){
+      const previousAssessed=[...FIRE_SCREEN_LIST].slice(0,pos0).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
+      if(previousAssessed){
+        const previousScore=Number((p0.screenScores||{})[previousAssessed.id]?.score||0);
+        if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
+      }
+    }
+    const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
+    if(answers.length!==s.questions.length)return res.status(400).json({message:'Please answer all questions'});
+    const correct=s.questions.reduce((n,q,i)=>{const order=questionOrder(q);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
+    const score=Math.round(correct/s.questions.length*100);
+    const p=req.selfStudy.progress||baseProgress();
+    const scores={...(p.screenScores||{})};
+    const modules={...(p.modules||{})};
+    const previous=scores[s.id];
+    scores[s.id]={score,questions:s.questions.length,correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
+    if(score>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
+    modules[s.id.slice(0,2)]=Math.max(Number(modules[s.id.slice(0,2)]||0),score);
+    const all=Object.values(scores);
+    p.cumulativeQuestions=all.reduce((n,x)=>n+Number(x.questions||0),0);
+    p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.correct||0),0);
+    p.screenScores=scores;p.modules=modules;
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:p,updatedAt:new Date()}});
+    const cumulative=p.cumulativeQuestions?Math.round(p.cumulativeCorrect/p.cumulativeQuestions*100):0;
+    res.json({ok:true,score,passed:score>=80,correct,total:s.questions.length,cumulativeScore:cumulative,attempts:scores[s.id].attempts});
+  }catch(e){console.error('Self-study screen assessment error',e);res.status(500).json({message:'Unable to save screen assessment'});}
+};
+
+const progressHandler=async(req,res)=>{
+  return res.status(410).json({message:'Direct progress updates are disabled. Submit the server-validated learning-screen assessment instead.'});
+};
+const finalHandler=async(req,res)=>{
+  try{
+    const p=req.selfStudy.progress||baseProgress();
+    const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
+    const mastered=assessed.length>0&&assessed.every(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
+    if(!mastered)return res.status(403).json({message:'Complete all required learning screens with at least 80% before taking the final assessment.'});
+    const attempts=Number(p.finalAttempts||0);
+    if(p.finalPassed)return res.status(409).json({message:'The final assessment has already been passed. / تم اجتياز الاختبار النهائي بالفعل.'});
+    if(attempts>=3)return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
+    const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
+    if(answers.length!==FINAL_FIRE_ASSESSMENT.length)return res.status(400).json({message:'Please answer all 30 questions.'});
+    const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
+    const score=Math.round(correct/FINAL_FIRE_ASSESSMENT.length*100);
+    const finalAttempts=attempts+1;
+    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
+    const finalPassed=!!p.finalPassed||score>=70;
+    const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>=70,updatedAt:new Date()}];
+    const updated={...p,finalAttempts,finalBestScore,finalPassed,finalScores};
+    let certificateId=null;
+    if(finalPassed){
+      const enrollments=mongoose.connection.collection('enrollments');
+      await enrollments.updateOne({enrollmentId:req.selfStudy.enrollmentId,selfStudy:true},{$set:{status:'completed',score:score,completedAt:new Date(),updatedAt:new Date()}});
+      try{
+        const {issueForEnrollment}=require('./training-certificate-routes.js');
+        const cert=await issueForEnrollment(req.selfStudy.enrollmentId);
+        certificateId=cert?.certificateId||null;
+      }catch(certErr){console.error('Self-study certificate issuance failed',certErr)}
+    }
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:updated,updatedAt:new Date()}});
+    res.json({ok:true,score,correct,total:FINAL_FIRE_ASSESSMENT.length,passed:score>=70||finalPassed,attempt:finalAttempts,attemptsRemaining:Math.max(0,3-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
+  }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
+};
+
+const certificateRetryHandler=async(req,res)=>{
+  try{
+    const p=req.selfStudy.progress||baseProgress();
+    if(!p.finalPassed)return res.status(403).json({message:'Final assessment must be passed before certificate issuance.'});
+    const enrollments=mongoose.connection.collection('enrollments');
+    const enrollment=await enrollments.findOne({enrollmentId:req.selfStudy.enrollmentId,selfStudy:true});
+    if(!enrollment||enrollment.status!=='completed')return res.status(409).json({message:'Completed self-study enrollment not found.'});
+    const {issueForEnrollment}=require('./training-certificate-routes.js');
+    const cert=await issueForEnrollment(req.selfStudy.enrollmentId);
+    if(!cert)return res.status(503).json({message:'Certificate is not available yet. Please try again later.'});
+    const progress={...p,certificateId:cert.certificateId};
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress,updatedAt:new Date()}});
+    res.json({ok:true,certificateId:cert.certificateId,emailStatus:cert.emailStatus||'pending'});
+  }catch(e){console.error('Self-study certificate retry error',e);res.status(503).json({message:'Certificate issuance is temporarily unavailable. Please try again later.'});}
+};
+
+const finalQuestionsHandler=async(req,res)=>{
+  try{
+    const p=req.selfStudy.progress||baseProgress();
+    const attempts=Number(p.finalAttempts||0);
+    const questions=FINAL_FIRE_ASSESSMENT.map((q,i)=>{
+      const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
+      return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
+    });
+    res.json({ok:true,total:questions.length,passScore:70,attempts,attemptsRemaining:Math.max(0,3-attempts),passed:!!p.finalPassed,questions});
+  }catch(e){console.error('Self-study final assessment load error',e);res.status(500).json({message:'Unable to load final assessment'});}
+};
+function register(app){
+  app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:FIRE_SCREEN_LIST.length});});
+  app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:FIRE_SCREEN_LIST.map((s,i)=>({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
+  app.get('/api/self-study/screens/:screenId',sessionHandler,screenHandler);
+  app.post('/api/self-study/screens/:screenId/assessment',sessionHandler,screenAssessmentHandler);
+  app.post('/api/self-study/register',registerHandler);
+  app.post('/api/self-study/access/request',requestAccessHandler);
+  app.post('/api/self-study/session/exchange',exchangeHandler);
+  app.get('/api/self-study/me',sessionHandler,meHandler);
+  app.post('/api/self-study/progress',sessionHandler,progressHandler);
+  app.get('/api/self-study/final-assessment',sessionHandler,finalQuestionsHandler);
+  app.post('/api/self-study/certificate',sessionHandler,certificateRetryHandler);
+  app.post('/api/self-study/final-assessment',sessionHandler,finalHandler);
+}
+module.exports={register};
+)},{projection:{[field]:1}}).sort({[field]:-1});
+  const n=last&&last[field]?parseInt(String(last[field]).slice(prefix.length),10):0;
+  return prefix+String(n+1).padStart(6,'0');
+}
 const sha=v=>crypto.createHash('sha256').update(String(v)).digest('hex');
 const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
 const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
