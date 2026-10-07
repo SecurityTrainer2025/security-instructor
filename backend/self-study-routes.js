@@ -7,6 +7,9 @@ require('dotenv').config();
 const FRONTEND_URL=(process.env.SELF_STUDY_FRONTEND_URL||'https://securitytrainer2025.github.io/security-instructor/frontend/fire-safety-self-study.html').trim();
 const ACCESS_HOURS=72;
 const MAGIC_MINUTES=15;
+const OPENING_START=process.env.SELF_STUDY_OPENING_START?new Date(process.env.SELF_STUDY_OPENING_START):null;
+const OPENING_END=process.env.SELF_STUDY_OPENING_END?new Date(process.env.SELF_STUDY_OPENING_END):null;
+const openingIsOpen=(now=new Date())=>(!OPENING_START||now>=OPENING_START)&&(!OPENING_END||now<OPENING_END);
 const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||72);
 const FIRE_SLUG='fire-safety-emergency-response';
 const baseProgress=()=>({
@@ -428,7 +431,8 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
+  const resumeScreenId=assessed.find(s=>Number((p.screenScores||{})[s.id]?.score||0)<80)?.id||null;
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,accessHours:ACCESS_HOURS,resumeScreenId,openingStart:OPENING_START,openingEnd:OPENING_END,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
