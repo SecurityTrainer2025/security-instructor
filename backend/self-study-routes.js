@@ -405,9 +405,12 @@ const exchangeHandler=async(req,res)=>{
     if(!token)return res.status(400).json({message:'Invalid access token'});
     const c=mongoose.connection.collection('selfstudyaccess');
     const row=await c.findOne({magicTokenHash:sha(token),status:'active'});
-    if(!row||!row.magicTokenExpiresAt||new Date(row.magicTokenExpiresAt)<=new Date()||row.magicUsedAt)return res.status(401).json({message:'Access link is invalid or expired. Please request a new access email.'});
+    if(!row||!row.magicTokenExpiresAt||new Date(row.magicTokenExpiresAt)<=new Date())return res.status(401).json({message:'Access link is invalid or expired. Please request a new access email.'});
     const session=randomToken(32),now=new Date();
-    await c.updateOne({_id:row._id},{$set:{magicUsedAt:now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(now.getTime()+SESSION_HOURS*3600000),updatedAt:now},$unset:{magicTokenHash:'',magicTokenExpiresAt:''}});
+    // Keep the short-lived magic token until its 15-minute expiry. This makes activation
+    // resilient to email security scanners or accidental duplicate opens before the trainee
+    // creates a session, while the token remains unsuitable for long-term course access.
+    await c.updateOne({_id:row._id},{$set:{magicUsedAt:row.magicUsedAt||now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(now.getTime()+SESSION_HOURS*3600000),updatedAt:now}});
     res.json({ok:true,sessionToken:session,courseSlug:row.courseSlug,accessExpiresAt:row.accessExpiresAt});
   }catch(e){console.error('Self-study token exchange error',e);res.status(500).json({message:'Unable to start self-study session'});}
 };
