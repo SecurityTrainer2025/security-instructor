@@ -375,7 +375,7 @@ const registerHandler=async(req,res)=>{
     const message=mail.sent
       ? 'Registration received. Check your email for the secure access link. / تم استلام التسجيل. تحقق من بريدك الإلكتروني للحصول على رابط الدخول الآمن.'
       : 'Registration received, but the access email could not be sent yet. Your registration is saved. Please use the access recovery section below or contact support. / تم استلام التسجيل، ولكن تعذر إرسال رسالة الدخول حالياً. تم حفظ التسجيل. استخدم قسم استعادة الدخول أدناه أو تواصل مع الدعم.';
-    res.status(201).json({ok:true,message,traineeId:trainee.traineeId,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
+    res.status(201).json({ok:true,message,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
   }catch(e){console.error('Self-study registration error',e);res.status(500).json({message:'Unable to complete self-study registration'});}
 };
 
@@ -641,7 +641,7 @@ const registerHandler=async(req,res)=>{
     await access.updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:magicExpires,magicUsedAt:null,updatedAt:new Date()}});
     const fullName=[en[0],en[1],en[2]].join(' ');
     const mail=await sendAccessEmail({to:email,name:fullName,course,token:magic,expiresAt:row.accessExpiresAt});
-    res.status(201).json({ok:true,message:'Registration received. If the email address is valid, access instructions will be sent to it. / تم استلام التسجيل، وسيتم إرسال تعليمات الدخول إلى البريد الإلكتروني.',traineeId:trainee.traineeId,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
+    res.status(201).json({ok:true,message:'Registration received. If the email address is valid, access instructions will be sent to it. / تم استلام التسجيل، وسيتم إرسال تعليمات الدخول إلى البريد الإلكتروني.',enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
   }catch(e){console.error('Self-study registration error',e);res.status(500).json({message:'Unable to complete self-study registration'});}
 };
 
