@@ -7,6 +7,9 @@ require('dotenv').config();
 const FRONTEND_URL=(process.env.SELF_STUDY_FRONTEND_URL||'https://securitytrainer2025.github.io/security-instructor/frontend/fire-safety-self-study.html').trim();
 const ACCESS_HOURS=72;
 const MAGIC_MINUTES=15;
+const OPENING_START=process.env.SELF_STUDY_OPENING_START?new Date(process.env.SELF_STUDY_OPENING_START):null;
+const OPENING_END=process.env.SELF_STUDY_OPENING_END?new Date(process.env.SELF_STUDY_OPENING_END):null;
+const openingIsOpen=(now=new Date())=>(!OPENING_START||now>=OPENING_START)&&(!OPENING_END||now<OPENING_END);
 const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||72);
 const FIRE_SLUG='fire-safety-emergency-response';
 const baseProgress=()=>({
@@ -293,6 +296,15 @@ const questionOrder=q=>{
   return [0,1,2,3].sort((a,b)=>((seed>>(a*3))&7)-((seed>>(b*3))&7)||a-b);
 };
 
+async function normalizeAccessExpiry(row){
+  if(!row?.accessStartsAt)return row;
+  const maxExpiry=new Date(new Date(row.accessStartsAt).getTime()+ACCESS_HOURS*3600000);
+  if(!row.accessExpiresAt||new Date(row.accessExpiresAt)>maxExpiry){
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:maxExpiry,updatedAt:new Date()}});
+    row.accessExpiresAt=maxExpiry;
+  }
+  return row;
+}
 async function sendAccessEmail({to,name,course,token,expiresAt}){
   const apiKey=(process.env.BREVO_API_KEY||'').trim();
   const from=(process.env.MAIL_FROM||'').trim();
@@ -330,6 +342,7 @@ const registerHandler=async(req,res)=>{
     const b=req.body||{};
     const slug=clean(b.courseSlug,80)||FIRE_SLUG;
     const course=COURSE_META[slug];
+    if(!openingIsOpen())return res.status(403).json({message:'The free self-study registration window is currently closed. / انتهت فترة التسجيل المجاني للدراسة الذاتية.'});
     if(!course)return res.status(400).json({message:'Self-study course not available'});
     const ar=clean(b.arabicName,180).replace(/\s+/g,' ').split(' ').filter(Boolean);
     const en=clean(b.englishName,180).replace(/\s+/g,' ').split(' ').filter(Boolean);
