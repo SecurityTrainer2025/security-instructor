@@ -5,15 +5,45 @@ const API='https://security-instructor.onrender.com';let session=sessionStorage.
 const fallbackScreens=[];
 function esc(v){return String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
 async function api(path,opt={}){opt.headers={...(opt.headers||{}),Authorization:'Bearer '+session,'Content-Type':'application/json'};const r=await fetch(API+path,opt);const d=await r.json();if(!r.ok)throw new Error(d.message||'Request failed');return d}
+async function startAccess(){
+ const token=location.hash.match(/token=([^&]+)/)?.[1];
+ if(!token){document.getElementById('content').innerHTML='<h1>Secure access required</h1><p>Please use the access link sent to your email. / يرجى استخدام رابط الدخول المرسل إلى بريدك الإلكتروني.</p>';return}
+ const btn=document.getElementById('startAccess');
+ if(btn)btn.disabled=true;
+ try{
+  const x=await fetch(API+'/api/self-study/session/exchange',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:decodeURIComponent(token)})});
+  const d=await x.json();
+  if(!x.ok)throw new Error(d.message||'Access link is invalid or expired. Please request a new access email.');
+  session=d.sessionToken;sessionStorage.setItem('siSelfStudySession',session);
+  history.replaceState({},document.title,location.pathname);
+  location.hash='';
+  await loadCourse();
+ }catch(e){
+  if(btn)btn.disabled=false;
+  document.getElementById('content').innerHTML='<h1>Access unavailable</h1><p>'+esc(e.message)+'</p><p>If you opened this link before, request a new access email and then press Continue only after the page opens. / إذا تم فتح الرابط من قبل، اطلب رسالة دخول جديدة ثم اضغط متابعة بعد فتح الصفحة.</p>';
+ }
+}
+async function loadCourse(){
+ me=await api('/api/self-study/me');accessExpires=me.accessExpiresAt;
+ const courseScreens=await api('/api/self-study/courses/fire-safety-emergency-response/screens').catch(()=>null);
+ if(courseScreens?.screens?.length)screens=courseScreens.screens.map(x=>x.id);else screens=[...fallbackScreens];
+ if(!screens.length)throw new Error('No learning screens are currently published.');
+ index=Number(sessionStorage.getItem('siSelfStudyIndex')||0);index=Math.min(Math.max(index,0),screens.length-1);renderModules();renderScreen();
+}
 async function boot(){
  try{
-  if(!session){const token=location.hash.match(/token=([^&]+)/)?.[1];if(!token){document.getElementById('content').innerHTML='<h1>Secure access required</h1><p>Please use the access link sent to your email. / يرجى استخدام رابط الدخول المرسل إلى بريدك الإلكتروني.</p>';return}const x=await fetch(API+'/api/self-study/session/exchange',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:decodeURIComponent(token)})});const d=await x.json();if(!x.ok)throw new Error(d.message||'Access link expired');session=d.sessionToken;sessionStorage.setItem('siSelfStudySession',session);history.replaceState({},document.title,location.pathname);location.hash='';}
-  me=await api('/api/self-study/me');accessExpires=me.accessExpiresAt;
-  const courseScreens=await api('/api/self-study/courses/fire-safety-emergency-response/screens').catch(()=>null);
-  if(courseScreens?.screens?.length)screens=courseScreens.screens.map(x=>x.id);else screens=[...fallbackScreens];
-  if(!screens.length)throw new Error('No learning screens are currently published.');
-  index=Number(sessionStorage.getItem('siSelfStudyIndex')||0);index=Math.min(Math.max(index,0),screens.length-1);renderModules();renderScreen();
- }catch(e){document.getElementById('content').innerHTML='<h1>Access unavailable</h1><p>'+esc(e.message)+'</p>'}
+  if(!session){
+   const token=location.hash.match(/token=([^&]+)/)?.[1];
+   if(!token){document.getElementById('content').innerHTML='<h1>Secure access required</h1><p>Please use the access link sent to your email. / يرجى استخدام رابط الدخول المرسل إلى بريدك الإلكتروني.</p>';return}
+   document.getElementById('content').innerHTML='<div class="kicker">SECURE ACCESS / دخول آمن</div><h1>Ready to start</h1><div class="ar" style="color:#C8A96B;font-size:22px">جاهز لبدء الدراسة</div><div class="body">Your secure access link is ready. Press the button below to start your self-study session. / رابط الدخول الآمن جاهز. اضغط الزر أدناه لبدء جلسة الدراسة الذاتية.</div><div class="notice" style="background:#132a3d;border-color:#627386;color:#DDE5EB">For security, the access link is activated only when you press Continue. / لأسباب أمنية، يتم تفعيل رابط الدخول فقط عند الضغط على متابعة.</div><div class="actions"><button class="btn" id="startAccess">Continue to Self-Study / متابعة إلى الدراسة الذاتية</button></div>';
+   document.getElementById('startAccess').onclick=startAccess;
+   return;
+  }
+  await loadCourse();
+ }catch(e){
+  sessionStorage.removeItem('siSelfStudySession');session='';accessExpires='';
+  document.getElementById('content').innerHTML='<h1>Access unavailable</h1><p>'+esc(e.message)+'</p>';
+ }
 }
 function renderModules(){document.getElementById('modules').innerHTML=['m1','m2','m3','m4','m5'].map((id,i)=>{const done=(me.progress?.modules?.[id]||0)>=80;return '<div class="module '+(done?'done':'')+'"><b>Module '+(i+1)+'</b><small>'+({m1:'Fire Science',m2:'Fire Classification',m3:'Detection & Alarms',m4:'Tactical Response',m5:'Evacuation & Command'}[id])+'</small></div>'}).join('');updateSummary()}
 function updateSummary(){const done=me.progress?.completedScreens?.length||0;const pct=Math.round(done/screens.length*100);document.getElementById('bar').style.width=pct+'%';document.getElementById('summary').innerHTML='<strong>'+pct+'%</strong> complete<br><span style="color:#aebbc6">Cumulative score: '+(me.cumulativeScore||0)+'%</span>'}
