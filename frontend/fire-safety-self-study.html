@@ -28,7 +28,9 @@ async function loadCourse(){
  const courseScreens=await api('/api/self-study/courses/fire-safety-emergency-response/screens').catch(()=>null);
  if(courseScreens?.screens?.length)screens=courseScreens.screens.map(x=>x.id);else screens=[...fallbackScreens];
  if(!screens.length)throw new Error('No learning screens are currently published.');
- index=Number(sessionStorage.getItem('siSelfStudyIndex')||0);index=Math.min(Math.max(index,0),screens.length-1);renderModules();renderScreen();
+ if(me.progress?.completedScreens?.length){const resume=me.resumeScreenId? screens.indexOf(me.resumeScreenId):-1;index=resume>=0?resume:screens.length;}else{index=0;}
+ if(index>=screens.length){renderModules();showCompletion();return;}
+ sessionStorage.setItem('siSelfStudyIndex',index);renderModules();renderScreen();
 }
 async function boot(){
  try{
