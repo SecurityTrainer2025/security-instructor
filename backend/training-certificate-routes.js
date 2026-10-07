@@ -174,9 +174,11 @@ install('post','/api/course-registration',async(req,res,next)=>{
   const originalJson=res.json.bind(res);
   res.json=body=>{
     try{
-      if(body?.ok&&body?.traineeId&&body?.course?.id){
+      if(body?.ok&&body?.enrollmentId&&body?.course?.id){
         const slug=clean(req.body?.courseSlug,100);
-        Trainee.findOne({traineeId:body.traineeId}).lean().then(async t=>{
+        Enrollment.findOne({enrollmentId:body.enrollmentId}).lean().then(async enrollment=>{
+          if(!enrollment)return;
+          const t=await Trainee.findOne({traineeId:enrollment.traineeId}).lean();
           if(!t?.email)return;
           const nameEn=[t.englishFirstName,t.englishMiddleName,t.englishLastName].filter(Boolean).join(' ');
           const nameAr=[t.arabicFirstName,t.arabicMiddleName,t.arabicLastName].filter(Boolean).join(' ');
@@ -228,7 +230,7 @@ install('post','/api/course-registration',async(req,res,next)=>{
               <p>مرحبًا بك في <strong>SECURITY INSTRUCTOR</strong>.</p>
               <p>يسرنا تأكيد تسجيلك في الدورة التالية:</p>
               <p><strong>${htmlEsc(body.course.ar)}</strong></p>
-              <p><strong>بيانات التسجيل</strong><br>رقم المتدرب: ${htmlEsc(body.traineeId)}<br>رقم التسجيل: ${htmlEsc(body.enrollmentId)}</p>
+              <p><strong>بيانات التسجيل</strong><br>رقم التسجيل: ${htmlEsc(body.enrollmentId)}</p>
               <p><strong>المادة التدريبية</strong></p>
               ${materialLink?`<p><a href="${htmlEsc(materialLink)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">الدخول إلى المادة التدريبية</a></p>`:'<p>ستتوفر المادة من خلال نظام التدريب عند تجهيزها للدورة.</p>'}
               <p><strong>التقييم المبدئي</strong></p>
@@ -245,7 +247,7 @@ install('post','/api/course-registration',async(req,res,next)=>{
               <p>Welcome to <strong>SECURITY INSTRUCTOR</strong>.</p>
               <p>We are pleased to confirm your registration for:</p>
               <p><strong>${htmlEsc(body.course.en)}</strong></p>
-              <p><strong>Registration Details</strong><br>Trainee ID: ${htmlEsc(body.traineeId)}<br>Enrollment ID: ${htmlEsc(body.enrollmentId)}</p>
+              <p><strong>Registration Details</strong><br>Enrollment ID: ${htmlEsc(body.enrollmentId)}</p>
               <p><strong>Training Material</strong></p>
               ${materialLink?`<p><a href="${htmlEsc(materialLink)}" style="display:inline-block;background:#C8A96B;color:#101820;padding:10px 16px;text-decoration:none;font-weight:700">Access Training Material</a></p>`:'<p>Training material will be made available through the training system when ready.</p>'}
               <p><strong>Initial Assessment</strong></p>
