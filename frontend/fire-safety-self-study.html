@@ -59,12 +59,15 @@ async function submitFinalAssessment(total){
   }
  }catch(e){showResult(esc(e.message));if(btn)btn.disabled=false}
 }
-function showFinalResult(d){
+async function showFinalResult(d){
  const passed=!!d.passed||!!me?.finalPassed;
  const score=d.score??me?.finalBestScore??0;
- const cert=d.certificateId||me?.certificateId||'';
+ let cert=d.certificateId||me?.certificateId||'';
+ if(passed&&!cert){
+  try{const x=await api('/api/self-study/certificate',{method:'POST',body:JSON.stringify({})});cert=x.certificateId||'';me=await api('/api/self-study/me')}catch(e){}
+ }
  const verify=cert?'https://securitytrainer2025.github.io/security-instructor/frontend/verify.html?type=certificate&id='+encodeURIComponent(cert):'';
- document.getElementById('content').innerHTML='<div class="kicker">FINAL ASSESSMENT RESULT</div><h1>'+ (passed?'Passed / ناجح':'Not Passed / لم تنجح') +'</h1><div class="body">Final score: <strong>'+score+'%</strong><br>درجة الاختبار النهائي: <strong>'+score+'٪</strong></div>'+ (passed?'<div class="notice" style="background:#132a3d;border-color:#C8A96B;color:#fff">Congratulations. You completed the Fire Safety self-study requirements. / تهانينا. لقد أكملت متطلبات الدراسة الذاتية لدورة السلامة من الحرائق.</div>'+(cert?'<p><strong>Certificate ID:</strong> '+esc(cert)+'</p><p><a class="btn" href="'+verify+'" target="_blank" rel="noopener">Verify Certificate / التحقق من الشهادة</a></p>':'<p class="body">Certificate issuance is being processed. / يتم تجهيز الشهادة.</p>'):'<div class="notice">The final assessment was not passed. / لم يتم اجتياز الاختبار النهائي.</div>');
+ document.getElementById('content').innerHTML='<div class="kicker">FINAL ASSESSMENT RESULT</div><h1>'+ (passed?'Passed / ناجح':'Not Passed / لم تنجح') +'</h1><div class="body">Final score: <strong>'+score+'%</strong><br>درجة الاختبار النهائي: <strong>'+score+'٪</strong></div>'+ (passed?'<div class="notice" style="background:#132a3d;border-color:#C8A96B;color:#fff">Congratulations. You completed the Fire Safety self-study requirements. / تهانينا. لقد أكملت متطلبات الدراسة الذاتية لدورة السلامة من الحرائق.</div>'+(cert?'<p><strong>Certificate ID:</strong> '+esc(cert)+'</p><p><a class="btn" href="'+verify+'" target="_blank" rel="noopener">Verify Certificate / التحقق من الشهادة</a></p>':'<p class="body">Certificate issuance is temporarily unavailable. Please refresh or try again later. / إصدار الشهادة غير متاح مؤقتًا. يرجى تحديث الصفحة أو المحاولة مرة أخرى لاحقًا.</p>'):'<div class="notice">The final assessment was not passed. / لم يتم اجتياز الاختبار النهائي.</div>');
 }
 function tick(){if(!accessExpires)return;const ms=new Date(accessExpires)-new Date();if(ms<=0){document.getElementById('timer').textContent='ACCESS EXPIRED';document.getElementById('notice').style.display='block';document.getElementById('notice').textContent='Your self-study access has expired. / انتهت مدة الوصول للدراسة الذاتية.';return}const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;document.getElementById('timer').textContent='ACCESS: '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0')}
 setInterval(tick,1000);boot();
