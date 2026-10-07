@@ -343,8 +343,9 @@ const registerHandler=async(req,res)=>{
       await trainees.updateOne({_id:trainee._id},{$set:{arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,mobile,email,updatedAt:new Date()}});
       trainee=await trainees.findOne({_id:trainee._id});
     }else{
-      const traineeId=await nextNumber(trainees,'TRN-','traineeId');
-      trainee={traineeId,arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,idNumber,mobile,email,createdAt:new Date(),updatedAt:new Date()};
+      const traineeRef=new mongoose.Types.ObjectId();
+      const traineeId=String(traineeRef);
+      trainee={_id:traineeRef,traineeId,arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,idNumber,mobile,email,createdAt:new Date(),updatedAt:new Date()};
       await trainees.insertOne(trainee);
     }
     let enrollment=await enrollments.findOne({traineeId:trainee.traineeId,courseId:course.code});
@@ -420,7 +421,7 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,traineeId:row.traineeId,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
@@ -641,7 +642,7 @@ const registerHandler=async(req,res)=>{
     await access.updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:magicExpires,magicUsedAt:null,updatedAt:new Date()}});
     const fullName=[en[0],en[1],en[2]].join(' ');
     const mail=await sendAccessEmail({to:email,name:fullName,course,token:magic,expiresAt:row.accessExpiresAt});
-    res.status(201).json({ok:true,message:'Registration received. If the email address is valid, access instructions will be sent to it. / تم استلام التسجيل، وسيتم إرسال تعليمات الدخول إلى البريد الإلكتروني.',traineeId:trainee.traineeId,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
+    res.status(201).json({ok:true,message:'Registration received. If the email address is valid, access instructions will be sent to it. / تم استلام التسجيل، وسيتم إرسال تعليمات الدخول إلى البريد الإلكتروني.',enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
   }catch(e){console.error('Self-study registration error',e);res.status(500).json({message:'Unable to complete self-study registration'});}
 };
 
