@@ -615,7 +615,7 @@ const registerHandler=async(req,res)=>{
       await trainees.updateOne({_id:trainee._id},{$set:{arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,mobile,email,updatedAt:new Date()}});
       trainee=await trainees.findOne({_id:trainee._id});
     }else{
-      const traineeId=await nextNumber(trainees,'TRN-','traineeId');
+      const traineeId=new mongoose.Types.ObjectId().toString();
       trainee={traineeId,arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,idNumber,mobile,email,createdAt:new Date(),updatedAt:new Date()};
       await trainees.insertOne(trainee);
     }
