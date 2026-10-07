@@ -30,7 +30,42 @@ async function submitScreen(){
  try{const d=await api('/api/self-study/screens/'+screens[index]+'/assessment',{method:'POST',body:JSON.stringify({answers})});showResult('Score: <strong>'+d.score+'%</strong><br>'+ (d.passed?'Passed. You may continue. / ناجح، يمكنك المتابعة.':'You need 80% to continue. Try again. / تحتاج إلى 80% للمتابعة، حاول مرة أخرى.')+'<br>Cumulative: '+d.cumulativeScore+'%');if(d.passed){me=await api('/api/self-study/me');renderModules();if(index<screens.length-1){index++;sessionStorage.setItem('siSelfStudyIndex',index);setTimeout(renderScreen,900)}else{setTimeout(showCompletion,900)}}}catch(e){showResult(esc(e.message))}
 }
 function showResult(html){const r=document.getElementById('result');r.innerHTML=html;r.style.display='block'}
-function showCompletion(){document.getElementById('content').innerHTML='<div class="kicker">LEARNING PHASE COMPLETE</div><h1>Final Assessment</h1><div class="body">All current learning screens are complete. The 30-question final assessment will be activated after the full Fire Safety curriculum conversion is approved and loaded.</div><div class="body ar">اكتملت شاشات التعلم الحالية. سيتم تفعيل الاختبار النهائي المكون من 30 سؤالًا بعد اعتماد وتحميل المنهج الكامل للسلامة من الحرائق.</div>'}
+async function showCompletion(){
+ try{
+  me=await api('/api/self-study/me');renderModules();
+  if(me.finalPassed){showFinalResult({passed:true,score:me.finalBestScore,certificateId:me.certificateId});return}
+  const d=await api('/api/self-study/final-assessment');
+  document.getElementById('content').innerHTML='<div class="kicker">LEARNING PHASE COMPLETE</div><h1>Final Assessment</h1><div class="body">You have completed the required learning screens. The final assessment has 30 questions. Pass mark: 70%. You have up to 3 total attempts (2 free retakes).</div><div class="body ar">لقد أكملت شاشات التعلم المطلوبة. يتكون الاختبار النهائي من 30 سؤالًا. درجة النجاح: 70٪. لديك 3 محاولات إجمالاً (محاولتان لإعادة الاختبار مجاناً).</div><div class="notice" style="background:#132a3d;border-color:#627386;color:#DDE5EB">Attempts remaining: <strong>'+d.attemptsRemaining+'</strong> / المحاولات المتبقية: <strong>'+d.attemptsRemaining+'</strong></div><div class="actions"><button class="btn" id="startFinal">Start Final Assessment / بدء الاختبار النهائي</button></div><div id="result" class="result"></div>';
+  document.getElementById('startFinal').onclick=()=>renderFinalAssessment(d);
+ }catch(e){document.getElementById('content').innerHTML='<div class="kicker">FINAL ASSESSMENT</div><h1>Unavailable</h1><div class="body">'+esc(e.message)+'</div>'}
+}
+function renderFinalAssessment(d){
+ const qs=d.questions||[];let html='<div class="kicker">FINAL ASSESSMENT • 30 QUESTIONS</div><h1>Fire Safety & Emergency Response</h1><div class="body">Answer all 30 questions. Pass mark: 70%.</div><div class="body ar">أجب عن جميع الأسئلة الثلاثين. درجة النجاح: 70٪.</div><section class="quiz">';
+ qs.forEach((x,i)=>{html+='<div class="q"><strong>'+x.number+'. '+esc(x.q)+'</strong>'+x.options.map((o,j)=>'<label class="opt"><input type="radio" name="finalq'+i+'" value="'+j+'"> '+esc(o)+'</label>').join('')+'</div>'});
+ html+='</section><div class="actions"><button class="btn secondary" id="backLearning">← Back / رجوع</button><button class="btn" id="submitFinal">Submit Final Assessment / إرسال الاختبار النهائي</button></div><div id="result" class="result"></div>';
+ document.getElementById('content').innerHTML=html;
+ document.getElementById('backLearning').onclick=()=>showCompletion();
+ document.getElementById('submitFinal').onclick=()=>submitFinalAssessment(qs.length);
+}
+async function submitFinalAssessment(total){
+ const answers=[];for(let i=0;i<total;i++){const x=document.querySelector('input[name="finalq'+i+'"]:checked');if(!x){showResult('Please answer all questions. / يرجى الإجابة عن جميع الأسئلة.');return}answers.push(Number(x.value))}
+ const btn=document.getElementById('submitFinal');if(btn)btn.disabled=true;
+ try{
+  const d=await api('/api/self-study/final-assessment',{method:'POST',body:JSON.stringify({answers})});
+  me=await api('/api/self-study/me');renderModules();
+  if(d.passed){showFinalResult(d)}else{
+   showResult('Score: <strong>'+d.score+'%</strong><br>Not passed. You need 70% to pass. Attempts remaining: '+d.attemptsRemaining+'<br>النتيجة: <strong>'+d.score+'٪</strong> — لم تنجح. تحتاج إلى 70٪ للنجاح. المحاولات المتبقية: '+d.attemptsRemaining);
+   if(d.attemptsRemaining>0){setTimeout(showCompletion,1200)}
+  }
+ }catch(e){showResult(esc(e.message));if(btn)btn.disabled=false}
+}
+function showFinalResult(d){
+ const passed=!!d.passed||!!me?.finalPassed;
+ const score=d.score??me?.finalBestScore??0;
+ const cert=d.certificateId||me?.certificateId||'';
+ const verify=cert?'https://securitytrainer2025.github.io/security-instructor/frontend/verify.html?type=certificate&id='+encodeURIComponent(cert):'';
+ document.getElementById('content').innerHTML='<div class="kicker">FINAL ASSESSMENT RESULT</div><h1>'+ (passed?'Passed / ناجح':'Not Passed / لم تنجح') +'</h1><div class="body">Final score: <strong>'+score+'%</strong><br>درجة الاختبار النهائي: <strong>'+score+'٪</strong></div>'+ (passed?'<div class="notice" style="background:#132a3d;border-color:#C8A96B;color:#fff">Congratulations. You completed the Fire Safety self-study requirements. / تهانينا. لقد أكملت متطلبات الدراسة الذاتية لدورة السلامة من الحرائق.</div>'+(cert?'<p><strong>Certificate ID:</strong> '+esc(cert)+'</p><p><a class="btn" href="'+verify+'" target="_blank" rel="noopener">Verify Certificate / التحقق من الشهادة</a></p>':'<p class="body">Certificate issuance is being processed. / يتم تجهيز الشهادة.</p>'):'<div class="notice">The final assessment was not passed. / لم يتم اجتياز الاختبار النهائي.</div>');
+}
 function tick(){if(!accessExpires)return;const ms=new Date(accessExpires)-new Date();if(ms<=0){document.getElementById('timer').textContent='ACCESS EXPIRED';document.getElementById('notice').style.display='block';document.getElementById('notice').textContent='Your self-study access has expired. / انتهت مدة الوصول للدراسة الذاتية.';return}const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;document.getElementById('timer').textContent='ACCESS: '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0')}
 setInterval(tick,1000);boot();
 </script></body></html>
