@@ -6,6 +6,8 @@ require('dotenv').config();
 
 const FRONTEND_URL=(process.env.SELF_STUDY_FRONTEND_URL||'https://securitytrainer2025.github.io/security-instructor/frontend/fire-safety-self-study.html').trim();
 const ACCESS_HOURS=72;
+const FREE_REGISTRATION_START=new Date('2026-10-11T00:00:00+03:00');
+const FREE_REGISTRATION_END=new Date('2026-10-16T00:00:00+03:00');
 const MAGIC_MINUTES=15;
 const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||72);
 const FIRE_SLUG='fire-safety-emergency-response';
@@ -97,8 +99,7 @@ m1:[
 {q:'Why is smoke dangerous? / لماذا يعتبر الدخان خطراً؟',a:['It may contain toxic gases and reduce visibility / قد يحتوي على غازات سامة ويقلل الرؤية','It is always harmless / هو غير ضار دائماً','It improves visibility / يحسن الرؤية','It stops all heat transfer / يوقف انتقال الحرارة'],correct:0},
 {q:'What should occupants do when smoke makes a route unsafe? / ماذا يجب أن يفعل الأشخاص إذا أصبح المسار غير آمن بسبب الدخان؟',a:['Follow the emergency plan and use a safe route / اتباع خطة الطوارئ واستخدام مسار آمن','Continue into heavy smoke / الاستمرار داخل الدخان الكثيف','Hide in the fire area / الاختباء في منطقة الحريق','Disable the alarm / تعطيل الإنذار'],correct:0}]},
 {id:'m1s8',slide:11,titleEn:'Heat Transfer: Conduction and Radiation',titleAr:'انتقال الحرارة: التوصيل والإشعاع',bodyEn:'Conduction transfers heat through solid materials such as metal. Radiation transfers heat through electromagnetic energy and does not require direct contact. Both mechanisms can contribute to ignition away from the original flame.',bodyAr:'ينقل التوصيل الحرارة عبر المواد الصلبة مثل المعادن. وينقل الإشعاع الحرارة عبر الطاقة الكهرومغناطيسية ولا يتطلب تلامساً مباشراً. ويمكن لكل منهما أن يساهم في اشتعال مواد بعيداً عن اللهب الأصلي.',videoUrl:'',questions:[
-{q:'What is conduction? / ما هو التوصيل؟',a:['Heat transfer through solid materials / انتقال الحرارة عبر المواد الصلبة','Heat transfer only through alarms / انتقال الحرارة عبر الإنذارات فقط','Movement of people / حركة الأشخاص','A type of evacuation / نوع من الإخلاء'],correct:0},
-{q:'Which material can conduct heat? / أي مادة يمكنها توصيل الحرارة؟',a:['Metal / المعدن','An access card / بطاقة دخول','A radio message / رسالة لاسلكية','An assembly list / قائمة التجمع'],correct:0},
+{q:'What is conduction? / ما هو التوصيل؟',a:['Heat transfer through solid materials / انتقال الحرارة عبر المواد الصلبة','Heat transfer only through alarms / انتقال الحرارة عبر الإنذارات فقط','Movement of people / حركة الأشخاص','A type of evacuation / نوع من الإخلاء'],correct:0},{q:'Which material can conduct heat? / أي مادة يمكنها توصيل الحرارة؟',a:['Metal / المعدن','An access card / بطاقة دخول','A radio message / رسالة لاسلكية','An assembly list / قائمة التجمع'],correct:0},
 {q:'What is radiation? / ما هو الإشعاع؟',a:['Heat transfer through electromagnetic energy / انتقال الحرارة عبر الطاقة الكهرومغناطيسية','Water movement through pipes / حركة الماء في الأنابيب','Smoke detection / كشف الدخان','Alarm testing / اختبار الإنذار'],correct:0},
 {q:'Does radiation require direct contact with the receiving material? / هل يتطلب الإشعاع تلامساً مباشراً مع المادة المستقبلة؟',a:['No / لا','Yes, always / نعم دائماً','Only in water / فقط في الماء','Only during drills / فقط أثناء التمارين'],correct:0},
 {q:'Why are conduction and radiation important in fire safety? / لماذا يعد التوصيل والإشعاع مهمين في السلامة من الحرائق؟',a:['They can contribute to ignition away from the original flame / يمكن أن يسهما في الاشتعال بعيداً عن اللهب الأصلي','They prevent all fire spread / يمنعان كل انتشار للحريق','They replace alarms / يحلان محل الإنذارات','They remove oxygen automatically / يزيلان الأكسجين تلقائياً'],correct:0}]},
@@ -197,8 +198,7 @@ m4:[
 {id:'m5s4',slide:59,titleEn:'Signs, Markings & Emergency Lighting',titleAr:'العلامات والإرشادات وإضاءة الطوارئ',bodyEn:'Exit signs, directional markings and emergency lighting help people identify and follow safe routes when normal conditions are affected. Security personnel should report damaged, blocked or unclear life-safety signs and lighting through the site procedure.',bodyAr:'تساعد علامات المخارج والإرشادات الاتجاهية وإضاءة الطوارئ الأشخاص على تحديد المسارات الآمنة واتباعها عندما تتأثر الظروف العادية. وينبغي لأفراد الأمن الإبلاغ عن العلامات أو الإضاءة المتضررة أو المحجوبة أو غير الواضحة وفق إجراء الموقع.',videoUrl:'',questions:[
 {q:'What is the purpose of exit signs? / ما الهدف من علامات المخارج؟',a:['Help identify exit routes / المساعدة في تحديد مسارات الخروج','Decorate corridors / تزيين الممرات','Replace alarms / استبدال الإنذارات','Control visitor badges / التحكم في بطاقات الزوار'],correct:0},
 {q:'Why is emergency lighting important? / لماذا تعد إضاءة الطوارئ مهمة؟',a:['It can help people navigate when normal lighting is affected / يمكن أن تساعد الأشخاص على التحرك عندما تتأثر الإضاءة العادية','It replaces evacuation plans / تحل محل خطط الإخلاء','It guarantees no smoke / تضمن عدم وجود دخان','It opens locked doors automatically / تفتح الأبواب المقفلة تلقائياً'],correct:0},
-{q:'What should security report? / ماذا يجب على الأمن الإبلاغ عنه؟',a:['Damaged, blocked or unclear life-safety signs and lighting / علامات وإضاءة السلامة من الحرائق المتضررة أو المحجوبة أو غير الواضحة','Only clean floors / الأرضيات النظيفة فقط','Visitor opinions / آراء الزوار','Normal lighting operation / التشغيل الطبيعي للإضاءة'],correct:0},
-{q:'What should directional markings help with? / في ماذا تساعد الإرشادات الاتجاهية؟',a:['Finding a suitable route to safety / العثور على مسار مناسب إلى مكان آمن','Finding a parking fee / معرفة رسوم المواقف','Selecting uniforms / اختيار الزي','Issuing certificates / إصدار الشهادات'],correct:0},
+{q:'What should security report? / ماذا يجب على الأمن الإبلاغ عنه؟',a:['Damaged, blocked or unclear life-safety signs and lighting / علامات وإضاءة السلامة من الحرائق المتضررة أو المحجوبة أو غير الواضحة','Only clean floors / الأرضيات النظيفة فقط','Visitor opinions / آراء الزوار','Normal lighting operation / التشغيل الطبيعي للإضاءة'],correct:0},{q:'What should directional markings help with? / في ماذا تساعد الإرشادات الاتجاهية؟',a:['Finding a suitable route to safety / العثور على مسار مناسب إلى مكان آمن','Finding a parking fee / معرفة رسوم المواقف','Selecting uniforms / اختيار الزي','Issuing certificates / إصدار الشهادات'],correct:0},
 {q:'What should guide reporting of a damaged exit sign? / ما الذي يوجه الإبلاغ عن علامة مخرج متضررة؟',a:['The site maintenance or emergency reporting procedure / إجراء الموقع الخاص بالصيانة أو الإبلاغ عن الطوارئ','Personal social media / وسائل التواصل الشخصية','A visitor request / طلب زائر','No procedure / لا يوجد إجراء'],correct:0}]},
 {id:'m5s5',slide:60,titleEn:'Evacuation Wardens & Security Support',titleAr:'مسؤولو الإخلاء ودعم الأمن',bodyEn:'Evacuation wardens and security personnel can support orderly movement, route awareness, communication and access control according to the site plan. They should not place themselves or others in unnecessary danger.',bodyAr:'يمكن لمسؤولي الإخلاء وأفراد الأمن دعم الحركة المنظمة ومعرفة المسارات والتواصل والتحكم في الدخول وفق خطة الموقع. ولا ينبغي لهم تعريض أنفسهم أو الآخرين لخطر غير ضروري.',videoUrl:'',questions:[
 {q:'What can evacuation wardens support? / ماذا يمكن لمسؤولي الإخلاء أن يدعموا؟',a:['Orderly evacuation and route guidance / الإخلاء المنظم وتوجيه المسارات','Fire investigation / التحقيق في الحريق','Building design / تصميم المبنى','Unauthorized medical treatment / العلاج الطبي غير المصرح به'],correct:0},
@@ -297,8 +297,7 @@ async function nextNumber(collection,prefix,field){
   const n=last&&last[field]?parseInt(String(last[field]).slice(String(prefix).length),10):0;
   return String(prefix)+String(n+1).padStart(6,'0');
 }
-async function sendAccessEmail({to,name,course,token,expiresAt}){
-  const apiKey=(process.env.BREVO_API_KEY||'').trim();
+async function sendAccessEmail({to,name,course,token,expiresAt}){  const apiKey=(process.env.BREVO_API_KEY||'').trim();
   const from=(process.env.MAIL_FROM||'').trim();
   if(!apiKey||!from)return {sent:false,error:'Brevo email settings are not configured'};
   const link=FRONTEND_URL+'#token='+encodeURIComponent(token);
@@ -333,6 +332,10 @@ const sessionHandler=async(req,res,next)=>{
 
 const registerHandler=async(req,res)=>{
   try{
+    const now=new Date();
+    if(now<FREE_REGISTRATION_START||now>=FREE_REGISTRATION_END){
+      return res.status(403).json({message:'Free registration is open from 11 to 15 October 2026. / التسجيل المجاني مفتوح من 11 إلى 15 أكتوبر 2026.'});
+    }
     const b=req.body||{};
     const slug=clean(b.courseSlug,80)||FIRE_SLUG;
     const course=COURSE_META[slug];
@@ -397,8 +400,7 @@ const requestAccessHandler=async(req,res)=>{
     const course=COURSE_META[FIRE_SLUG];
     let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:FIRE_SLUG});
     if(!row)return res.json(generic);
-    if(new Date(row.accessExpiresAt)<=new Date())return res.json(generic);
-    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
+    if(new Date(row.accessExpiresAt)<=new Date())return res.json(generic);    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:expires,magicUsedAt:null,updatedAt:new Date()}});
     await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,expiresAt:row.accessExpiresAt});
     res.json(generic);
@@ -497,8 +499,7 @@ const finalHandler=async(req,res)=>{
     if(answers.length!==FINAL_FIRE_ASSESSMENT.length)return res.status(400).json({message:'Please answer all 30 questions.'});
     const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/FINAL_FIRE_ASSESSMENT.length*100);
-    const finalAttempts=attempts+1;
-    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
+    const finalAttempts=attempts+1;    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
     const finalPassed=!!p.finalPassed||score>=70;
     const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>=70,updatedAt:new Date()}];
     const updated={...p,finalAttempts,finalBestScore,finalPassed,finalScores};
