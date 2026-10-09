@@ -28,7 +28,46 @@
 .actions{text-align:center;margin:16px}.actions button{background:var(--gold);color:#101820;border:1px solid var(--gold);padding:10px 18px;font-weight:900;cursor:pointer}
 @media(max-width:760px){.wrap{width:calc(100% - 16px);height:auto;min-height:210mm;margin:8px}.inner{height:auto;margin:25px}.statement,.bottom,.topic-grid,.courseMeta{grid-template-columns:1fr}.courseMeta{position:static;margin:20px auto;width:80%}.motto{text-align:left}.sign{display:block}.footer{position:static;margin-top:20px}.error{position:static;transform:none;margin:20px auto}}
 @media print{body{background:#fff}.wrap{margin:0;width:297mm;height:210mm;box-shadow:none;border:2px solid var(--gold);page-break-inside:avoid}.inner{height:calc(210mm - 13mm);margin:8mm 13mm 5mm;flex:none}.topic-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,8.5mm);grid-auto-flow:column;column-gap:7mm;row-gap:1.5mm;overflow:hidden}.courseMeta{position:absolute;left:79mm;right:79mm;top:140mm;bottom:auto;width:auto;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:7mm}.bottom{position:absolute;left:7mm;right:7mm;bottom:11mm;display:grid;grid-template-columns:1fr 1.4fr 1fr;align-items:end;gap:8mm;padding:0 5mm}.sign{display:flex;align-items:flex-end;justify-content:center;gap:7mm}.footer{position:absolute;bottom:4mm;left:13mm;right:13mm;margin:0}.actions{display:none}@page{size:A4 landscape;margin:0}}
-@media screen and (min-width:761px), print{.inner{position:relative;display:block;height:197mm;margin:8mm 13mm 5mm}.top{position:absolute;top:0;left:8mm;right:8mm;height:21mm;padding:1mm 0 5mm}.heading{position:absolute;top:17mm;left:0;right:0;margin:0;height:30mm}.heading h1{font-size:34px;margin:2mm 0 0;line-height:1.08}.heading h2{font-size:18px;margin:2mm 0 0;line-height:1.2}.certify{position:absolute;top:49mm;left:0;right:0;margin:0;height:5mm}.name{position:absolute;top:56mm;left:50%;transform:translateX(-50%);margin:0;padding:1.5mm 6mm;line-height:1;white-space:nowrap;width:auto;max-width:none;height:13mm;font-size:35px;display:flex;align-items:center;justify-content:center}.completed{position:absolute;top:71mm;left:0;right:0;height:15mm;text-align:center;line-height:1.45}.completed b{font-size:16px}.courseAr{font-size:15px}.topics{position:absolute;top:91mm;left:16mm;right:16mm;margin:0;max-height:36mm}.courseMeta{position:absolute;top:136mm;left:79mm;right:79mm;bottom:auto}.bottom{position:absolute;top:147mm;left:7mm;right:7mm;bottom:auto;height:42mm}}</style>
+@media screen and (min-width:761px), print{.inner{position:relative;display:block;height:197mm;margin:8mm 13mm 5mm}.top{position:absolute;top:0;left:8mm;right:8mm;height:21mm;padding:1mm 0 5mm}.heading{position:absolute;top:17mm;left:0;right:0;margin:0;height:30mm}.heading h1{font-size:34px;margin:2mm 0 0;line-height:1.08}.heading h2{font-size:18px;margin:2mm 0 0;line-height:1.2}.certify{position:absolute;top:49mm;left:0;right:0;margin:0;height:5mm}.name{position:absolute;top:56mm;left:50%;transform:translateX(-50%);margin:0;padding:1.5mm 6mm;line-height:1;white-space:nowrap;width:auto;max-width:none;height:13mm;font-size:35px;display:flex;align-items:center;justify-content:center}.completed{position:absolute;top:71mm;left:0;right:0;height:15mm;text-align:center;line-height:1.45}.completed b{font-size:16px}.courseAr{font-size:15px}.topics{position:absolute;top:91mm;left:16mm;right:16mm;margin:0;max-height:36mm}.courseMeta{position:absolute;top:136mm;left:79mm;right:79mm;bottom:auto}.bottom{position:absolute;top:147mm;left:7mm;right:7mm;bottom:auto;height:42mm}}
+/* SI responsive correction: preserve the existing certificate design and content. */
+@media screen and (max-width:760px){
+  .wrap{width:calc(100% - 16px);height:auto;min-height:0;margin:8px auto;overflow:hidden}
+  .inner{height:auto;margin:16px;display:flex;flex-direction:column;gap:0}
+  .top{position:relative;inset:auto;height:auto;display:flex;flex-wrap:wrap;gap:12px;padding:4px 0 14px;align-items:center}
+  .brand{gap:8px;min-width:0}.logo{font-size:42px}.brand b{font-size:clamp(13px,3.6vw,17px)}.brand small{font-size:7px;letter-spacing:.04em}
+  .motto{font-size:8px;padding-top:0;max-width:100%;text-align:left}
+  .heading{position:relative;inset:auto;height:auto;margin:22px 0 10px}
+  .ey{font-size:7px;letter-spacing:.16em}.heading h1{font-size:clamp(24px,7vw,34px);line-height:1.12;overflow-wrap:anywhere;margin:8px 0}
+  .heading h2{font-size:clamp(17px,5vw,23px);line-height:1.35}
+  .certify{position:relative;inset:auto;height:auto;font-size:8px;letter-spacing:.18em;margin:10px 0}
+  .name{position:relative;inset:auto;transform:none;width:100%;max-width:100%;height:auto;min-width:0;min-height:44px;white-space:normal!important;overflow-wrap:anywhere;font-size:clamp(22px,6vw,32px)!important;line-height:1.2;padding:10px 6px;margin:6px auto 10px}
+  .completed{position:relative;inset:auto;height:auto;font-size:11px;line-height:1.6;padding:0 2px}
+  .completed b{font-size:clamp(14px,4vw,17px);overflow-wrap:anywhere}
+  .courseAr{font-size:14px;overflow-wrap:anywhere}
+  .topics{position:relative;inset:auto;max-height:none;margin:18px 0 0;padding-top:12px}
+  .topics-title{gap:8px;font-size:7px;letter-spacing:.06em}.topics-title .ar{font-size:9px}
+  .topic-grid{grid-template-columns:1fr;grid-template-rows:none;grid-auto-flow:row;gap:8px;overflow:visible;margin-top:12px}
+  .topic{grid-template-columns:34px minmax(0,1fr);column-gap:8px;min-height:34px;height:auto;overflow:visible;font-size:10px}
+  .topic .dot{width:32px;height:32px;min-width:32px;font-size:14px}.topic .ar{font-size:9px;text-align:right;overflow-wrap:anywhere}
+  .courseMeta{position:relative;inset:auto;width:100%;margin:18px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .metaBox{min-width:0;padding:9px 5px}.metaBox b{font-size:7px}.metaBox span{font-size:10px;overflow-wrap:anywhere}
+  .bottom{position:relative;inset:auto;height:auto;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin:18px 0 0;padding:14px 0 0;border-top:1px solid rgba(200,169,107,.75);align-items:center}
+  .details{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:10px;overflow-wrap:anywhere}
+  .details .row{margin-top:0;min-width:0}.details b{font-size:7px}.details span{overflow-wrap:anywhere;word-break:break-word}
+  .sign{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;overflow:visible}
+  .seal{width:27mm;height:27mm;min-width:27mm;min-height:27mm;border-width:1.3mm}.seal strong{font-size:23px}.seal small{bottom:5mm;font-size:4px}
+  .signatureBlock{max-width:100%;width:auto;min-width:0}.signature{font-size:clamp(20px,6vw,28px);white-space:normal;overflow-wrap:anywhere}
+  .qr{min-width:0;width:100%;padding:0}.qrbox{width:42mm;height:42mm;max-width:100%;padding:2mm}.qrbox img{width:100%;height:100%;object-fit:contain}.qr a{white-space:normal;font-size:10px;line-height:1.4;text-align:center}
+  .footer{position:relative;inset:auto;margin:18px 0 0;padding:10px 0 0;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;text-align:center;font-size:6px}
+  .ribbon,.sideRibbon{opacity:.7}
+  .actions{margin:12px}.actions button{max-width:100%}
+}
+@media screen and (max-width:380px){
+  .inner{margin:12px}.top{align-items:flex-start}.motto{width:100%}
+  .courseMeta{grid-template-columns:1fr}.details{grid-template-columns:1fr}
+  .topics-title{letter-spacing:0}.heading h1{font-size:24px}
+}
+</style>
 </head>
 <body>
 <main id="certificate" class="wrap">
