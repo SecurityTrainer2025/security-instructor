@@ -63,7 +63,33 @@
   .shieldText,.sideText{display:none}
   @page{size:A4 portrait;margin:0}
 }
-@media screen and (min-width:761px), print{.inner{position:relative;display:block;height:197mm;margin:8mm 13mm 5mm}.top{position:absolute;top:0;left:8mm;right:8mm;height:21mm;padding:1mm 0 5mm}.heading{position:absolute;top:17mm;left:0;right:0;margin:0;height:30mm}.heading h1{font-size:34px;margin:2mm 0 0;line-height:1.08}.heading h2{font-size:18px;margin:2mm 0 0;line-height:1.2}.certify{position:absolute;top:49mm;left:0;right:0;margin:0;height:5mm}.name{position:absolute;top:56mm;left:50%;transform:translateX(-50%);margin:0;padding:1.5mm 6mm;line-height:1;white-space:nowrap;width:auto;max-width:none;height:13mm;font-size:35px;display:flex;align-items:center;justify-content:center}.completed{position:absolute;top:71mm;left:0;right:0;height:15mm;text-align:center;line-height:1.45}.completed b{font-size:16px}.courseAr{font-size:15px}.topics{position:absolute;top:91mm;left:16mm;right:16mm;margin:0;max-height:36mm}.courseMeta{position:absolute;top:136mm;left:79mm;right:79mm;bottom:auto}.bottom{position:absolute;top:147mm;left:7mm;right:7mm;bottom:auto;height:42mm}}
+@media screen and (min-width:761px){
+  .wrap{width:210mm;height:297mm;margin:8mm auto}
+  .inner{position:relative;display:flex;flex-direction:column;height:calc(297mm - 13mm);margin:8mm 13mm 5mm;gap:0}
+  .top{position:relative;inset:auto;height:auto;display:flex;justify-content:space-between;align-items:flex-start;padding:1mm 0 5mm}
+  .heading{position:relative;inset:auto;height:auto;margin:7mm 0 2mm}
+  .heading h1{font-size:34px;line-height:1.08}
+  .heading h2{font-size:18px;line-height:1.2}
+  .certify{position:relative;inset:auto;height:auto;margin:3mm 0}
+  .name{position:relative;inset:auto;transform:none;width:auto;min-width:0;max-width:100%;height:auto;white-space:normal;font-size:30px;line-height:1.15;padding:3mm 4mm;margin:2mm auto}
+  .completed{position:relative;inset:auto;height:auto;line-height:1.5}
+  .topics{position:relative;inset:auto;max-height:none;margin:5mm 8mm 0;padding-top:3mm}
+  .topic-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-flow:row;column-gap:5mm;row-gap:2mm;overflow:visible}
+  .topic{height:auto;min-height:10mm;overflow:visible}
+  .courseMeta{position:relative;inset:auto;width:100%;margin:7mm 0 0;display:grid;grid-template-columns:1fr 1fr;gap:7mm}
+  .bottom{position:relative;inset:auto;height:auto;display:grid;grid-template-columns:1fr;gap:5mm;margin:7mm 0 0;padding:5mm 0 0;border-top:1px solid rgba(200,169,107,.75);align-items:center}
+  .details{display:grid;grid-template-columns:1fr 1fr;gap:4mm;font-size:9px}
+  .sign{display:flex;flex-direction:row;align-items:center;justify-content:space-around;gap:8mm;overflow:visible}
+  .seal{width:30mm;height:30mm;min-width:30mm;min-height:30mm}
+  .signatureBlock{width:auto;max-width:75mm;min-width:0;flex:0 1 75mm;overflow:visible}
+  .signature{font-size:23px;white-space:nowrap;overflow:visible}
+  .qr{width:100%;min-width:0;padding:0}
+  .qrbox{width:28mm;height:28mm;padding:1.5mm}
+  .qrbox img{width:100%;height:100%;object-fit:contain}
+  .qr a{white-space:normal;font-size:8px}
+  .footer{position:relative;inset:auto;margin:6mm 0 0;padding:2mm 0 0;display:flex;justify-content:space-between;font-size:6px}
+  .shieldText,.sideText{display:none}
+}
 /* SI responsive correction: preserve the existing certificate design and content. */
 @media screen and (max-width:760px){
   .wrap{width:calc(100% - 16px);height:auto;min-height:0;margin:8px auto;overflow:hidden}
