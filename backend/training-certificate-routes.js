@@ -130,7 +130,7 @@ async function issueForEnrollment(enrollmentId){
   const courseQuery=mongoose.Types.ObjectId.isValid(String(e.courseId||''))?{_id:new mongoose.Types.ObjectId(String(e.courseId))}:{$or:[{code:e.courseId},{slug:e.courseId}]};
   const course=await mongoose.connection.collection('trainingcourses').findOne(courseQuery);
   const trainingTopics=certificateTopics(course?.slug||e.courseId,course?.trainingTopics);
-  const durationHours=course?.durationHours??e.durationHours??null;
+  const durationHours=course?.durationHours??e.durationHours??(/fire\s+safety|emergency\s+response/i.test(e.courseNameEn||course?.nameEn||course?.en||'')?24:null);
   const level=course?.level||e.level||'';
   const trainerName=course?.trainerName||course?.instructor||e.trainerName||'';
   const signatureName=course?.signatureName||trainerName;
