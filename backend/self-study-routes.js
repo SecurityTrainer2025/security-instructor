@@ -332,8 +332,8 @@ const sessionHandler=async(req,res,next)=>{
 
 const registerHandler=async(req,res)=>{
   try{
-    const now=new Date();
-    if(now<FREE_REGISTRATION_START||now>=FREE_REGISTRATION_END){
+    const registrationNow=new Date();
+    if(registrationNow<FREE_REGISTRATION_START||registrationNow>=FREE_REGISTRATION_END){
       return res.status(403).json({message:'Free registration is open from 11 to 15 October 2026. / التسجيل المجاني مفتوح من 11 إلى 15 أكتوبر 2026.'});
     }
     const b=req.body||{};
@@ -365,14 +365,14 @@ const registerHandler=async(req,res)=>{
       await enrollments.updateOne({_id:enrollment._id},{$set:{status:'active',selfStudy:true,updatedAt:new Date()}});
       enrollment=await enrollments.findOne({_id:enrollment._id});
     }
-    const now=new Date();
+    const accessNow=new Date();
     let row=await access.findOne({enrollmentId:enrollment.enrollmentId,courseSlug:slug});
     if(!row){
-      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:now,accessExpiresAt:new Date(now.getTime()+ACCESS_HOURS*3600000),progress:baseProgress(),createdAt:now,updatedAt:now};
+      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:accessNow,accessExpiresAt:new Date(accessNow.getTime()+ACCESS_HOURS*3600000),progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
       await access.insertOne(row);
     }else{
-      row=await normalizeAccessExpiry(row,now);
-      if(!row.accessExpiresAt||new Date(row.accessExpiresAt)<=now){
+      row=await normalizeAccessExpiry(row,accessNow);
+      if(!row.accessExpiresAt||new Date(row.accessExpiresAt)<=accessNow){
         return res.status(410).json({message:'The 72-hour self-study access period has ended and cannot be restarted from registration. / انتهت مدة الوصول للدراسة الذاتية البالغة 72 ساعة ولا يمكن إعادة فتحها من خلال التسجيل.'});
       }
     }
