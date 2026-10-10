@@ -5,9 +5,10 @@ const nodemailer=require('nodemailer');
 require('dotenv').config();
 
 const FRONTEND_URL=(process.env.SELF_STUDY_FRONTEND_URL||'https://securitytrainer2025.github.io/security-instructor/frontend/fire-safety-self-study.html').trim();
-const ACCESS_HOURS=72;
-const FREE_REGISTRATION_START=new Date('2026-10-11T00:00:00+03:00');
-const FREE_REGISTRATION_END=new Date('2026-10-16T00:00:00+03:00');
+const ACCESS_HOURS=120;
+const ACTIVE_STUDY_HOURS=24;
+const ACTIVE_STUDY_SECONDS=ACTIVE_STUDY_HOURS*3600;
+const ACTIVE_PING_MAX_GAP_SECONDS=45;
 const MAGIC_MINUTES=15;
 const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||72);
 const FIRE_SLUG='fire-safety-emergency-response';
