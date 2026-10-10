@@ -10,7 +10,7 @@ const ACTIVE_STUDY_HOURS=24;
 const ACTIVE_STUDY_SECONDS=ACTIVE_STUDY_HOURS*3600;
 const ACTIVE_PING_MAX_GAP_SECONDS=45;
 const MAGIC_MINUTES=15;
-const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||72);
+const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||120);
 const FIRE_SLUG='fire-safety-emergency-response';
 const baseProgress=()=>({
   completedScreens:[],
@@ -264,6 +264,9 @@ const COURSE_META={
     mode:'self-study',
     freeOpening:true,
     accessHours:ACCESS_HOURS,
+    durationHours:24,
+    activeStudyHours:ACTIVE_STUDY_HOURS,
+    pilotProject:true,
     masteryScore:80,
     finalQuestions:30,
     finalPassScore:70,
@@ -334,9 +337,6 @@ const sessionHandler=async(req,res,next)=>{
 const registerHandler=async(req,res)=>{
   try{
     const registrationNow=new Date();
-    if(registrationNow<FREE_REGISTRATION_START||registrationNow>=FREE_REGISTRATION_END){
-      return res.status(403).json({message:'Free registration is open from 11 to 15 October 2026. / التسجيل المجاني مفتوح من 11 إلى 15 أكتوبر 2026.'});
-    }
     const b=req.body||{};
     const slug=clean(b.courseSlug,80)||FIRE_SLUG;
     const course=COURSE_META[slug];
@@ -369,12 +369,12 @@ const registerHandler=async(req,res)=>{
     const accessNow=new Date();
     let row=await access.findOne({enrollmentId:enrollment.enrollmentId,courseSlug:slug});
     if(!row){
-      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:accessNow,accessExpiresAt:new Date(accessNow.getTime()+ACCESS_HOURS*3600000),progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
+      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:accessNow,accessExpiresAt:new Date(accessNow.getTime()+ACCESS_HOURS*3600000),activeStudySeconds:0,activeStudyLastPingAt:null,progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
       await access.insertOne(row);
     }else{
       row=await normalizeAccessExpiry(row,accessNow);
       if(!row.accessExpiresAt||new Date(row.accessExpiresAt)<=accessNow){
-        return res.status(410).json({message:'The 72-hour self-study access period has ended and cannot be restarted from registration. / انتهت مدة الوصول للدراسة الذاتية البالغة 72 ساعة ولا يمكن إعادة فتحها من خلال التسجيل.'});
+        return res.status(410).json({message:'The 5-day self-study access window has ended and cannot be restarted from registration. / انتهت نافذة الوصول للدراسة الذاتية البالغة 5 أيام ولا يمكن إعادة فتحها من خلال التسجيل.'});
       }
     }
     const magic=randomToken(32),magicExpires=new Date(Date.now()+MAGIC_MINUTES*60000);
