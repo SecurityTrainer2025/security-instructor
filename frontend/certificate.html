@@ -173,7 +173,7 @@
 <div class="topic"><span class="dot">●</span><div><span class="topicEn">Emergency Evacuation & Egress Safety</span><span class="ar">الإخلاء ومخارج الطوارئ</span></div></div>
 <div class="topic"><span class="dot">⚙</span><div><span class="topicEn">Incident Command & Emergency Coordination</span><span class="ar">إدارة الحوادث والتنسيق في الطوارئ</span></div></div>
 </div></section>
-<section class="courseMeta">
+<section id="courseMeta" class="courseMeta">
 <div class="metaBox"><b>DURATION / مدة الدورة</b><span id="duration">—</span></div>
 <div class="metaBox"><b>LEVEL / المستوى</b><span id="level">—</span></div>
 </section>
@@ -229,8 +229,15 @@ try{
   document.getElementById('idNumber').textContent=text(d.idNumber);
   const dh=d.durationHours!==null&&d.durationHours!==undefined&&d.durationHours!==''?d.durationHours:'';
   const courseLevel=text(d.level,'');
-  document.getElementById('duration').innerHTML=dh!==''?'<strong>'+String(dh).replace(/</g,'&lt;')+' Hours</strong> | '+String(dh).replace(/</g,'&lt;')+' ساعة':'—';
-  document.getElementById('level').textContent=courseLevel;
+  const durationValue=document.getElementById('duration');
+  const levelValue=document.getElementById('level');
+  const durationBox=durationValue.closest('.metaBox');
+  const levelBox=levelValue.closest('.metaBox');
+  durationBox.hidden=dh==='';
+  levelBox.hidden=courseLevel==='—';
+  document.getElementById('courseMeta').hidden=dh===''&&courseLevel==='—';
+  durationValue.innerHTML=dh!==''?'<strong>'+String(dh).replace(/</g,'&lt;')+' Hours</strong> | '+String(dh).replace(/</g,'&lt;')+' ساعة':'';
+  levelValue.textContent=courseLevel==='—'?'':courseLevel;
   document.getElementById('signature').textContent='Abdallah Shalaby';
 
   const grid=document.getElementById('topicGrid');
