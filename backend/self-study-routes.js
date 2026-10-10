@@ -431,7 +431,7 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
@@ -546,7 +546,21 @@ const finalQuestionsHandler=async(req,res)=>{
     res.json({ok:true,total:questions.length,passScore:70,attempts,attemptsRemaining:Math.max(0,3-attempts),passed:!!p.finalPassed,questions});
   }catch(e){console.error('Self-study final assessment load error',e);res.status(500).json({message:'Unable to load final assessment'});}
 };
+const studyHeartbeatHandler=async(req,res)=>{
+  try{
+    const now=new Date(),row=req.selfStudy,active=req.body?.active===true;
+    let used=Number(row.activeStudySeconds||0);
+    const previous=row.activeStudyLastPingAt?new Date(row.activeStudyLastPingAt):null;
+    if(active&&previous){const gap=(now.getTime()-previous.getTime())/1000;if(gap>0&&gap<=ACTIVE_PING_MAX_GAP_SECONDS)used+=gap;}
+    used=Math.min(ACTIVE_STUDY_SECONDS,Math.floor(used));
+    const reached=used>=ACTIVE_STUDY_SECONDS;
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{activeStudySeconds:used,activeStudyLastPingAt:active&&!reached?now:null,status:reached?'study_limit_reached':'active',updatedAt:now}});
+    if(reached)return res.status(410).json({message:'You have used the maximum 24 active study hours. Your pilot course access has ended. / لقد استهلكت الحد الأقصى وهو 24 ساعة دراسة فعلية. انتهى وصولك إلى الدورة التجريبية.',activeStudySeconds:used,activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS});
+    res.json({ok:true,activeStudySeconds:used,activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,accessExpiresAt:row.accessExpiresAt});
+  }catch(e){console.error('Self-study heartbeat error',e);res.status(500).json({message:'Unable to update active study time'});}
+};
 function register(app){
+  app.post('/api/self-study/heartbeat',sessionHandler,studyHeartbeatHandler);
   app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:FIRE_SCREEN_LIST.length});});
   app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:FIRE_SCREEN_LIST.map((s,i)=>({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
   app.get('/api/self-study/screens/:screenId',sessionHandler,screenHandler);
