@@ -305,10 +305,10 @@ async function sendAccessEmail({to,name,course,token,expiresAt}){  const apiKey=
   const from=(process.env.MAIL_FROM||'').trim();
   if(!apiKey||!from)return {sent:false,error:'Brevo email settings are not configured'};
   const link=FRONTEND_URL+'#token='+encodeURIComponent(token);
-  const expiry=new Date(expiresAt).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'});
+  const expiry=expiresAt?new Date(expiresAt).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'}):null;
   const subject='SECURITY INSTRUCTOR — Fire Safety Self-Study Access';
-  const text='Dear '+name+',\\n\\nYour access to '+course.en+' / '+course.ar+' is ready.\\n\\nAccess window: 5 days (120 hours). Maximum active study time: 24 hours. Inactive time is not counted.\\nStart: '+link+'\\nAccess expires: '+expiry+'\\n\\nComplete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.\\n\\nSECURITY INSTRUCTOR';
-  const html='<!doctype html><html><body style="font-family:Arial,sans-serif;color:#0B1F33"><h2 style="color:#0B1F33">SECURITY INSTRUCTOR</h2><p>Dear '+name+',</p><p>Your access to <strong>'+course.en+'</strong> / <strong>'+course.ar+'</strong> is ready.</p><p>This is a self-study pilot project. Your access window is <strong>5 days (120 hours)</strong>, with a maximum of <strong>24 active study hours</strong>. Inactive time is not counted.</p><p><a href="'+link+'" style="display:inline-block;padding:12px 18px;background:#C8A96B;color:#0B1F33;text-decoration:none;font-weight:bold">START SELF-STUDY / ابدأ الدراسة الذاتية</a></p><p>Access expires: '+expiry+'</p><p>Complete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.</p><p>SECURITY INSTRUCTOR<br>Knowledge • Skills • Safer Tomorrow</p></body></html>';
+  const text='Dear '+name+',\\n\\nYour access to '+course.en+' / '+course.ar+' is ready.\\n\\nYour 5-day access window starts when you first open the course using this secure link. You may study for up to 24 active hours during that window; inactive time is not counted.\\nStart: '+link+(expiry?'\\nAccess expires: '+expiry:'')+'\\n\\nYour Enrollment ID is provided on the registration confirmation page. Keep it to request a new access link if needed.\\n\\nComplete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.\\n\\nSECURITY INSTRUCTOR';
+  const html='<!doctype html><html><body style="font-family:Arial,sans-serif;color:#0B1F33"><h2 style="color:#0B1F33">SECURITY INSTRUCTOR</h2><p>Dear '+name+',</p><p>Your access to <strong>'+course.en+'</strong> / <strong>'+course.ar+'</strong> is ready.</p><p>This is a self-study pilot project. Your <strong>5-day (120-hour) access window starts when you first open the course</strong> using the secure link below. You may study for up to <strong>24 active study hours</strong>; inactive time is not counted.</p><p><a href="'+link+'" style="display:inline-block;padding:12px 18px;background:#C8A96B;color:#0B1F33;text-decoration:none;font-weight:bold">START SELF-STUDY / ابدأ الدراسة الذاتية</a></p>'+(expiry?'<p>Access expires: '+expiry+'</p>':'')+'<p>Keep your Enrollment ID from the registration confirmation page to request a new access link if needed.</p><p>Complete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.</p><p>SECURITY INSTRUCTOR<br>Knowledge • Skills • Safer Tomorrow</p></body></html>';
   const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{accept:'application/json','api-key':apiKey,'content-type':'application/json'},body:JSON.stringify({sender:{name:'SECURITY INSTRUCTOR',email:from},replyTo:{email:from},to:[{email:to}],subject,textContent:text,htmlContent:html})});
   if(!response.ok){const detail=await response.text().catch(()=> '');throw new Error('Brevo email failed ('+response.status+'): '+detail.slice(0,300));}
   return {sent:true,error:null};
@@ -369,7 +369,7 @@ const registerHandler=async(req,res)=>{
     const accessNow=new Date();
     let row=await access.findOne({enrollmentId:enrollment.enrollmentId,courseSlug:slug});
     if(!row){
-      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:accessNow,accessExpiresAt:new Date(accessNow.getTime()+ACCESS_HOURS*3600000),activeStudySeconds:0,activeStudyLastPingAt:null,progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
+      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:null,accessExpiresAt:null,activeStudySeconds:0,activeStudyLastPingAt:null,progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
       await access.insertOne(row);
     }else{
       row=await normalizeAccessExpiry(row,accessNow);
@@ -401,7 +401,7 @@ const requestAccessHandler=async(req,res)=>{
     const course=COURSE_META[FIRE_SLUG];
     let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:FIRE_SLUG});
     if(!row)return res.json(generic);
-    if(new Date(row.accessExpiresAt)<=new Date())return res.json(generic);    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
+    if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date())return res.json(generic);    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:expires,magicUsedAt:null,updatedAt:new Date()}});
     await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,expiresAt:row.accessExpiresAt});
     res.json(generic);
@@ -416,11 +416,16 @@ const exchangeHandler=async(req,res)=>{
     const row=await c.findOne({magicTokenHash:sha(token),status:'active'});
     if(!row||!row.magicTokenExpiresAt||new Date(row.magicTokenExpiresAt)<=new Date())return res.status(401).json({message:'Access link is invalid or expired. Please request a new access email.'});
     const session=randomToken(32),now=new Date();
-    // Keep the short-lived magic token until its 15-minute expiry. This makes activation
-    // resilient to email security scanners or accidental duplicate opens before the trainee
-    // creates a session, while the token remains unsuitable for long-term course access.
-    await c.updateOne({_id:row._id},{$set:{magicUsedAt:row.magicUsedAt||now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(now.getTime()+SESSION_HOURS*3600000),updatedAt:now}});
-    res.json({ok:true,sessionToken:session,courseSlug:row.courseSlug,accessExpiresAt:row.accessExpiresAt});
+    // Start the 5-day access window on first successful course-link activation, not registration.
+    // Existing active registrations keep their original expiry; opening the link again cannot reset it.
+    let accessStartsAt=row.accessStartsAt?new Date(row.accessStartsAt):now;
+    let accessExpiresAt=row.accessExpiresAt?new Date(row.accessExpiresAt):new Date(accessStartsAt.getTime()+ACCESS_HOURS*3600000);
+    if(!row.accessStartsAt||!row.accessExpiresAt){
+      await c.updateOne({_id:row._id},{$set:{accessStartsAt,accessExpiresAt,activatedAt:row.activatedAt||now,magicUsedAt:row.magicUsedAt||now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(now.getTime()+SESSION_HOURS*3600000),updatedAt:now}});
+    }else{
+      await c.updateOne({_id:row._id},{$set:{magicUsedAt:row.magicUsedAt||now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(now.getTime()+SESSION_HOURS*3600000),updatedAt:now}});
+    }
+    res.json({ok:true,sessionToken:session,courseSlug:row.courseSlug,accessExpiresAt});
   }catch(e){console.error('Self-study token exchange error',e);res.status(500).json({message:'Unable to start self-study session'});}
 };
 
