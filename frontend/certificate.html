@@ -26,6 +26,9 @@
 .footer{position:absolute;bottom:4mm;left:13mm;right:13mm;border-top:1px solid var(--gold);padding-top:1.8mm;display:flex;justify-content:space-between;color:#8A6C30;font-size:6px;font-weight:900;letter-spacing:.1em}
 .error{position:absolute;left:50%;bottom:22mm;transform:translateX(-50%);padding:4mm 8mm;background:var(--navy);color:#fff;border:1px solid var(--gold);width:70%;text-align:center;font-size:11px}
 .load-failed .error{position:relative;inset:auto;transform:none;width:100%;max-width:680px;margin:28px auto;padding:18px 16px;border-radius:8px;line-height:1.7;font-size:14px;overflow-wrap:anywhere}
+.load-failed .error{white-space:pre-line;text-align:center}
+.load-failed .inner{height:auto!important;min-height:0!important}
+.load-failed .footer{margin-top:24px}
 .load-failed .heading{margin-bottom:0}
 [hidden]{display:none!important}
 .actions{text-align:center;margin:16px}.actions button{background:var(--gold);color:#101820;border:1px solid var(--gold);padding:10px 18px;font-weight:900;cursor:pointer}
@@ -130,13 +133,13 @@ function fail(msg){
   message.className='error';
   const missingId=!new URLSearchParams(location.search).get('id');
   message.textContent=missingId
-    ? 'Open this certificate from your SI account or use a complete certificate link. / افتح الشهادة من حسابك في منصة SI أو استخدم رابط الشهادة الكامل.'
-    : 'Certificate not found or temporarily unavailable. Check the certificate link and try again. / الشهادة غير موجودة أو الخدمة غير متاحة مؤقتًا. تحقق من رابط الشهادة ثم حاول مرة أخرى.';
+    ? 'Open this certificate from your SI account or use a complete certificate link.\nافتح الشهادة من حسابك في منصة SI أو استخدم رابط الشهادة الكامل.'
+    : 'Certificate not found or temporarily unavailable. Check the certificate link and try again.\nالشهادة غير موجودة أو الخدمة غير متاحة مؤقتًا. تحقق من رابط الشهادة ثم حاول مرة أخرى.';
   const inner=certificate.querySelector('.inner');
   const header=inner&&inner.querySelector('.top');
   if(header&&header.nextSibling) inner.insertBefore(message,header.nextSibling);
   else if(inner) inner.appendChild(message);
-  ['.certify','.name','.completed','#topics','.courseMeta','.bottom'].forEach(selector=>{
+  ['.heading','.certify','.name','.completed','#topics','.courseMeta','.bottom','.shieldText','.sideText'].forEach(selector=>{
     const element=certificate.querySelector(selector);
     if(element) element.hidden=true;
   });
