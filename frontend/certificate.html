@@ -264,6 +264,20 @@
  .actions{display:none}.shieldText,.sideText{display:none}
 }
 
+
+/* Final output safeguard: keep certificate readable in light mode and PDF print. */
+:root{color-scheme:light}
+html,body{background:#0B1F33}
+#certificate.wrap{background:#FAF9F4!important;color:#0B1F33!important;forced-color-adjust:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#certificate.wrap:before{background:radial-gradient(circle at 30% 55%,rgba(200,169,107,.035),transparent 28%),repeating-linear-gradient(125deg,rgba(11,31,51,.018) 0 1px,transparent 1px 7px)!important}
+#certificate .heading h1,#certificate .brand b,#certificate .name,#certificate .completed,#certificate .completed b,#certificate .courseAr,#certificate .certify,#certificate .details span,#certificate .metaBox span{color:#0B1F33}
+#certificate .ey,#certificate .heading h2,#certificate .metaBox b,#certificate .footer{color:#8B6320}
+@media print{
+ html,body{background:#fff!important}
+ #certificate.wrap{background:#FAF9F4!important;box-shadow:none!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #certificate.wrap:before{display:block!important}
+}
+
 </style>
 </head>
 <body>
