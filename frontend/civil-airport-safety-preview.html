@@ -23,7 +23,7 @@
 <footer class="foot">SI responsive design check: narrow screens, touch targets, readable bilingual text, keyboard focus, reduced motion, and flexible video placeholders. Final device/browser compatibility requires real-device testing. / فحص التصميم المتجاوب: الشاشات الصغيرة، وأزرار اللمس، ووضوح اللغتين، والتنقل بلوحة المفاتيح، وتقليل الحركة، ومواضع الفيديو. يتطلب تأكيد التوافق النهائي اختبارًا فعليًا على الأجهزة والمتصفحات.</footer>
 </div>
 <script>
-const curriculumUrl='../docs/courses/AVS-EMRG-2026-curriculum.json';let course=null;let index=0;const answers={};
+const curriculumUrl='./data/AVS-EMRG-2026-curriculum.json';let course=null;let index=0;const answers={};
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function bilingual(en,ar,cls=''){return '<div>'+esc(en)+'</div><div class="ar" lang="ar" dir="rtl">'+esc(ar)+'</div>'}
