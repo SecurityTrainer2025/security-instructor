@@ -527,10 +527,6 @@
         },
         "options": [
           {
-            "en": "Protect life and prevent harm",
-            "ar": "حماية الأرواح ومنع الأذى"
-          },
-          {
             "en": "Keep all operations running",
             "ar": "استمرار جميع العمليات"
           },
@@ -541,9 +537,13 @@
           {
             "en": "Wait for social media updates",
             "ar": "انتظار تحديثات وسائل التواصل"
+          },
+          {
+            "en": "Protect life and prevent harm",
+            "ar": "حماية الأرواح ومنع الأذى"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 3
       },
       {
         "id": "avs-f02",
@@ -579,6 +579,10 @@
         },
         "options": [
           {
+            "en": "Move the hazard without authority",
+            "ar": "نقل الخطر دون صلاحية"
+          },
+          {
             "en": "Report clear facts through the correct channel",
             "ar": "الإبلاغ عن الحقائق الواضحة عبر القناة الصحيحة"
           },
@@ -589,13 +593,9 @@
           {
             "en": "Post identifying details publicly",
             "ar": "نشر تفاصيل تعريفية علناً"
-          },
-          {
-            "en": "Move the hazard without authority",
-            "ar": "نقل الخطر دون صلاحية"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 1
       },
       {
         "id": "avs-f04",
@@ -605,23 +605,23 @@
         },
         "options": [
           {
-            "en": "Likelihood and severity",
-            "ar": "الاحتمالية والشدة"
-          },
-          {
-            "en": "Cost and uniform color",
-            "ar": "التكلفة ولون الزي"
-          },
-          {
             "en": "Staff names and shift times",
             "ar": "أسماء الموظفين وأوقات المناوبات"
           },
           {
             "en": "Weather and certificate design only",
             "ar": "الطقس وتصميم الشهادة فقط"
+          },
+          {
+            "en": "Likelihood and severity",
+            "ar": "الاحتمالية والشدة"
+          },
+          {
+            "en": "Cost and uniform color",
+            "ar": "التكلفة ولون الزي"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 2
       },
       {
         "id": "avs-f05",
@@ -630,10 +630,6 @@
           "ar": "كيف ينبغي أن تكون رسالة الطوارئ؟"
         },
         "options": [
-          {
-            "en": "Clear, accurate, timely, and sent through approved channels",
-            "ar": "واضحة ودقيقة وفي الوقت المناسب وعبر القنوات المعتمدة"
-          },
           {
             "en": "Speculative and dramatic",
             "ar": "تخمينية ومبالغاً فيها"
@@ -645,9 +641,13 @@
           {
             "en": "Different for every team without coordination",
             "ar": "مختلفة لكل فريق دون تنسيق"
+          },
+          {
+            "en": "Clear, accurate, timely, and sent through approved channels",
+            "ar": "واضحة ودقيقة وفي الوقت المناسب وعبر القنوات المعتمدة"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 3
       },
       {
         "id": "avs-f06",
@@ -683,6 +683,10 @@
         },
         "options": [
           {
+            "en": "Without checking safe routes",
+            "ar": "دون التحقق من المسارات الآمنة"
+          },
+          {
             "en": "When directed by authorized responders or the applicable plan",
             "ar": "عندما توجه به الجهات المخولة أو الخطة المعتمدة"
           },
@@ -693,13 +697,9 @@
           {
             "en": "Only after collecting personal items",
             "ar": "فقط بعد جمع الأغراض الشخصية"
-          },
-          {
-            "en": "Without checking safe routes",
-            "ar": "دون التحقق من المسارات الآمنة"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 1
       },
       {
         "id": "avs-f08",
@@ -709,23 +709,23 @@
         },
         "options": [
           {
-            "en": "Follow the emergency plan and use an approved safe alternative if directed",
-            "ar": "اتباع خطة الطوارئ واستخدام بديل آمن معتمد إذا تم التوجيه بذلك"
-          },
-          {
-            "en": "Use it regardless of conditions",
-            "ar": "استخدامه بغض النظر عن الظروف"
-          },
-          {
             "en": "Block all other exits",
             "ar": "إغلاق جميع المخارج الأخرى"
           },
           {
             "en": "Return to collect belongings",
             "ar": "العودة لجمع الممتلكات"
+          },
+          {
+            "en": "Follow the emergency plan and use an approved safe alternative if directed",
+            "ar": "اتباع خطة الطوارئ واستخدام بديل آمن معتمد إذا تم التوجيه بذلك"
+          },
+          {
+            "en": "Use it regardless of conditions",
+            "ar": "استخدامه بغض النظر عن الظروف"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 2
       },
       {
         "id": "avs-f09",
@@ -734,10 +734,6 @@
           "ar": "لماذا تُستخدم نقطة التجمع؟"
         },
         "options": [
-          {
-            "en": "To organize evacuated people and support accountability",
-            "ar": "لتنظيم الأشخاص الذين تم إخلاؤهم ودعم إحصائهم"
-          },
           {
             "en": "To store vehicles",
             "ar": "لتخزين المركبات"
@@ -749,9 +745,13 @@
           {
             "en": "To replace emergency communications",
             "ar": "لاستبدال اتصالات الطوارئ"
+          },
+          {
+            "en": "To organize evacuated people and support accountability",
+            "ar": "لتنظيم الأشخاص الذين تم إخلاؤهم ودعم إحصائهم"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 3
       },
       {
         "id": "avs-f10",
@@ -787,6 +787,10 @@
         },
         "options": [
           {
+            "en": "Photograph it at close range before reporting",
+            "ar": "تصويره عن قرب قبل الإبلاغ"
+          },
+          {
             "en": "Do not touch it; follow the site reporting and isolation procedures",
             "ar": "عدم لمسه واتباع إجراءات الموقع للإبلاغ والعزل"
           },
@@ -797,13 +801,9 @@
           {
             "en": "Move it away from the public",
             "ar": "نقله بعيداً عن الجمهور"
-          },
-          {
-            "en": "Photograph it at close range before reporting",
-            "ar": "تصويره عن قرب قبل الإبلاغ"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 1
       },
       {
         "id": "avs-f12",
@@ -813,23 +813,23 @@
         },
         "options": [
           {
-            "en": "Raise the alarm and follow the airport emergency plan from a safe position",
-            "ar": "إطلاق الإنذار واتباع خطة طوارئ المطار من موقع آمن"
-          },
-          {
-            "en": "Approach the aircraft to investigate alone",
-            "ar": "الاقتراب من الطائرة للتحقيق بمفردهم"
-          },
-          {
             "en": "Wait until the next scheduled report",
             "ar": "الانتظار حتى التقرير المجدول التالي"
           },
           {
             "en": "Move equipment without coordination",
             "ar": "نقل المعدات دون تنسيق"
+          },
+          {
+            "en": "Raise the alarm and follow the airport emergency plan from a safe position",
+            "ar": "إطلاق الإنذار واتباع خطة طوارئ المطار من موقع آمن"
+          },
+          {
+            "en": "Approach the aircraft to investigate alone",
+            "ar": "الاقتراب من الطائرة للتحقيق بمفردهم"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 2
       },
       {
         "id": "avs-f13",
@@ -838,10 +838,6 @@
           "ar": "ما الهدف من التمرين المكتبي؟"
         },
         "options": [
-          {
-            "en": "Discuss roles, decisions, communications, and gaps using a scenario",
-            "ar": "مناقشة الأدوار والقرارات والاتصالات والثغرات باستخدام سيناريو"
-          },
           {
             "en": "Replace all practical drills permanently",
             "ar": "استبدال جميع التدريبات العملية نهائياً"
@@ -853,9 +849,13 @@
           {
             "en": "Test staff without explaining the objectives",
             "ar": "اختبار العاملين دون توضيح الأهداف"
+          },
+          {
+            "en": "Discuss roles, decisions, communications, and gaps using a scenario",
+            "ar": "مناقشة الأدوار والقرارات والاتصالات والثغرات باستخدام سيناريو"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 3
       },
       {
         "id": "avs-f14",
@@ -891,6 +891,10 @@
         },
         "options": [
           {
+            "en": "Use lifts without checking emergency procedures",
+            "ar": "استخدام المصاعد دون التحقق من إجراءات الطوارئ"
+          },
+          {
             "en": "Follow the site plan, training, and the person's needs without creating extra danger",
             "ar": "اتباع خطة الموقع والتدريب واحتياجات الشخص دون خلق خطر إضافي"
           },
@@ -901,13 +905,9 @@
           {
             "en": "Leave the person without notifying anyone",
             "ar": "ترك الشخص دون إبلاغ أحد"
-          },
-          {
-            "en": "Use lifts without checking emergency procedures",
-            "ar": "استخدام المصاعد دون التحقق من إجراءات الطوارئ"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 1
       },
       {
         "id": "avs-f16",
@@ -917,23 +917,23 @@
         },
         "options": [
           {
-            "en": "To reduce re-entry risks and support responder operations",
-            "ar": "للحد من مخاطر العودة ودعم عمل فرق الاستجابة"
-          },
-          {
-            "en": "To prevent emergency responders from entering",
-            "ar": "لمنع فرق الطوارئ من الدخول"
-          },
-          {
             "en": "To allow anyone to collect belongings",
             "ar": "للسماح للجميع بجمع ممتلكاتهم"
           },
           {
             "en": "To avoid keeping any records",
             "ar": "لتجنب الاحتفاظ بأي سجلات"
+          },
+          {
+            "en": "To reduce re-entry risks and support responder operations",
+            "ar": "للحد من مخاطر العودة ودعم عمل فرق الاستجابة"
+          },
+          {
+            "en": "To prevent emergency responders from entering",
+            "ar": "لمنع فرق الطوارئ من الدخول"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 2
       },
       {
         "id": "avs-f17",
@@ -942,10 +942,6 @@
           "ar": "ماذا ينبغي أن يسجل سجل الحادث؟"
         },
         "options": [
-          {
-            "en": "Relevant times, observations, reports, and actions as required",
-            "ar": "الأوقات والملاحظات والبلاغات والإجراءات ذات الصلة حسب المطلوب"
-          },
           {
             "en": "Rumors and personal assumptions as facts",
             "ar": "الشائعات والافتراضات الشخصية كحقائق"
@@ -957,9 +953,13 @@
           {
             "en": "Unrelated personal information",
             "ar": "المعلومات الشخصية غير المرتبطة"
+          },
+          {
+            "en": "Relevant times, observations, reports, and actions as required",
+            "ar": "الأوقات والملاحظات والبلاغات والإجراءات ذات الصلة حسب المطلوب"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 3
       },
       {
         "id": "avs-f18",
@@ -995,6 +995,10 @@
         },
         "options": [
           {
+            "en": "Share confidential details publicly",
+            "ar": "نشر التفاصيل السرية علناً"
+          },
+          {
             "en": "Review lessons, document gaps, and assign follow-up actions",
             "ar": "مراجعة الدروس وتوثيق الثغرات وتحديد إجراءات المتابعة"
           },
@@ -1005,13 +1009,9 @@
           {
             "en": "Assume no improvement is needed",
             "ar": "افتراض عدم الحاجة إلى تحسين"
-          },
-          {
-            "en": "Share confidential details publicly",
-            "ar": "نشر التفاصيل السرية علناً"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 1
       },
       {
         "id": "avs-f20",
@@ -1021,23 +1021,23 @@
         },
         "options": [
           {
-            "en": "The learner met course requirements; it does not replace site authorization or professional qualifications",
-            "ar": "أن المتدرب استوفى متطلبات الدورة؛ ولا يحل ذلك محل صلاحيات الموقع أو المؤهلات المهنية"
-          },
-          {
-            "en": "The learner can command any real emergency",
-            "ar": "أن المتدرب يستطيع قيادة أي طارئ حقيقي"
-          },
-          {
             "en": "The learner is certified for every airport role",
             "ar": "أن المتدرب معتمد لكل دور في المطارات"
           },
           {
             "en": "The learner no longer needs local procedures",
             "ar": "أن المتدرب لم يعد بحاجة إلى إجراءات الموقع"
+          },
+          {
+            "en": "The learner met course requirements; it does not replace site authorization or professional qualifications",
+            "ar": "أن المتدرب استوفى متطلبات الدورة؛ ولا يحل ذلك محل صلاحيات الموقع أو المؤهلات المهنية"
+          },
+          {
+            "en": "The learner can command any real emergency",
+            "ar": "أن المتدرب يستطيع قيادة أي طارئ حقيقي"
           }
         ],
-        "correctIndex": 0
+        "correctIndex": 2
       }
     ]
   }
