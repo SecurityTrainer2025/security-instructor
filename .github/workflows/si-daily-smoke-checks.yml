@@ -1,0 +1,76 @@
+name: SI Daily Smoke Checks
+
+on:
+  schedule:
+    - cron: "15 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: si-daily-smoke-checks
+  cancel-in-progress: false
+
+jobs:
+  smoke-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check public frontend
+        id: frontend
+        shell: bash
+        run: |
+          set +e
+          for url in \
+            "https://securitytrainer2025.github.io/security-instructor/frontend/index.html" \
+            "https://securitytrainer2025.github.io/security-instructor/frontend/fire-safety-self-study-register.html" \
+            "https://securitytrainer2025.github.io/security-instructor/frontend/fire-safety-self-study.html"; do
+            code=$(curl --location --silent --show-error --output /tmp/si-page.html --write-out "%{http_code}" --max-time 25 "$url" 2>/tmp/si-curl.err)
+            rc=$?
+            if [ "$rc" -eq 0 ] && [ "$code" = "200" ]; then
+              echo "PASS | HTTP $code | $url" | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              echo "FAIL | HTTP ${code:-no response}, curl exit $rc | $url" | tee -a "$GITHUB_STEP_SUMMARY"
+              cat /tmp/si-curl.err >> "$GITHUB_STEP_SUMMARY"
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "failed=true" >> "$GITHUB_OUTPUT"
+            fi
+          done
+          exit 0
+
+      - name: Check self-study API
+        id: api
+        shell: bash
+        run: |
+          set +e
+          url="https://security-instructor.onrender.com/api/self-study/courses/fire-safety-emergency-response"
+          code=""
+          rc=1
+          for attempt in 1 2 3; do
+            code=$(curl --location --silent --show-error --output /tmp/si-api.json --write-out "%{http_code}" --max-time 35 "$url" 2>/tmp/si-api.err)
+            rc=$?
+            if [ "$rc" -eq 0 ] && [ "$code" = "200" ]; then break; fi
+            sleep 8
+          done
+          if [ "$rc" -eq 0 ] && [ "$code" = "200" ] && grep -q '"screenCount"' /tmp/si-api.json; then
+            echo "PASS | API returned HTTP 200 and course metadata" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "Response: $(cat /tmp/si-api.json)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "FAIL | Self-study API did not return expected course metadata (HTTP ${code:-no response})" | tee -a "$GITHUB_STEP_SUMMARY"
+            cat /tmp/si-api.err >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      - name: Final result
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.frontend.outputs.failed }}" = "true" ] || [ "${{ steps.api.outputs.failed }}" = "true" ]; then
+            echo "## Result: FAIL — investigate the failed checks above" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "## Result: PASS — public pages and self-study course API responded as expected" >> "$GITHUB_STEP_SUMMARY"
+          fi
