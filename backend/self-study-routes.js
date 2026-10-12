@@ -413,18 +413,20 @@ const exchangeHandler=async(req,res)=>{
     const token=clean(req.body?.token,100);
     if(!token)return res.status(400).json({message:'Invalid access token'});
     const c=mongoose.connection.collection('selfstudyaccess');
-    const row=await c.findOne({magicTokenHash:sha(token),status:'active'});
-    if(!row||!row.magicTokenExpiresAt||new Date(row.magicTokenExpiresAt)<=new Date())return res.status(401).json({message:'Access link is invalid or expired. Please request a new access email.'});
-    const session=randomToken(32),now=new Date();
-    // Start the 5-day access window on first successful course-link activation, not registration.
-    // Existing active registrations keep their original expiry; opening the link again cannot reset it.
-    let accessStartsAt=row.accessStartsAt?new Date(row.accessStartsAt):now;
-    let accessExpiresAt=row.accessExpiresAt?new Date(row.accessExpiresAt):new Date(accessStartsAt.getTime()+ACCESS_HOURS*3600000);
-    if(!row.accessStartsAt||!row.accessExpiresAt){
-      await c.updateOne({_id:row._id},{$set:{accessStartsAt,accessExpiresAt,activatedAt:row.activatedAt||now,magicUsedAt:row.magicUsedAt||now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(now.getTime()+SESSION_HOURS*3600000),updatedAt:now}});
-    }else{
-      await c.updateOne({_id:row._id},{$set:{magicUsedAt:row.magicUsedAt||now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(now.getTime()+SESSION_HOURS*3600000),updatedAt:now}});
-    }
+    const now=new Date(),tokenHash=sha(token);
+    const row=await c.findOne({magicTokenHash:tokenHash,status:'active'});
+    if(!row||!row.magicTokenExpiresAt||new Date(row.magicTokenExpiresAt)<=now||row.magicUsedAt)return res.status(401).json({message:'Access link is invalid, expired, or already used. If you already activated the course, return to the course page; otherwise request a new access email.'});
+    if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=now)return res.status(410).json({message:'The 5-day self-study access window has ended.'});
+    // The email link is consumed atomically once. The returned session is saved by the browser,
+    // so learners can close the page and return without requesting another email link.
+    const session=randomToken(32);
+    const accessStartsAt=row.accessStartsAt?new Date(row.accessStartsAt):now;
+    const accessExpiresAt=row.accessExpiresAt?new Date(row.accessExpiresAt):new Date(accessStartsAt.getTime()+ACCESS_HOURS*3600000);
+    const update=await c.updateOne(
+      {_id:row._id,magicTokenHash:tokenHash,magicUsedAt:null,status:'active',magicTokenExpiresAt:{$gt:now}},
+      {$set:{accessStartsAt,accessExpiresAt,activatedAt:row.activatedAt||now,magicUsedAt:now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(Math.min(now.getTime()+SESSION_HOURS*3600000,accessExpiresAt.getTime())),updatedAt:now}}
+    );
+    if(update.modifiedCount!==1)return res.status(401).json({message:'This access link has already been used or expired. Return to the course page if you already activated it, or request a new access email.'});
     res.json({ok:true,sessionToken:session,courseSlug:row.courseSlug,accessExpiresAt});
   }catch(e){console.error('Self-study token exchange error',e);res.status(500).json({message:'Unable to start self-study session'});}
 };
