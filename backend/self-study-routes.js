@@ -294,7 +294,7 @@ const shuffleOrder=key=>{
   }
   return order;
 };
-const questionOrder=q=>shuffleOrder(q.q);
+const questionOrder=(q,accessId)=>shuffleOrder(String(q.q)+'|'+String(accessId));
 
 async function nextNumber(collection,prefix,field){
   const last=await collection.find({[field]:new RegExp('^'+prefix+'\\d+$')},{projection:{[field]:1}}).sort({[field]:-1}).limit(1).next();
@@ -452,7 +452,7 @@ const screenHandler=async(req,res)=>{
         if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
       }
     }
-    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q);return {q:q.q,options:order.map(i=>q.a[i])}})});
+    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
   }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
 };
 const screenAssessmentHandler=async(req,res)=>{
@@ -470,7 +470,7 @@ const screenAssessmentHandler=async(req,res)=>{
     }
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
     if(answers.length!==s.questions.length)return res.status(400).json({message:'Please answer all questions'});
-    const correct=s.questions.reduce((n,q,i)=>{const order=questionOrder(q);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
+    const correct=s.questions.reduce((n,q,i)=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/s.questions.length*100);
     const p=req.selfStudy.progress||baseProgress();
     const scores={...(p.screenScores||{})};
