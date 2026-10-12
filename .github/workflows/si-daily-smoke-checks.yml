@@ -1,6 +1,9 @@
 name: SI Daily Smoke Checks
 
 on:
+  pull_request:
+    branches:
+      - main
   schedule:
     - cron: "15 6 * * *"
   workflow_dispatch:
@@ -55,7 +58,6 @@ jobs:
           done
           if [ "$rc" -eq 0 ] && [ "$code" = "200" ] && grep -q '"screenCount"' /tmp/si-api.json; then
             echo "PASS | API returned HTTP 200 and course metadata" | tee -a "$GITHUB_STEP_SUMMARY"
-            echo "Response: $(cat /tmp/si-api.json)" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "FAIL | Self-study API did not return expected course metadata (HTTP ${code:-no response})" | tee -a "$GITHUB_STEP_SUMMARY"
             cat /tmp/si-api.err >> "$GITHUB_STEP_SUMMARY"
