@@ -84,6 +84,24 @@ test('diagnostic grading rejects incomplete or invalid submissions', () => {
   assert.throws(() => gradeInitialAssessment(INITIAL_ASSESSMENT, snapshot, answers));
 });
 
+
+test('randomized order changes displayed option positions without changing answer identity', () => {
+  // Always selecting index zero in Fisher-Yates produces a predictable non-identity permutation.
+  const snapshot = createInitialAssessmentSnapshot(INITIAL_ASSESSMENT, () => 0);
+  const publicQuiz = buildPublicInitialAssessment(INITIAL_ASSESSMENT, snapshot);
+  const originalFirstQuestion = INITIAL_ASSESSMENT.questions[0];
+  const displayedFirstQuestion = publicQuiz.find(q => q.id === originalFirstQuestion.id);
+  assert.notDeepEqual(
+    displayedFirstQuestion.options.map(option => option.id),
+    originalFirstQuestion.options.map(option => option.id)
+  );
+
+  const answers = Object.fromEntries(INITIAL_ASSESSMENT.questions.map(q => [q.id, q.correctOptionId]));
+  const result = gradeInitialAssessment(INITIAL_ASSESSMENT, snapshot, answers);
+  assert.equal(result.correct, 10);
+  assert.equal(result.percent, 100);
+});
+
 test('question identifiers and option identifiers must be unique', () => {
   const broken = {
     ...INITIAL_ASSESSMENT,
