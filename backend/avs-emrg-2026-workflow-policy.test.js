@@ -11,14 +11,14 @@ test('training duration, link expiry, and active-study duration remain separate'
   const progress = policy.createInitialProgress({ accessCreatedAt: t0, activeStudyHours: null });
   assert.equal(policy.TRAINING_HOURS, 8);
   assert.equal(progress.accessExpiresAt, t0 + 120 * 60 * 60 * 1000);
-  assert.equal(progress.activeStudyHours, null);
+  assert.equal(progress.activeStudyHours, null);\n  assert.deepEqual(policy.startActiveStudy(progress, t0), { activeStudyStartedAt: null, started: false });
   assert.deepEqual(policy.assertAccessValid(progress, t0 + 119 * 60 * 60 * 1000), { valid: true, reason: null });
   assert.deepEqual(policy.assertAccessValid(progress, t0 + 120 * 60 * 60 * 1000), { valid: false, reason: 'access-expired' });
 });
 
 test('active-study expiry is independently enforced when configured', () => {
   const progress = policy.createInitialProgress({ accessCreatedAt: t0, activeStudyHours: 24 });
-  progress.activeStudyStartedAt = t0 + 60 * 60 * 1000;
+  const started = policy.startActiveStudy(progress, t0 + 60 * 60 * 1000);\n  assert.deepEqual(started, { activeStudyStartedAt: t0 + 60 * 60 * 1000, started: true });\n  progress.activeStudyStartedAt = started.activeStudyStartedAt;
   assert.equal(policy.assertAccessValid(progress, t0 + 24 * 60 * 60 * 1000).valid, true);
   assert.deepEqual(policy.assertAccessValid(progress, t0 + 25 * 60 * 60 * 1000), {
     valid: false, reason: 'active-study-expired'
@@ -37,7 +37,7 @@ test('learner cannot skip checks and must pass each check with 4 of 5', () => {
   const pass = policy.recordFormativeResult(progress, 1, { correct: 4, total: 5 }, t0);
   assert.equal(pass.passed, true);
   progress.completedChecks = pass.completedChecks;
-  assert.deepEqual(policy.canOpenScreen(progress, 2, t0), { allowed: true, reason: null });
+  assert.deepEqual(policy.canOpenScreen(progress, 2, t0), { allowed: true, reason: null });\n  progress.completedChecks = [2];\n  assert.deepEqual(policy.canOpenScreen(progress, 3, t0), { allowed: false, reason: 'previous-check-not-passed' });\n  progress.completedChecks = pass.completedChecks;
   assert.throws(() => policy.recordFormativeResult(progress, 3, { correct: 5, total: 5 }, t0));
 });
 
