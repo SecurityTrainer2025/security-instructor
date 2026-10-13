@@ -2,8 +2,14 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { INITIAL_ASSESSMENT, validateInitialAssessment, getLearnerQuestionBank } =
-  require('./avs-emrg-2026-initial-assessment');
+const {
+  INITIAL_ASSESSMENT,
+  validateInitialAssessment,
+  getLearnerQuestionBank,
+  createInitialAssessmentSnapshot,
+  buildPublicInitialAssessment,
+  gradeInitialAssessment
+} = require('./avs-emrg-2026-initial-assessment');
 
 test('initial assessment contains 10 medium bilingual diagnostic questions', () => {
   assert.equal(INITIAL_ASSESSMENT.questionCount, 10);
@@ -37,6 +43,45 @@ test('learner-safe question bank excludes correct answers', () => {
       assert.equal(Object.hasOwn(option, 'isCorrect'), false);
     }
   }
+});
+
+test('questions and options are shuffled per attempt with order stored in snapshot', () => {
+  const sequence = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  let cursor = 0;
+  const randomInt = max => sequence[cursor++] % max;
+  const snapshot = createInitialAssessmentSnapshot(INITIAL_ASSESSMENT, randomInt);
+  assert.equal(snapshot.questionOrder.length, 10);
+  assert.equal(new Set(snapshot.questionOrder).size, 10);
+  for (const q of INITIAL_ASSESSMENT.questions) {
+    assert.equal(snapshot.optionOrderByQuestionId[q.id].length, 4);
+    assert.equal(new Set(snapshot.optionOrderByQuestionId[q.id]).size, 4);
+  }
+  const publicQuiz = buildPublicInitialAssessment(INITIAL_ASSESSMENT, snapshot);
+  assert.equal(publicQuiz.length, 10);
+  assert.equal(Object.hasOwn(publicQuiz[0], 'correctOptionId'), false);
+  assert.equal(Object.hasOwn(publicQuiz[0].options[0], 'isCorrect'), false);
+});
+
+test('diagnostic grading uses answer IDs after randomization and does not impose a pass mark', () => {
+  const snapshot = createInitialAssessmentSnapshot(INITIAL_ASSESSMENT);
+  const answers = {};
+  for (const question of INITIAL_ASSESSMENT.questions) {
+    answers[question.id] = question.correctOptionId;
+  }
+  const result = gradeInitialAssessment(INITIAL_ASSESSMENT, snapshot, answers);
+  assert.equal(result.correct, 10);
+  assert.equal(result.total, 10);
+  assert.equal(result.percent, 100);
+  assert.equal(result.diagnosticOnly, true);
+  assert.equal(result.passed, null);
+});
+
+test('diagnostic grading rejects incomplete or invalid submissions', () => {
+  const snapshot = createInitialAssessmentSnapshot(INITIAL_ASSESSMENT);
+  assert.throws(() => gradeInitialAssessment(INITIAL_ASSESSMENT, snapshot, {}));
+  const answers = Object.fromEntries(INITIAL_ASSESSMENT.questions.map(q => [q.id, q.correctOptionId]));
+  answers[INITIAL_ASSESSMENT.questions[0].id] = 'not-an-option';
+  assert.throws(() => gradeInitialAssessment(INITIAL_ASSESSMENT, snapshot, answers));
 });
 
 test('question identifiers and option identifiers must be unique', () => {
