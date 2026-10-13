@@ -494,7 +494,7 @@ const screenAssessmentHandler=async(req,res)=>{
     p.screenScores=scores;p.modules=modules;
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:p,updatedAt:new Date()}});
     const cumulative=p.cumulativeQuestions?Math.round(p.cumulativeCorrect/p.cumulativeQuestions*100):0;
-    res.json({ok:true,score,passed:score>=80,correct,total:s.questions.length,cumulativeScore:cumulative,attempts:scores[s.id].attempts});
+    res.json({ok:true,score,passed:bestScore>=80,bestScore,correct,total:s.questions.length,cumulativeScore:cumulative,attempts:scores[s.id].attempts});
   }catch(e){console.error('Self-study screen assessment error',e);res.status(500).json({message:'Unable to save screen assessment'});}
 };
 
