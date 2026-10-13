@@ -508,8 +508,8 @@ const finalHandler=async(req,res)=>{
     const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/FINAL_FIRE_ASSESSMENT.length*100);
     const finalAttempts=attempts+1;    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
-    const finalPassed=!!p.finalPassed||score>=70;
-    const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>=70,updatedAt:new Date()}];
+    const finalPassed=!!p.finalPassed||score>70;
+    const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>70,updatedAt:new Date()}];
     const updated={...p,finalAttempts,finalBestScore,finalPassed,finalScores};
     let certificateId=null;
     if(finalPassed){
@@ -550,7 +550,7 @@ const finalQuestionsHandler=async(req,res)=>{
       const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
       return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
     });
-    res.json({ok:true,total:questions.length,passScore:70,attempts,attemptsRemaining:Math.max(0,3-attempts),passed:!!p.finalPassed,questions});
+    res.json({ok:true,total:questions.length,passScoreExclusive:70,passRule:'score > 70',attempts,attemptsRemaining:Math.max(0,3-attempts),passed:!!p.finalPassed,questions});
   }catch(e){console.error('Self-study final assessment load error',e);res.status(500).json({message:'Unable to load final assessment'});}
 };
 const studyHeartbeatHandler=async(req,res)=>{
