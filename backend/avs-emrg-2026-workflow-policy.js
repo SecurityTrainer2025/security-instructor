@@ -32,15 +32,33 @@ function createInitialProgress({ accessCreatedAt, activeStudyHours = null } = {}
   };
 }
 
+function startActiveStudy(progress, now = Date.now()) {
+  if (!progress || !Number.isFinite(progress.accessExpiresAt)) {
+    throw new TypeError('Valid server-side access state is required.');
+  }
+  if (!Number.isFinite(now)) throw new TypeError('now must be a timestamp.');
+  if (progress.activeStudyHours === null) return { activeStudyStartedAt: null, started: false };
+  if (progress.activeStudyStartedAt !== null) {
+    return { activeStudyStartedAt: progress.activeStudyStartedAt, started: false };
+  }
+  return { activeStudyStartedAt: now, started: true };
+}
+
 function assertAccessValid(progress, now = Date.now()) {
   if (!progress || !Number.isFinite(progress.accessExpiresAt)) {
     throw new TypeError('Valid server-side access state is required.');
   }
   if (!Number.isFinite(now)) throw new TypeError('now must be a timestamp.');
   if (now >= progress.accessExpiresAt) return { valid: false, reason: 'access-expired' };
-  if (progress.activeStudyHours !== null && progress.activeStudyStartedAt !== null &&
-      now >= progress.activeStudyStartedAt + progress.activeStudyHours * 60 * 60 * 1000) {
-    return { valid: false, reason: 'active-study-expired' };
+  if (progress.activeStudyHours !== null) {
+    if (!Number.isFinite(progress.activeStudyHours) || progress.activeStudyHours <= 0) {
+      throw new TypeError('activeStudyHours must be a positive number or null.');
+    }
+    if (progress.activeStudyStartedAt !== null &&
+        (!Number.isFinite(progress.activeStudyStartedAt) ||
+         now >= progress.activeStudyStartedAt + progress.activeStudyHours * 60 * 60 * 1000)) {
+      return { valid: false, reason: 'active-study-expired' };
+    }
   }
   return { valid: true, reason: null };
 }
@@ -51,10 +69,13 @@ function canOpenScreen(progress, screenNumber, now = Date.now()) {
   }
   const access = assertAccessValid(progress, now);
   if (!access.valid) return { allowed: false, reason: access.reason };
-  if (screenNumber === 1) return { allowed: true, reason: null };
-  if (!Array.isArray(progress.completedChecks) ||
-      !progress.completedChecks.includes(screenNumber - 1)) {
-    return { allowed: false, reason: 'previous-check-not-passed' };
+  if (!Array.isArray(progress.completedChecks)) {
+    throw new TypeError('Valid server-side formative progress is required.');
+  }
+  for (let required = 1; required < screenNumber; required += 1) {
+    if (!progress.completedChecks.includes(required)) {
+      return { allowed: false, reason: 'previous-check-not-passed' };
+    }
   }
   return { allowed: true, reason: null };
 }
@@ -66,9 +87,6 @@ function recordFormativeResult(progress, screenNumber, result, now = Date.now())
   if (!result || result.total !== FORMATIVE_QUESTIONS_PER_CHECK ||
       !Number.isInteger(result.correct) || result.correct < 0 || result.correct > result.total) {
     throw new TypeError('A valid server-graded result for exactly five questions is required.');
-  }
-  if (screenNumber > 1 && !progress.completedChecks.includes(screenNumber - 1)) {
-    throw new Error('Previous formative check must be passed first.');
   }
   if (result.correct < FORMATIVE_PASS_MIN_CORRECT) {
     return { passed: false, completedChecks: progress.completedChecks.slice() };
@@ -86,7 +104,10 @@ function canStartFinal(progress, now = Date.now()) {
     return { allowed: false, reason: 'formative-checks-incomplete' };
   }
   if (progress.finalPassed) return { allowed: false, reason: 'already-passed' };
-  if (!Number.isInteger(progress.finalAttempts) || progress.finalAttempts >= FINAL_ATTEMPT_LIMIT) {
+  if (!Number.isInteger(progress.finalAttempts) || progress.finalAttempts < 0) {
+    throw new TypeError('finalAttempts must be a non-negative integer.');
+  }
+  if (progress.finalAttempts >= FINAL_ATTEMPT_LIMIT) {
     return { allowed: false, reason: 'attempt-limit-reached' };
   }
   return { allowed: true, reason: null };
@@ -117,6 +138,7 @@ module.exports = {
   FORMATIVE_PASS_MIN_CORRECT,
   FORMATIVE_QUESTIONS_PER_CHECK,
   createInitialProgress,
+  startActiveStudy,
   assertAccessValid,
   canOpenScreen,
   recordFormativeResult,
