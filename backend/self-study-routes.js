@@ -483,12 +483,14 @@ const screenAssessmentHandler=async(req,res)=>{
     const scores={...(p.screenScores||{})};
     const modules={...(p.modules||{})};
     const previous=scores[s.id];
-    scores[s.id]={score,questions:s.questions.length,correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
-    if(score>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
-    modules[s.id.slice(0,2)]=Math.max(Number(modules[s.id.slice(0,2)]||0),score);
+    const bestScore=Math.max(Number(previous?.bestScore??previous?.score??0),score);
+    const bestCorrect=Math.max(Number(previous?.bestCorrect??previous?.correct??0),correct);
+    scores[s.id]={score:bestScore,bestScore,bestCorrect,latestScore:score,latestCorrect:correct,questions:s.questions.length,correct:bestCorrect,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
+    if(bestScore>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
+    modules[s.id.slice(0,2)]=Math.max(Number(modules[s.id.slice(0,2)]||0),bestScore);
     const all=Object.values(scores);
     p.cumulativeQuestions=all.reduce((n,x)=>n+Number(x.questions||0),0);
-    p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.correct||0),0);
+    p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.bestCorrect??x.correct??0),0);
     p.screenScores=scores;p.modules=modules;
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:p,updatedAt:new Date()}});
     const cumulative=p.cumulativeQuestions?Math.round(p.cumulativeCorrect/p.cumulativeQuestions*100):0;
