@@ -400,10 +400,13 @@ const requestAccessHandler=async(req,res)=>{
     if(!enroll)return res.json(generic);
     const trainee=await mongoose.connection.collection('trainees').findOne({traineeId:enroll.traineeId,email});
     if(!trainee)return res.json(generic);
-    const course=COURSE_META[FIRE_SLUG];
-    let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:FIRE_SLUG});
+    // Recover access for the exact course attached to this enrollment, not Fire Safety only.
+    let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId});
     if(!row)return res.json(generic);
-    if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date())return res.json(generic);    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
+    const course=COURSE_META[row.courseSlug];
+    if(!course)return res.json(generic);
+    if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date())return res.json(generic);
+    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:expires,magicUsedAt:null,updatedAt:new Date()}});
     await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,expiresAt:row.accessExpiresAt});
     res.json(generic);
