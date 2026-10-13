@@ -64,6 +64,15 @@ const FINAL_FIRE_ASSESSMENT=[
 
 if(FINAL_FIRE_ASSESSMENT.length!==30||FINAL_FIRE_ASSESSMENT.some(x=>!x.q||!Array.isArray(x.a)||x.a.length!==4||new Set(x.a).size!==4||x.correct<0||x.correct>3))throw new Error('Validated Fire Safety final assessment must contain 30 questions with four unique options each');
 const finalQuestionOrder=(q,accessId)=>shuffleOrder(String(q.q)+'|'+String(accessId));
+const finalAssessmentOrder=accessId=>{
+  const order=FINAL_FIRE_ASSESSMENT.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){
+    const seed=parseInt(sha('final-question-order|'+String(accessId)+'|'+i).slice(0,8),16);
+    const j=seed%(i+1);
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  return order;
+};
 
 const FIRE_SCREENS={
 m1:[
@@ -512,8 +521,10 @@ const finalHandler=async(req,res)=>{
     if(attempts>=3)return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
     if(answers.length!==FINAL_FIRE_ASSESSMENT.length)return res.status(400).json({message:'Please answer all 30 questions.'});
-    const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
-    const score=Math.round(correct/FINAL_FIRE_ASSESSMENT.length*100);
+    const accessKey=req.selfStudy.accessId||req.selfStudy.enrollmentId;
+    const orderedQuestions=finalAssessmentOrder(accessKey).map(sourceIndex=>FINAL_FIRE_ASSESSMENT[sourceIndex]);
+    const correct=orderedQuestions.reduce((n,q,i)=>{const order=finalQuestionOrder(q,accessKey);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
+    const score=Math.round(correct/orderedQuestions.length*100);
     const finalAttempts=attempts+1;    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
     const finalPassed=!!p.finalPassed||score>70;
     const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>70,updatedAt:new Date()}];
@@ -553,8 +564,10 @@ const finalQuestionsHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
     const attempts=Number(p.finalAttempts||0);
-    const questions=FINAL_FIRE_ASSESSMENT.map((q,i)=>{
-      const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
+    const accessKey=req.selfStudy.accessId||req.selfStudy.enrollmentId;
+    const questions=finalAssessmentOrder(accessKey).map((sourceIndex,i)=>{
+      const q=FINAL_FIRE_ASSESSMENT[sourceIndex];
+      const order=finalQuestionOrder(q,accessKey);
       return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
     });
     res.json({ok:true,total:questions.length,passScoreExclusive:70,passRule:'score > 70',attempts,attemptsRemaining:Math.max(0,3-attempts),passed:!!p.finalPassed,questions});
