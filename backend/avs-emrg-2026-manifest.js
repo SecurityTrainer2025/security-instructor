@@ -70,7 +70,19 @@ const WORKSHOP = Object.freeze({
     questionBankStatus: 'not-implemented',
     contentReviewStatus: 'needs-final-review'
   }))),
+  initialAssessment: Object.freeze({
+    questionCount: 10,
+    difficulty: 'medium',
+    languageMode: 'bilingual-en-ar',
+    kind: 'diagnostic-only',
+    requiredToPass: false,
+    gatesWorkshopAccess: false,
+    affectsCertificateEligibility: false,
+    bankPath: 'backend/avs-emrg-2026-initial-assessment.js',
+    bankStatus: 'draft-created-needs-content-review'
+  }),
   assessmentStatus: Object.freeze({
+    initialAssessmentBank: 'draft-created-not-integrated',
     formativeBank: 'not-implemented',
     finalBank: 'not-implemented',
     learnerSpecificRandomization: 'not-implemented',
