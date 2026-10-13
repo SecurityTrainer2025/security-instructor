@@ -263,7 +263,6 @@ const COURSE_META={
     ar:'السلامة من الحرائق وتدابير الاستجابة للطوارئ',
     mode:'self-study',
     freeOpening:true,
-    trainingDurationHours:null,
     accessHours:ACCESS_HOURS,
     activeStudyHours:ACTIVE_STUDY_HOURS,
     durationHours:ACTIVE_STUDY_HOURS,
@@ -566,7 +565,7 @@ const studyHeartbeatHandler=async(req,res)=>{
     used=Math.min(activeStudyLimitSeconds,Math.floor(used));
     const reached=used>=activeStudyLimitSeconds;
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{activeStudySeconds:used,activeStudyLastPingAt:active&&!reached?now:null,status:reached?'study_limit_reached':'active',updatedAt:now}});
-    if(reached)return res.status(410).json({message:'You have used the maximum 24 active study hours. Your pilot course access has ended. / لقد استهلكت الحد الأقصى وهو 24 ساعة دراسة فعلية. انتهى وصولك إلى الدورة التجريبية.',activeStudySeconds:used,activeStudyLimitSeconds});
+    if(reached)return res.status(410).json({message:'You have reached the active study time limit for this course. / لقد وصلت إلى الحد الأقصى لوقت الدراسة الفعلي لهذه الدورة.',activeStudySeconds:used,activeStudyLimitSeconds});
     res.json({ok:true,activeStudySeconds:used,activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,accessExpiresAt:row.accessExpiresAt});
   }catch(e){console.error('Self-study heartbeat error',e);res.status(500).json({message:'Unable to update active study time'});}
 };
