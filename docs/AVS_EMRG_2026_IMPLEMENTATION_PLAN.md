@@ -37,7 +37,7 @@
 - Email delivery, access recovery, mobile/desktop behavior, feedback flow and certificate verification pass end-to-end tests.
 
 ## Current blockers
-- Airport workshop learner screens and dedicated assessment flow are not yet implemented as a complete, separate workflow.
+- The learner screens, route integration, server-side persistence and certificate workflow are not yet implemented as a complete, separate workflow.
 - The newly drafted 10-question feedback survey needs owner/content approval before integration.
 - New bank unit tests have been added to CI; the latest complete workflow result still needs verification. End-to-end tests remain outstanding.
 
