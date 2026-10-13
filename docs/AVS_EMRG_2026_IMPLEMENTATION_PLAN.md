@@ -18,11 +18,11 @@
 
 ## Required implementation
 1. Create a separate airport-workshop manifest, content sequence, question bank and server-side assessment route. Do not repurpose or alter the Fire Safety course's question bank or assessment handlers.
-2. Build the 15 content screens and 15 associated quiz screens from the approved workshop material. Do not replace approved slide questions with newly invented questions.
+2. Build the 15 content screens and 15 associated quiz screens from the approved workshop material. The current 75-question bilingual formative bank is a draft mapped to the 15 screens and requires subject-matter review before integration.
 3. Randomize final-question order and each question's option order per learner/access record. Keep the answer key server-side and grade against the exact order presented to that learner.
 4. Validate submitted answers on the server. Never accept a browser-supplied score or correct-answer index as authoritative.
 5. Keep training duration, access expiry and active-study duration as three separate configuration values.
-6. Find and use the already-approved shared set of 10 feedback questions. Do not invent substitutes. Connect feedback to the final-slide QR/link flow after the approved question set is located.
+6. A separate 10-question bilingual post-workshop feedback survey has been drafted because no existing survey was available. It is opinion-only, unscored, and does not affect certificates. Review and approve it before connecting it to the final-slide QR/link flow.
 7. Preserve existing Fire Safety behavior and certificates.
 
 ## Required automated and end-to-end checks
@@ -38,8 +38,8 @@
 
 ## Current blockers
 - Airport workshop learner screens and dedicated assessment flow are not yet implemented as a complete, separate workflow.
-- The approved 10-question feedback set must be located before feedback integration.
-- Automated checks and end-to-end tests have not yet been confirmed.
+- The newly drafted 10-question feedback survey needs owner/content approval before integration.
+- New bank unit tests have been added to CI; the latest complete workflow result still needs verification. End-to-end tests remain outstanding.
 
 ## Release rule
 Keep the related pull request in draft and do not merge or activate this workshop until the implementation and all release gates have been reviewed and verified.
