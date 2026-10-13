@@ -21,4 +21,4 @@ jobs:
         with:
           node-version: 20
       - name: Test isolated AVS assessment rules
-        run: node --test backend/avs-emrg-2026-assessment.test.js backend/avs-emrg-2026-initial-assessment.test.js
+        run: node --test backend/avs-emrg-2026-assessment.test.js backend/avs-emrg-2026-initial-assessment.test.js backend/avs-emrg-2026-final-question-bank.test.js
