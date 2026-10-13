@@ -91,8 +91,8 @@ const WORKSHOP = Object.freeze({
     finalBank: 'draft-created-needs-subject-matter-review',
     finalBankQuestionCount: 30,
     finalBankValidation: 'implemented-in-isolated-module-not-integrated',
-    learnerSpecificRandomization: 'not-implemented',
-    serverSideGrading: 'not-implemented',
+    learnerSpecificRandomization: 'implemented-in-isolated-engine-not-integrated',
+    serverSideGrading: 'implemented-in-isolated-engine-not-integrated',
     progressPersistence: 'not-verified'
   }),
   feedback: Object.freeze({
