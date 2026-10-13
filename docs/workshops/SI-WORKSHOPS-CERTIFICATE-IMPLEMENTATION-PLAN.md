@@ -37,17 +37,20 @@ Workshop fields: `workshopId`, `slug`, bilingual title/description, `durationHou
 Workshop participant/completion fields: unique enrollment/participant ID, workshop ID, trainee identity reference, status, attendance/completion evidence, completion date.
 Certificate fields: unique certificate ID, document type = workshop completion, workshop ID/title in both languages, duration hours, recipient, issue date, valid/revoked status, verification URL.
 
-## Implementation sequence
-1. Audit existing certificate issuance and verification routes, admin course/enrollment models, feedback routes and test coverage. (Initial audit started)
-2. Add the public Workshops information/catalog page; keep registration disabled until backend flow is ready.
-3. Implement the shared bilingual feedback page/API and safely route course/workshop feedback into the existing Admin Feedback tab.
-4. Place the functional feedback QR/URL on the second screen of courses and workshops; validate scanning on mobile and click-through on desktop.
-5. Add isolated workshop models and admin endpoints; do not modify course enrollment semantics.
-6. Add admin Workshops tab for creation, status, participant/completion management, and certificate issuance.
-7. Extend verification endpoint/UI to resolve course certificates and workshop certificates safely, preserving legacy response fields.
-8. Create workshop certificate rendering from the SI certificate design, with 8-hour duration and QR verification URL.
-9. Add tests for feedback source attribution, invalid submissions, rate limiting, escaping, valid/revoked/unknown certificates, duplicate issuance, wrong workshop, incomplete attendance, and course-verification regression.
-10. Run CI and staging verification; only then request review/merge and deploy.
+## Implementation sequence and status
+1. Audit existing certificate issuance/verification routes, Admin feedback view and feedback model. (Initial audit completed; full regression test coverage remains pending.)
+2. Add the public Workshops information/catalog page; keep registration disabled until backend flow is ready. (Implemented on feature branch.)
+3. Add bilingual `frontend/feedback.html` with course/workshop context parameters, optional 1–5 rating, comment and question fields. (Implemented on feature branch.)
+4. Extend the existing `CourseFeedback` record shape with source type/title, rating, question and status; add `POST /api/feedback` validation and admin status endpoint while preserving the legacy `POST /api/course-feedback/:slug` endpoint. (Implemented on feature branch; backend execution/regression testing still required.)
+5. Update Admin > Feedback to show course/workshop source, rating, comment, question, date and review status. (Implemented on feature branch.)
+6. Add a QR and direct link to the workshop listing. (Implemented with a client-side QR library; external CDN availability and real-device scanning still need testing.)
+7. Place the functional feedback QR/URL on the second screen of every course and workshop; validate scanning on mobile and click-through on desktop. (Workshop listing done; course-screen integration remains pending.)
+8. Add isolated workshop models and admin endpoints; do not modify course enrollment semantics. (Pending.)
+9. Add admin Workshops tab for creation, status, participant/completion management, and certificate issuance. (Pending.)
+10. Extend verification endpoint/UI to resolve course certificates and workshop certificates safely, preserving legacy response fields. (Pending.)
+11. Create workshop certificate rendering from the SI certificate design, with 8-hour duration and QR verification URL. (Standalone template exists; database integration pending.)
+12. Add tests for feedback source attribution, invalid submissions, rate limiting, escaping, valid/revoked/unknown certificates, duplicate issuance, wrong workshop, incomplete attendance, and course-verification regression.
+13. Run CI and staging verification; only then request review/merge and deploy.
 
 ## Initial workshop
 - Code: AVS-EMRG-2026
