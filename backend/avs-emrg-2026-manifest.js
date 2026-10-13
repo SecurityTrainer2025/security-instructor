@@ -82,7 +82,9 @@ const WORKSHOP = Object.freeze({
     bankStatus: 'draft-created-needs-content-review'
   }),
   assessmentStatus: Object.freeze({
-    initialAssessmentBank: 'draft-created-not-integrated',
+    initialAssessmentBank: 'draft-created-randomized-diagnostic-only',
+    initialAssessmentRandomization: 'implemented-in-isolated-module-not-integrated',
+    initialAssessmentServerGrading: 'implemented-in-isolated-module-not-integrated',
     formativeBank: 'not-implemented',
     finalBank: 'not-implemented',
     learnerSpecificRandomization: 'not-implemented',
