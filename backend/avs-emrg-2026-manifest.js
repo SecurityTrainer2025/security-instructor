@@ -89,7 +89,7 @@ const WORKSHOP = Object.freeze({
     all75FormativeQuestionsValidated: false,
     all30FinalQuestionsValidated: false,
     shuffleAndGradingTested: false,
-    21Of30FailsAnd22Of30Passes: false,
+    finalScoreBoundaryTest21Fails22Passes: false,
     answerKeyHidden: false,
     progressAndResumeTested: false,
     accessAndActiveStudyExpiryTestedSeparately: false,
