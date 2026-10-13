@@ -67,7 +67,7 @@ const WORKSHOP = Object.freeze({
   ].map(screen => Object.freeze({
     ...screen,
     formativeQuestionCount: 5,
-    questionBankStatus: 'not-implemented',
+    questionBankStatus: 'draft-created-needs-review',
     contentReviewStatus: 'needs-final-review'
   }))),
   initialAssessment: Object.freeze({
@@ -85,7 +85,9 @@ const WORKSHOP = Object.freeze({
     initialAssessmentBank: 'draft-created-randomized-diagnostic-only',
     initialAssessmentRandomization: 'implemented-in-isolated-module-not-integrated',
     initialAssessmentServerGrading: 'implemented-in-isolated-module-not-integrated',
-    formativeBank: 'not-implemented',
+    formativeBank: 'draft-created-75-bilingual-questions-needs-review',
+    formativeValidation: 'implemented-in-isolated-module-not-integrated',
+    feedbackSurvey: 'draft-created-10-bilingual-questions-needs-review-not-integrated',
     finalBank: 'draft-created-needs-subject-matter-review',
     finalBankQuestionCount: 30,
     finalBankValidation: 'implemented-in-isolated-module-not-integrated',
@@ -94,11 +96,13 @@ const WORKSHOP = Object.freeze({
     progressPersistence: 'not-verified'
   }),
   feedback: Object.freeze({
-    source: 'approved-shared-si-feedback-set',
+    source: 'new-draft-for-owner-review',
     questionCount: 10,
-    located: false,
+    located: true,
+    approved: false,
+    bankPath: 'backend/avs-emrg-2026-feedback-survey.js',
     integrated: false,
-    note: 'Use the already-approved shared set. Do not create substitute questions.'
+    note: 'Drafted because the owner confirmed no survey had been created. Review and approve before integration.'
   }),
   releaseChecks: Object.freeze({
     contentReviewed: false,
