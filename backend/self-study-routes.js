@@ -540,7 +540,7 @@ const finalHandler=async(req,res)=>{
       }catch(certErr){console.error('Self-study certificate issuance failed',certErr)}
     }
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:updated,updatedAt:new Date()}});
-    res.json({ok:true,score,correct,total:FINAL_FIRE_ASSESSMENT.length,passed:score>=70||finalPassed,attempt:finalAttempts,attemptsRemaining:Math.max(0,3-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
+    res.json({ok:true,score,correct,total:FINAL_FIRE_ASSESSMENT.length,passed:finalPassed,passRule:'score > 70',attempt:finalAttempts,attemptsRemaining:Math.max(0,3-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
   }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
 };
 
