@@ -20,5 +20,5 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Test isolated AVS assessment rules
-        run: node --test backend/avs-emrg-2026-assessment.test.js backend/avs-emrg-2026-initial-assessment.test.js backend/avs-emrg-2026-final-question-bank.test.js backend/avs-emrg-2026-formative-feedback.test.js backend/avs-emrg-2026-formative-question-bank.test.js
+      - name: Test isolated AVS assessment and workflow policies
+        run: node --test backend/avs-emrg-2026-assessment.test.js backend/avs-emrg-2026-initial-assessment.test.js backend/avs-emrg-2026-final-question-bank.test.js backend/avs-emrg-2026-formative-feedback.test.js backend/avs-emrg-2026-formative-question-bank.test.js backend/avs-emrg-2026-workflow-policy.test.js
