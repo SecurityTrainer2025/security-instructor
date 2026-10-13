@@ -1,0 +1,1044 @@
+{
+  "course": {
+    "code": "AVS-EMRG-2026",
+    "slug": "civil-airport-safety-emergency-evacuation",
+    "title": {
+      "en": "Safety, Emergency & Evacuation in Civil Airports",
+      "ar": "إدارة السلامة والطوارئ والإخلاء في المطارات المدنية"
+    },
+    "language": [
+      "en",
+      "ar"
+    ],
+    "referenceNote": "ICAO Doc 9137 is a reference point only. Confirm the applicable edition, airport emergency plan, local regulations, and airport authority procedures before operational use.",
+    "delivery": "Self-study workshop with bilingual screens, embedded/hosted videos, knowledge checks, final assessment, and certificate after successful completion.",
+    "status": "CONTENT DRAFT — not yet enabled for learner registration"
+  },
+  "learningOutcomes": [
+    {
+      "en": "Recognize common airport emergency hazards and their possible effects.",
+      "ar": "التعرف على مخاطر الطوارئ الشائعة في المطارات وآثارها المحتملة."
+    },
+    {
+      "en": "Use a simple likelihood-and-severity matrix to discuss risk.",
+      "ar": "استخدام مصفوفة مبسطة للاحتمالية والشدة لمناقشة المخاطر."
+    },
+    {
+      "en": "Explain alarm, communication, command, and escalation roles.",
+      "ar": "شرح أدوار الإنذار والتواصل والقيادة ورفع مستوى الاستجابة."
+    },
+    {
+      "en": "Describe the difference between evacuation and shelter-in-place.",
+      "ar": "توضيح الفرق بين الإخلاء والبقاء في مكان آمن."
+    },
+    {
+      "en": "Apply safe, role-based actions in simulated airport scenarios.",
+      "ar": "تطبيق إجراءات آمنة ضمن حدود الدور في سيناريوهات مطار افتراضية."
+    }
+  ],
+  "screens": [
+    {
+      "id": "avs-01",
+      "module": 1,
+      "title": {
+        "en": "Welcome and course map",
+        "ar": "الترحيب وخريطة الدورة"
+      },
+      "video": {
+        "id": "AVS-V01",
+        "title": {
+          "en": "A civil airport as a connected system",
+          "ar": "المطار المدني كنظام مترابط"
+        },
+        "durationSec": 90,
+        "format": "motion graphics + narration",
+        "status": "PRODUCE"
+      },
+      "check": {
+        "q": {
+          "en": "What is the first priority in an emergency?",
+          "ar": "ما الأولوية الأولى في حالة الطوارئ؟"
+        },
+        "options": [
+          {
+            "en": "Life safety",
+            "ar": "سلامة الأرواح"
+          },
+          {
+            "en": "Protecting property",
+            "ar": "حماية الممتلكات"
+          },
+          {
+            "en": "Keeping routine operations",
+            "ar": "استمرار العمل المعتاد"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-02",
+      "module": 1,
+      "title": {
+        "en": "Learning outcomes and initial check",
+        "ar": "مخرجات التعلم والتقييم المبدئي"
+      },
+      "video": null,
+      "check": {
+        "q": {
+          "en": "Should local airport procedures be followed during a real incident?",
+          "ar": "هل يجب اتباع إجراءات المطار المعتمدة أثناء حادث حقيقي؟"
+        },
+        "options": [
+          {
+            "en": "Yes",
+            "ar": "نعم"
+          },
+          {
+            "en": "No",
+            "ar": "لا"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-03",
+      "module": 2,
+      "title": {
+        "en": "Airport emergency system and roles",
+        "ar": "منظومة الطوارئ في المطار والأدوار"
+      },
+      "video": {
+        "id": "AVS-V02",
+        "title": {
+          "en": "Who does what during an airport emergency?",
+          "ar": "من يفعل ماذا أثناء طوارئ المطار؟"
+        },
+        "durationSec": 150,
+        "format": "role-map animation",
+        "status": "PRODUCE"
+      },
+      "check": {
+        "q": {
+          "en": "Why must roles be agreed before an incident?",
+          "ar": "لماذا يجب تحديد الأدوار قبل وقوع الحادث؟"
+        },
+        "options": [
+          {
+            "en": "To reduce confusion and delay",
+            "ar": "لتقليل الارتباك والتأخير"
+          },
+          {
+            "en": "To remove the incident commander",
+            "ar": "لإلغاء دور قائد الحادث"
+          },
+          {
+            "en": "To avoid reporting",
+            "ar": "لتجنب الإبلاغ"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-04",
+      "module": 2,
+      "title": {
+        "en": "Hazard categories in civil airports",
+        "ar": "فئات المخاطر في المطارات المدنية"
+      },
+      "video": null,
+      "check": {
+        "q": {
+          "en": "Which is a possible airport emergency hazard?",
+          "ar": "أي مما يلي قد يمثل خطراً للطوارئ في المطار؟"
+        },
+        "options": [
+          {
+            "en": "Aircraft or ground-equipment fire",
+            "ar": "حريق طائرة أو معدات أرضية"
+          },
+          {
+            "en": "A training slide",
+            "ar": "شريحة تدريبية"
+          },
+          {
+            "en": "A normal staff briefing",
+            "ar": "إحاطة اعتيادية للموظفين"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-05",
+      "module": 3,
+      "title": {
+        "en": "Risk matrix and Bowtie overview",
+        "ar": "مصفوفة المخاطر ونموذج Bowtie"
+      },
+      "video": {
+        "id": "AVS-V03",
+        "title": {
+          "en": "From hazard to controls: a simple Bowtie",
+          "ar": "من الخطر إلى الضوابط: شرح مبسط لنموذج Bowtie"
+        },
+        "durationSec": 180,
+        "format": "animated diagram",
+        "status": "PRODUCE"
+      },
+      "check": {
+        "q": {
+          "en": "A simple risk matrix usually combines which two factors?",
+          "ar": "ما العاملان اللذان تجمع بينهما مصفوفة المخاطر المبسطة عادةً؟"
+        },
+        "options": [
+          {
+            "en": "Likelihood and severity",
+            "ar": "الاحتمالية والشدة"
+          },
+          {
+            "en": "Time and staff names",
+            "ar": "الوقت وأسماء الموظفين"
+          },
+          {
+            "en": "Cost and colour",
+            "ar": "التكلفة واللون"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-06",
+      "module": 3,
+      "title": {
+        "en": "Risk-map activity",
+        "ar": "نشاط خريطة المخاطر"
+      },
+      "video": null,
+      "activity": {
+        "en": "Mark a fictional terminal, apron, service road, assembly point, and emergency access route. Identify hazards and propose controls. Do not use real restricted-area maps.",
+        "ar": "حدّد في مخطط افتراضي مبنى ركاب وساحة طائرات وطريق خدمة ونقطة تجمع ومسار وصول فرق الطوارئ. حدّد المخاطر واقترح الضوابط. لا تستخدم خرائط حقيقية للمناطق المقيدة."
+      }
+    },
+    {
+      "id": "avs-07",
+      "module": 4,
+      "title": {
+        "en": "Alarm, communication and incident command",
+        "ar": "الإنذار والتواصل وقيادة الحادث"
+      },
+      "video": {
+        "id": "AVS-V04",
+        "title": {
+          "en": "A clear emergency radio message",
+          "ar": "رسالة لاسلكية واضحة أثناء الطوارئ"
+        },
+        "durationSec": 120,
+        "format": "demonstration with captions",
+        "status": "PRODUCE"
+      },
+      "check": {
+        "q": {
+          "en": "What should an initial incident report prioritize?",
+          "ar": "ما الذي ينبغي أن تعطيه الرسالة الأولية عن الحادث الأولوية؟"
+        },
+        "options": [
+          {
+            "en": "Location, hazard, people at risk, and assistance needed",
+            "ar": "الموقع والخطر والأشخاص المعرضون للخطر والمساعدة المطلوبة"
+          },
+          {
+            "en": "Opinions and blame",
+            "ar": "الآراء وتبادل اللوم"
+          },
+          {
+            "en": "Unverified details",
+            "ar": "تفاصيل غير مؤكدة"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-08",
+      "module": 4,
+      "title": {
+        "en": "Evacuation, shelter-in-place and crowd movement",
+        "ar": "الإخلاء والبقاء في مكان آمن وحركة الحشود"
+      },
+      "video": {
+        "id": "AVS-V05",
+        "title": {
+          "en": "Choosing a safe movement strategy",
+          "ar": "اختيار أسلوب الحركة الآمن"
+        },
+        "durationSec": 180,
+        "format": "scenario animation",
+        "status": "PRODUCE"
+      },
+      "check": {
+        "q": {
+          "en": "Who determines whether to evacuate or shelter-in-place?",
+          "ar": "من يحدد ما إذا كان الإجراء هو الإخلاء أم البقاء في مكان آمن؟"
+        },
+        "options": [
+          {
+            "en": "Authorized incident leadership under the emergency plan",
+            "ar": "القيادة المخولة وفق خطة الطوارئ"
+          },
+          {
+            "en": "Any bystander",
+            "ar": "أي شخص موجود"
+          },
+          {
+            "en": "A social-media post",
+            "ar": "منشور على وسائل التواصل"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-09",
+      "module": 5,
+      "title": {
+        "en": "Aircraft and ground-equipment fire scenario",
+        "ar": "سيناريو حريق طائرة أو معدات أرضية"
+      },
+      "video": {
+        "id": "AVS-V06",
+        "title": {
+          "en": "Simulated APU fire: recognize, report, withdraw",
+          "ar": "حريق افتراضي بوحدة الطاقة المساعدة: التعرّف والإبلاغ والابتعاد"
+        },
+        "durationSec": 150,
+        "format": "clearly labelled simulation",
+        "status": "PRODUCE"
+      },
+      "check": {
+        "q": {
+          "en": "What should unassigned personnel do near a suspected aircraft fire?",
+          "ar": "ماذا يفعل الأفراد غير المكلفين قرب حريق مشتبه به في طائرة؟"
+        },
+        "options": [
+          {
+            "en": "Raise the alarm, report, and keep clear as directed",
+            "ar": "إطلاق الإنذار والإبلاغ والابتعاد وفق التعليمات"
+          },
+          {
+            "en": "Approach to investigate closely",
+            "ar": "الاقتراب للتحقيق عن قرب"
+          },
+          {
+            "en": "Enter smoke without suitable training or protection",
+            "ar": "دخول الدخان دون تدريب أو حماية مناسبة"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-10",
+      "module": 5,
+      "title": {
+        "en": "Severe weather, flooding and continuity",
+        "ar": "الطقس الشديد والفيضانات واستمرارية العمل"
+      },
+      "video": null,
+      "check": {
+        "q": {
+          "en": "After flooding, is re-entry allowed before the area is checked and released?",
+          "ar": "بعد الفيضان، هل يسمح بالعودة قبل فحص المنطقة والتصريح باستخدامها؟"
+        },
+        "options": [
+          {
+            "en": "No",
+            "ar": "لا"
+          },
+          {
+            "en": "Yes, automatically",
+            "ar": "نعم، تلقائياً"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-11",
+      "module": 6,
+      "title": {
+        "en": "Suspicious object and security threat",
+        "ar": "جسم مشبوه وتهديد أمني"
+      },
+      "video": {
+        "id": "AVS-V07",
+        "title": {
+          "en": "Report and protect: suspicious-object scenario",
+          "ar": "الإبلاغ والحماية: سيناريو جسم مشبوه"
+        },
+        "durationSec": 120,
+        "format": "scenario animation",
+        "status": "PRODUCE"
+      },
+      "check": {
+        "q": {
+          "en": "What is the safe first response to a suspicious object?",
+          "ar": "ما الاستجابة الأولية الآمنة تجاه جسم مشبوه؟"
+        },
+        "options": [
+          {
+            "en": "Do not touch it; move away as directed and report through official channels",
+            "ar": "عدم لمسه والابتعاد وفق التعليمات والإبلاغ عبر القنوات الرسمية"
+          },
+          {
+            "en": "Open it to identify it",
+            "ar": "فتحه لمعرفة محتواه"
+          },
+          {
+            "en": "Move it to a public place",
+            "ar": "نقله إلى مكان عام"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-12",
+      "module": 6,
+      "title": {
+        "en": "Responder safety and PPE",
+        "ar": "سلامة المستجيبين ومعدات الوقاية"
+      },
+      "video": null,
+      "check": {
+        "q": {
+          "en": "Should staff enter a danger zone beyond their training or authorization?",
+          "ar": "هل يجوز للعاملين دخول منطقة خطر خارج حدود تدريبهم أو صلاحياتهم؟"
+        },
+        "options": [
+          {
+            "en": "No",
+            "ar": "لا"
+          },
+          {
+            "en": "Yes, if they are curious",
+            "ar": "نعم، إذا كانوا يريدون الاستطلاع"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-13",
+      "module": 7,
+      "title": {
+        "en": "Tabletop exercise: combined scenario",
+        "ar": "تمرين مكتبي: سيناريو مركب"
+      },
+      "video": {
+        "id": "AVS-V08",
+        "title": {
+          "en": "Tabletop exercise briefing",
+          "ar": "إحاطة التمرين المكتبي"
+        },
+        "durationSec": 90,
+        "format": "facilitator briefing",
+        "status": "PRODUCE"
+      },
+      "activity": {
+        "en": "Fictional scenario: a reported suspicious item and a simulated ground-equipment fire occur in separate areas. Decide who is notified, what information is confirmed, which routes remain clear, and who authorizes public movement.",
+        "ar": "سيناريو افتراضي: الإبلاغ عن جسم مشبوه وحريق افتراضي في معدات أرضية بمنطقتين منفصلتين. حدّد الجهات التي يتم إبلاغها، والمعلومات التي يجب التحقق منها، والمسارات التي يجب إبقاؤها خالية، والجهة المخولة بإصدار تعليمات حركة الجمهور."
+      }
+    },
+    {
+      "id": "avs-14",
+      "module": 7,
+      "title": {
+        "en": "Debrief and lessons learned",
+        "ar": "المراجعة والدروس المستفادة"
+      },
+      "video": null,
+      "check": {
+        "q": {
+          "en": "What is the purpose of a post-incident debrief?",
+          "ar": "ما الهدف من مراجعة ما بعد الحادث؟"
+        },
+        "options": [
+          {
+            "en": "Capture facts, gaps and improvements",
+            "ar": "توثيق الحقائق والفجوات وفرص التحسين"
+          },
+          {
+            "en": "Assign blame without evidence",
+            "ar": "تحديد المسؤولية دون أدلة"
+          },
+          {
+            "en": "Avoid recording lessons",
+            "ar": "تجنب تسجيل الدروس"
+          }
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "avs-15",
+      "module": 8,
+      "title": {
+        "en": "Final assessment and completion",
+        "ar": "التقييم النهائي وإتمام الدورة"
+      },
+      "video": null,
+      "assessment": {
+        "questionCount": 20,
+        "passPercent": 70,
+        "maxAttempts": 3,
+        "randomizeQuestions": true,
+        "randomizeOptions": true,
+        "language": "bilingual",
+        "note": "Assessment parameters are proposed for implementation and must be tested before launch."
+      }
+    }
+  ],
+  "videoProduction": {
+    "count": 8,
+    "style": "Professional bilingual motion graphics, clear English and Arabic captions, navy #0B1F33 and gold #C8A96B palette, calm narration, no real restricted airport layouts, no identifiable incident footage unless licensed.",
+    "delivery": "MP4 H.264, 1080p, 16:9, captions in SRT plus burned-in bilingual captions where legible, separate Arabic and English voice-over or dual-language narration.",
+    "accessibility": "Provide transcript and captions; keep critical instructions visible on screen; do not rely on sound alone.",
+    "hosting": "Use approved platform media hosting or a stable authorized video host; do not embed guessed or temporary URLs.",
+    "disclaimer": "Scenarios are simulations for training. Actual actions must follow the airport emergency plan, competent authority instructions, and local law."
+  },
+  "finalAssessment": {
+    "questionCount": 20,
+    "passPercent": 70,
+    "maxAttempts": 3,
+    "randomizeQuestions": true,
+    "randomizeOptions": true,
+    "language": "bilingual",
+    "note": "Draft assessment bank for implementation and subject-matter review. Operational use requires validation against the current airport emergency plan, applicable regulations, and competent review.",
+    "questions": [
+      {
+        "id": "avs-f01",
+        "q": {
+          "en": "What is the first priority during an airport emergency?",
+          "ar": "ما الأولوية الأولى أثناء حالة طوارئ في المطار؟"
+        },
+        "options": [
+          {
+            "en": "Keep all operations running",
+            "ar": "استمرار جميع العمليات"
+          },
+          {
+            "en": "Protect equipment before people",
+            "ar": "حماية المعدات قبل الأشخاص"
+          },
+          {
+            "en": "Wait for social media updates",
+            "ar": "انتظار تحديثات وسائل التواصل"
+          },
+          {
+            "en": "Protect life and prevent harm",
+            "ar": "حماية الأرواح ومنع الأذى"
+          }
+        ],
+        "correctIndex": 3
+      },
+      {
+        "id": "avs-f02",
+        "q": {
+          "en": "Which document should guide the airport's response to a real emergency?",
+          "ar": "ما الوثيقة التي ينبغي أن توجه الاستجابة لحالة طوارئ حقيقية في المطار؟"
+        },
+        "options": [
+          {
+            "en": "The approved airport emergency plan and applicable procedures",
+            "ar": "خطة طوارئ المطار المعتمدة والإجراءات المطبقة"
+          },
+          {
+            "en": "An unverified online checklist",
+            "ar": "قائمة تحقق غير موثقة من الإنترنت"
+          },
+          {
+            "en": "A personal preference",
+            "ar": "التفضيل الشخصي"
+          },
+          {
+            "en": "A training slide alone",
+            "ar": "شريحة تدريبية فقط"
+          }
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": "avs-f03",
+        "q": {
+          "en": "What is a useful first step when a hazard is noticed?",
+          "ar": "ما الخطوة الأولى المفيدة عند ملاحظة خطر؟"
+        },
+        "options": [
+          {
+            "en": "Move the hazard without authority",
+            "ar": "نقل الخطر دون صلاحية"
+          },
+          {
+            "en": "Report clear facts through the correct channel",
+            "ar": "الإبلاغ عن الحقائق الواضحة عبر القناة الصحيحة"
+          },
+          {
+            "en": "Assume someone else has reported it",
+            "ar": "افتراض أن شخصاً آخر أبلغ عنه"
+          },
+          {
+            "en": "Post identifying details publicly",
+            "ar": "نشر تفاصيل تعريفية علناً"
+          }
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "avs-f04",
+        "q": {
+          "en": "What does a risk matrix usually compare?",
+          "ar": "ماذا تقارن مصفوفة المخاطر عادةً؟"
+        },
+        "options": [
+          {
+            "en": "Staff names and shift times",
+            "ar": "أسماء الموظفين وأوقات المناوبات"
+          },
+          {
+            "en": "Weather and certificate design only",
+            "ar": "الطقس وتصميم الشهادة فقط"
+          },
+          {
+            "en": "Likelihood and severity",
+            "ar": "الاحتمالية والشدة"
+          },
+          {
+            "en": "Cost and uniform color",
+            "ar": "التكلفة ولون الزي"
+          }
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": "avs-f05",
+        "q": {
+          "en": "What should an emergency message be?",
+          "ar": "كيف ينبغي أن تكون رسالة الطوارئ؟"
+        },
+        "options": [
+          {
+            "en": "Speculative and dramatic",
+            "ar": "تخمينية ومبالغاً فيها"
+          },
+          {
+            "en": "Delayed until every detail is known",
+            "ar": "مؤجلة حتى معرفة كل التفاصيل"
+          },
+          {
+            "en": "Different for every team without coordination",
+            "ar": "مختلفة لكل فريق دون تنسيق"
+          },
+          {
+            "en": "Clear, accurate, timely, and sent through approved channels",
+            "ar": "واضحة ودقيقة وفي الوقت المناسب وعبر القنوات المعتمدة"
+          }
+        ],
+        "correctIndex": 3
+      },
+      {
+        "id": "avs-f06",
+        "q": {
+          "en": "Who should direct incident response?",
+          "ar": "من الذي ينبغي أن يوجه الاستجابة للحادث؟"
+        },
+        "options": [
+          {
+            "en": "The designated incident command structure under the plan",
+            "ar": "هيكل قيادة الحادث المحدد وفق الخطة"
+          },
+          {
+            "en": "Any person who arrives first, regardless of role",
+            "ar": "أي شخص يصل أولاً بغض النظر عن دوره"
+          },
+          {
+            "en": "Unrelated social media accounts",
+            "ar": "حسابات وسائل التواصل غير المعنية"
+          },
+          {
+            "en": "Each team independently with no coordination",
+            "ar": "كل فريق بصورة مستقلة دون تنسيق"
+          }
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": "avs-f07",
+        "q": {
+          "en": "When is evacuation appropriate?",
+          "ar": "متى يكون الإخلاء مناسباً؟"
+        },
+        "options": [
+          {
+            "en": "Without checking safe routes",
+            "ar": "دون التحقق من المسارات الآمنة"
+          },
+          {
+            "en": "When directed by authorized responders or the applicable plan",
+            "ar": "عندما توجه به الجهات المخولة أو الخطة المعتمدة"
+          },
+          {
+            "en": "Whenever a rumor appears",
+            "ar": "كلما ظهرت شائعة"
+          },
+          {
+            "en": "Only after collecting personal items",
+            "ar": "فقط بعد جمع الأغراض الشخصية"
+          }
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "avs-f08",
+        "q": {
+          "en": "What should personnel do if an exit route appears unsafe?",
+          "ar": "ماذا ينبغي أن يفعل العاملون إذا بدا مسار الخروج غير آمن؟"
+        },
+        "options": [
+          {
+            "en": "Block all other exits",
+            "ar": "إغلاق جميع المخارج الأخرى"
+          },
+          {
+            "en": "Return to collect belongings",
+            "ar": "العودة لجمع الممتلكات"
+          },
+          {
+            "en": "Follow the emergency plan and use an approved safe alternative if directed",
+            "ar": "اتباع خطة الطوارئ واستخدام بديل آمن معتمد إذا تم التوجيه بذلك"
+          },
+          {
+            "en": "Use it regardless of conditions",
+            "ar": "استخدامه بغض النظر عن الظروف"
+          }
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": "avs-f09",
+        "q": {
+          "en": "Why is an assembly area used?",
+          "ar": "لماذا تُستخدم نقطة التجمع؟"
+        },
+        "options": [
+          {
+            "en": "To store vehicles",
+            "ar": "لتخزين المركبات"
+          },
+          {
+            "en": "To allow immediate re-entry",
+            "ar": "للسماح بالعودة الفورية"
+          },
+          {
+            "en": "To replace emergency communications",
+            "ar": "لاستبدال اتصالات الطوارئ"
+          },
+          {
+            "en": "To organize evacuated people and support accountability",
+            "ar": "لتنظيم الأشخاص الذين تم إخلاؤهم ودعم إحصائهم"
+          }
+        ],
+        "correctIndex": 3
+      },
+      {
+        "id": "avs-f10",
+        "q": {
+          "en": "How should security staff support emergency responders?",
+          "ar": "كيف ينبغي لأفراد الأمن دعم فرق الاستجابة للطوارئ؟"
+        },
+        "options": [
+          {
+            "en": "Keep access routes clear and provide accurate site information",
+            "ar": "إبقاء مسارات الوصول خالية وتقديم معلومات دقيقة عن الموقع"
+          },
+          {
+            "en": "Block vehicles to control the crowd",
+            "ar": "إعاقة المركبات للسيطرة على الحشود"
+          },
+          {
+            "en": "Change the command structure",
+            "ar": "تغيير هيكل القيادة"
+          },
+          {
+            "en": "Share unverified casualty details",
+            "ar": "مشاركة تفاصيل غير مؤكدة عن المصابين"
+          }
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": "avs-f11",
+        "q": {
+          "en": "What is a suitable response to a suspicious object?",
+          "ar": "ما التصرف المناسب عند العثور على جسم مشبوه؟"
+        },
+        "options": [
+          {
+            "en": "Photograph it at close range before reporting",
+            "ar": "تصويره عن قرب قبل الإبلاغ"
+          },
+          {
+            "en": "Do not touch it; follow the site reporting and isolation procedures",
+            "ar": "عدم لمسه واتباع إجراءات الموقع للإبلاغ والعزل"
+          },
+          {
+            "en": "Open it to identify the contents",
+            "ar": "فتحه لمعرفة محتوياته"
+          },
+          {
+            "en": "Move it away from the public",
+            "ar": "نقله بعيداً عن الجمهور"
+          }
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "avs-f12",
+        "q": {
+          "en": "What should staff do if smoke or fire is observed near an aircraft?",
+          "ar": "ماذا ينبغي أن يفعل العاملون عند ملاحظة دخان أو حريق قرب طائرة؟"
+        },
+        "options": [
+          {
+            "en": "Wait until the next scheduled report",
+            "ar": "الانتظار حتى التقرير المجدول التالي"
+          },
+          {
+            "en": "Move equipment without coordination",
+            "ar": "نقل المعدات دون تنسيق"
+          },
+          {
+            "en": "Raise the alarm and follow the airport emergency plan from a safe position",
+            "ar": "إطلاق الإنذار واتباع خطة طوارئ المطار من موقع آمن"
+          },
+          {
+            "en": "Approach the aircraft to investigate alone",
+            "ar": "الاقتراب من الطائرة للتحقيق بمفردهم"
+          }
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": "avs-f13",
+        "q": {
+          "en": "What is the purpose of a tabletop exercise?",
+          "ar": "ما الهدف من التمرين المكتبي؟"
+        },
+        "options": [
+          {
+            "en": "Replace all practical drills permanently",
+            "ar": "استبدال جميع التدريبات العملية نهائياً"
+          },
+          {
+            "en": "Prove that no risk exists",
+            "ar": "إثبات عدم وجود مخاطر"
+          },
+          {
+            "en": "Test staff without explaining the objectives",
+            "ar": "اختبار العاملين دون توضيح الأهداف"
+          },
+          {
+            "en": "Discuss roles, decisions, communications, and gaps using a scenario",
+            "ar": "مناقشة الأدوار والقرارات والاتصالات والثغرات باستخدام سيناريو"
+          }
+        ],
+        "correctIndex": 3
+      },
+      {
+        "id": "avs-f14",
+        "q": {
+          "en": "How should a training scenario be presented?",
+          "ar": "كيف ينبغي عرض سيناريو تدريبي؟"
+        },
+        "options": [
+          {
+            "en": "Clearly identify it as a simulation, not a confirmed real incident",
+            "ar": "توضيح أنه محاكاة تدريبية وليس حادثاً حقيقياً مؤكداً"
+          },
+          {
+            "en": "Present it as news even if unverified",
+            "ar": "عرضه كخبر حتى لو لم يتم التحقق منه"
+          },
+          {
+            "en": "Include invented names as facts",
+            "ar": "ذكر أسماء مختلقة على أنها حقائق"
+          },
+          {
+            "en": "Avoid explaining the context",
+            "ar": "تجنب شرح السياق"
+          }
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": "avs-f15",
+        "q": {
+          "en": "What is important when assisting a person with reduced mobility during evacuation?",
+          "ar": "ما المهم عند مساعدة شخص محدود الحركة أثناء الإخلاء؟"
+        },
+        "options": [
+          {
+            "en": "Use lifts without checking emergency procedures",
+            "ar": "استخدام المصاعد دون التحقق من إجراءات الطوارئ"
+          },
+          {
+            "en": "Follow the site plan, training, and the person's needs without creating extra danger",
+            "ar": "اتباع خطة الموقع والتدريب واحتياجات الشخص دون خلق خطر إضافي"
+          },
+          {
+            "en": "Use an improvised method regardless of training",
+            "ar": "استخدام طريقة مرتجلة بغض النظر عن التدريب"
+          },
+          {
+            "en": "Leave the person without notifying anyone",
+            "ar": "ترك الشخص دون إبلاغ أحد"
+          }
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "avs-f16",
+        "q": {
+          "en": "Why should access to an evacuated area be controlled?",
+          "ar": "لماذا ينبغي التحكم في الدخول إلى منطقة تم إخلاؤها؟"
+        },
+        "options": [
+          {
+            "en": "To allow anyone to collect belongings",
+            "ar": "للسماح للجميع بجمع ممتلكاتهم"
+          },
+          {
+            "en": "To avoid keeping any records",
+            "ar": "لتجنب الاحتفاظ بأي سجلات"
+          },
+          {
+            "en": "To reduce re-entry risks and support responder operations",
+            "ar": "للحد من مخاطر العودة ودعم عمل فرق الاستجابة"
+          },
+          {
+            "en": "To prevent emergency responders from entering",
+            "ar": "لمنع فرق الطوارئ من الدخول"
+          }
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": "avs-f17",
+        "q": {
+          "en": "What should an incident log record?",
+          "ar": "ماذا ينبغي أن يسجل سجل الحادث؟"
+        },
+        "options": [
+          {
+            "en": "Rumors and personal assumptions as facts",
+            "ar": "الشائعات والافتراضات الشخصية كحقائق"
+          },
+          {
+            "en": "Only details shared online",
+            "ar": "التفاصيل المنشورة على الإنترنت فقط"
+          },
+          {
+            "en": "Unrelated personal information",
+            "ar": "المعلومات الشخصية غير المرتبطة"
+          },
+          {
+            "en": "Relevant times, observations, reports, and actions as required",
+            "ar": "الأوقات والملاحظات والبلاغات والإجراءات ذات الصلة حسب المطلوب"
+          }
+        ],
+        "correctIndex": 3
+      },
+      {
+        "id": "avs-f18",
+        "q": {
+          "en": "What is the safest approach when procedures conflict or are unclear?",
+          "ar": "ما النهج الأكثر أماناً عندما تتعارض الإجراءات أو تكون غير واضحة؟"
+        },
+        "options": [
+          {
+            "en": "Escalate to the designated authority and follow approved emergency direction",
+            "ar": "رفع الأمر إلى الجهة المحددة واتباع التوجيه المعتمد للطوارئ"
+          },
+          {
+            "en": "Choose an unofficial procedure",
+            "ar": "اختيار إجراء غير رسمي"
+          },
+          {
+            "en": "Ignore all instructions",
+            "ar": "تجاهل جميع التعليمات"
+          },
+          {
+            "en": "Wait without communicating",
+            "ar": "الانتظار دون تواصل"
+          }
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": "avs-f19",
+        "q": {
+          "en": "What should happen after an exercise or incident?",
+          "ar": "ماذا ينبغي أن يحدث بعد التمرين أو الحادث؟"
+        },
+        "options": [
+          {
+            "en": "Share confidential details publicly",
+            "ar": "نشر التفاصيل السرية علناً"
+          },
+          {
+            "en": "Review lessons, document gaps, and assign follow-up actions",
+            "ar": "مراجعة الدروس وتوثيق الثغرات وتحديد إجراءات المتابعة"
+          },
+          {
+            "en": "Delete all records immediately",
+            "ar": "حذف جميع السجلات فوراً"
+          },
+          {
+            "en": "Assume no improvement is needed",
+            "ar": "افتراض عدم الحاجة إلى تحسين"
+          }
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "avs-f20",
+        "q": {
+          "en": "What does successful course completion mean?",
+          "ar": "ماذا يعني إتمام الدورة بنجاح؟"
+        },
+        "options": [
+          {
+            "en": "The learner is certified for every airport role",
+            "ar": "أن المتدرب معتمد لكل دور في المطارات"
+          },
+          {
+            "en": "The learner no longer needs local procedures",
+            "ar": "أن المتدرب لم يعد بحاجة إلى إجراءات الموقع"
+          },
+          {
+            "en": "The learner met course requirements; it does not replace site authorization or professional qualifications",
+            "ar": "أن المتدرب استوفى متطلبات الدورة؛ ولا يحل ذلك محل صلاحيات الموقع أو المؤهلات المهنية"
+          },
+          {
+            "en": "The learner can command any real emergency",
+            "ar": "أن المتدرب يستطيع قيادة أي طارئ حقيقي"
+          }
+        ],
+        "correctIndex": 2
+      }
+    ]
+  }
+}

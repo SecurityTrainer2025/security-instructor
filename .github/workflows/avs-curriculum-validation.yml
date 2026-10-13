@@ -1,0 +1,36 @@
+name: AVS Curriculum Validation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/courses/AVS-EMRG-2026-curriculum.json'
+      - 'frontend/data/AVS-EMRG-2026-curriculum.json'
+      - 'scripts/validate-avs-curriculum.js'
+      - '.github/workflows/avs-curriculum-validation.yml'
+  push:
+    branches:
+      - feature/avs-emrg-2026-course-content
+    paths:
+      - 'docs/courses/AVS-EMRG-2026-curriculum.json'
+      - 'frontend/data/AVS-EMRG-2026-curriculum.json'
+      - 'scripts/validate-avs-curriculum.js'
+      - '.github/workflows/avs-curriculum-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-curriculum:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate AVS curriculum structure
+        run: node scripts/validate-avs-curriculum.js
+      - name: Ensure preview curriculum matches canonical curriculum
+        run: cmp docs/courses/AVS-EMRG-2026-curriculum.json frontend/data/AVS-EMRG-2026-curriculum.json
