@@ -263,9 +263,10 @@ const COURSE_META={
     ar:'السلامة من الحرائق وتدابير الاستجابة للطوارئ',
     mode:'self-study',
     freeOpening:true,
+    trainingDurationHours:null,
     accessHours:ACCESS_HOURS,
-    durationHours:24,
     activeStudyHours:ACTIVE_STUDY_HOURS,
+    durationHours:ACTIVE_STUDY_HOURS,
     pilotProject:true,
     masteryScore:80,
     finalQuestions:30,
@@ -327,7 +328,9 @@ async function findSession(req){
   return row;
 }
 
-const normalizeAccessExpiry=async(row,now)=>{if(!row||!row.accessStartsAt||!row.accessExpiresAt)return row;const currentExpiry=new Date(row.accessExpiresAt);if(currentExpiry<=now)return row;const policyExpiry=new Date(new Date(row.accessStartsAt).getTime()+ACCESS_HOURS*3600000);if(Math.abs(currentExpiry.getTime()-policyExpiry.getTime())>1000){await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:policyExpiry,updatedAt:now}});return {...row,accessExpiresAt:policyExpiry};}return row;};
+const accessHoursFor=row=>Number(COURSE_META[row?.courseSlug]?.accessHours||ACCESS_HOURS);
+const activeStudySecondsFor=row=>Number(COURSE_META[row?.courseSlug]?.activeStudyHours||ACTIVE_STUDY_HOURS)*3600;
+const normalizeAccessExpiry=async(row,now)=>{if(!row||!row.accessStartsAt||!row.accessExpiresAt)return row;const currentExpiry=new Date(row.accessExpiresAt);if(currentExpiry<=now)return row;const policyExpiry=new Date(new Date(row.accessStartsAt).getTime()+accessHoursFor(row)*3600000);if(Math.abs(currentExpiry.getTime()-policyExpiry.getTime())>1000){await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:policyExpiry,updatedAt:now}});return {...row,accessExpiresAt:policyExpiry};}return row;};
 
 const sessionHandler=async(req,res,next)=>{
   try{req.selfStudy=await findSession(req);if(!req.selfStudy)return res.status(401).json({message:'Self-study access required'});req.selfStudy=await normalizeAccessExpiry(req.selfStudy,new Date());if(new Date(req.selfStudy.accessExpiresAt)<=new Date())return res.status(401).json({message:'Self-study access has expired. / انتهت مدة الوصول للدراسة الذاتية.'});next();}
@@ -421,7 +424,7 @@ const exchangeHandler=async(req,res)=>{
     // so learners can close the page and return without requesting another email link.
     const session=randomToken(32);
     const accessStartsAt=row.accessStartsAt?new Date(row.accessStartsAt):now;
-    const accessExpiresAt=row.accessExpiresAt?new Date(row.accessExpiresAt):new Date(accessStartsAt.getTime()+ACCESS_HOURS*3600000);
+    const accessExpiresAt=row.accessExpiresAt?new Date(row.accessExpiresAt):new Date(accessStartsAt.getTime()+accessHoursFor(row)*3600000);
     const update=await c.updateOne(
       {_id:row._id,magicTokenHash:tokenHash,magicUsedAt:null,status:'active',magicTokenExpiresAt:{$gt:now}},
       {$set:{accessStartsAt,accessExpiresAt,activatedAt:row.activatedAt||now,magicUsedAt:now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(Math.min(now.getTime()+SESSION_HOURS*3600000,accessExpiresAt.getTime())),updatedAt:now}}
@@ -438,7 +441,7 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:activeStudySecondsFor(row),progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
@@ -559,10 +562,11 @@ const studyHeartbeatHandler=async(req,res)=>{
     let used=Number(row.activeStudySeconds||0);
     const previous=row.activeStudyLastPingAt?new Date(row.activeStudyLastPingAt):null;
     if(active&&previous){const gap=(now.getTime()-previous.getTime())/1000;if(gap>0&&gap<=ACTIVE_PING_MAX_GAP_SECONDS)used+=gap;}
-    used=Math.min(ACTIVE_STUDY_SECONDS,Math.floor(used));
-    const reached=used>=ACTIVE_STUDY_SECONDS;
+    const activeStudyLimitSeconds=activeStudySecondsFor(row);
+    used=Math.min(activeStudyLimitSeconds,Math.floor(used));
+    const reached=used>=activeStudyLimitSeconds;
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{activeStudySeconds:used,activeStudyLastPingAt:active&&!reached?now:null,status:reached?'study_limit_reached':'active',updatedAt:now}});
-    if(reached)return res.status(410).json({message:'You have used the maximum 24 active study hours. Your pilot course access has ended. / لقد استهلكت الحد الأقصى وهو 24 ساعة دراسة فعلية. انتهى وصولك إلى الدورة التجريبية.',activeStudySeconds:used,activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS});
+    if(reached)return res.status(410).json({message:'You have used the maximum 24 active study hours. Your pilot course access has ended. / لقد استهلكت الحد الأقصى وهو 24 ساعة دراسة فعلية. انتهى وصولك إلى الدورة التجريبية.',activeStudySeconds:used,activeStudyLimitSeconds});
     res.json({ok:true,activeStudySeconds:used,activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,accessExpiresAt:row.accessExpiresAt});
   }catch(e){console.error('Self-study heartbeat error',e);res.status(500).json({message:'Unable to update active study time'});}
 };
