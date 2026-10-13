@@ -704,30 +704,6 @@ const QUESTIONS = Object.freeze([
   },
   {
     "id": "avs-final-30",
-    "topic": "coordination",
-    "prompt": "Which is the best way to verify that an evacuation is complete? / ما أفضل طريقة للتحقق من اكتمال الإخلاء؟",
-    "options": [
-      {
-        "id": "a",
-        "text": "Use the approved accountability process and report missing persons or uncertainty / استخدام آلية الحصر المعتمدة والإبلاغ عن المفقودين أو عدم اليقين"
-      },
-      {
-        "id": "b",
-        "text": "Assume everyone has left when the area looks empty / افتراض خروج الجميع عندما تبدو المنطقة فارغة"
-      },
-      {
-        "id": "c",
-        "text": "Ask one person to guess / مطالبة شخص بالتخمين"
-      },
-      {
-        "id": "d",
-        "text": "Reopen the area to check alone / إعادة فتح المنطقة للتحقق منفردًا"
-      }
-    ],
-    "correctOptionId": "a"
-  },
-  {
-    "id": "avs-final-31",
     "topic": "risk",
     "prompt": "When should people re-enter an evacuated area? / متى يُسمح للأشخاص بالعودة إلى منطقة تم إخلاؤها؟",
     "options": [
