@@ -456,4 +456,112 @@ function getLearnerQuestionBank() {
   }));
 }
 
-module.exports = { INITIAL_ASSESSMENT, validateInitialAssessment, getLearnerQuestionBank };
+const crypto = require('node:crypto');
+
+function shuffle(values, randomInt = crypto.randomInt) {
+  const result = values.slice();
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = randomInt(i + 1);
+    if (!Number.isInteger(j) || j < 0 || j > i) {
+      throw new RangeError('Random source returned an invalid index.');
+    }
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
+ * Create an immutable per-attempt order. Persist this snapshot on the server;
+ * do not accept question or option order back from the learner.
+ */
+function createInitialAssessmentSnapshot(assessment = INITIAL_ASSESSMENT, randomInt) {
+  validateInitialAssessment(assessment);
+  const questionOrder = shuffle(assessment.questions.map(question => question.id), randomInt);
+  const optionOrderByQuestionId = {};
+  for (const question of assessment.questions) {
+    optionOrderByQuestionId[question.id] = shuffle(question.options.map(option => option.id), randomInt);
+  }
+  return Object.freeze({
+    attemptId: crypto.randomUUID(),
+    questionOrder: Object.freeze(questionOrder),
+    optionOrderByQuestionId: Object.freeze(Object.fromEntries(
+      Object.entries(optionOrderByQuestionId).map(([id, order]) => [id, Object.freeze(order)])
+    ))
+  });
+}
+
+/** Browser-safe bilingual quiz; correctOptionId is deliberately excluded. */
+function buildPublicInitialAssessment(assessment, snapshot) {
+  validateInitialAssessment(assessment);
+  if (!snapshot || !Array.isArray(snapshot.questionOrder) || !snapshot.optionOrderByQuestionId) {
+    throw new TypeError('A valid server-stored initial assessment snapshot is required.');
+  }
+  const byId = new Map(assessment.questions.map(question => [question.id, question]));
+  if (snapshot.questionOrder.length !== assessment.questions.length ||
+      new Set(snapshot.questionOrder).size !== assessment.questions.length) {
+    throw new TypeError('Initial assessment question order is invalid.');
+  }
+  return snapshot.questionOrder.map(questionId => {
+    const question = byId.get(questionId);
+    const optionOrder = snapshot.optionOrderByQuestionId[questionId];
+    if (!question || !Array.isArray(optionOrder) ||
+        optionOrder.length !== question.options.length ||
+        new Set(optionOrder).size !== question.options.length) {
+      throw new TypeError('Initial assessment option order is invalid.');
+    }
+    const optionById = new Map(question.options.map(option => [option.id, option]));
+    return {
+      id: question.id,
+      topic: question.topic,
+      prompt: question.prompt,
+      options: optionOrder.map(optionId => {
+        const option = optionById.get(optionId);
+        if (!option) throw new TypeError('Snapshot references an unknown option.');
+        return { id: option.id, text: option.text };
+      })
+    };
+  });
+}
+
+/** Diagnostic grading only: no pass gate and no answer key returned. */
+function gradeInitialAssessment(assessment, snapshot, answers) {
+  validateInitialAssessment(assessment);
+  if (!snapshot || !Array.isArray(snapshot.questionOrder) || !snapshot.optionOrderByQuestionId) {
+    throw new TypeError('A valid server-stored initial assessment snapshot is required.');
+  }
+  if (!answers || typeof answers !== 'object' || Array.isArray(answers)) {
+    throw new TypeError('Answers must be an object keyed by question id.');
+  }
+  const expectedIds = snapshot.questionOrder;
+  const answerIds = Object.keys(answers);
+  if (answerIds.length !== expectedIds.length || answerIds.some(id => !expectedIds.includes(id))) {
+    throw new TypeError('Submission must contain exactly one answer for each question.');
+  }
+  const byId = new Map(assessment.questions.map(question => [question.id, question]));
+  let correct = 0;
+  for (const questionId of expectedIds) {
+    const question = byId.get(questionId);
+    const allowedOptions = snapshot.optionOrderByQuestionId[questionId];
+    if (!question || !Array.isArray(allowedOptions) || !allowedOptions.includes(answers[questionId])) {
+      throw new TypeError('Submission contains an invalid option for this attempt.');
+    }
+    if (answers[questionId] === question.correctOptionId) correct += 1;
+  }
+  return Object.freeze({
+    correct,
+    total: expectedIds.length,
+    percent: Math.round((correct / expectedIds.length) * 10000) / 100,
+    diagnosticOnly: true,
+    passed: null
+  });
+}
+
+module.exports = {
+  INITIAL_ASSESSMENT,
+  validateInitialAssessment,
+  getLearnerQuestionBank,
+  shuffle,
+  createInitialAssessmentSnapshot,
+  buildPublicInitialAssessment,
+  gradeInitialAssessment
+};
