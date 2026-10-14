@@ -8,7 +8,7 @@
 const crypto = require('node:crypto');
 const { Access, Attempt, createAccessToken, hashAccessToken, accessExpiry, safeAccessView } = require('./avs-emrg-2026-persistence');
 const policy = require('./avs-emrg-2026-workflow-policy');
-const { isWorkshopEnabled } = require('./avs-emrg-2026-release-gate');
+const { createWorkshopReleaseGate } = require('./avs-emrg-2026-release-gate');
 const engine = require('./avs-emrg-2026-assessment');
 const { WORKSHOP } = require('./avs-emrg-2026-manifest');
 const { QUESTIONS: FINAL_BANK } = require('./avs-emrg-2026-final-question-bank');
@@ -93,12 +93,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
   if (typeof requireAdmin !== 'function') throw new TypeError('AVS route registration requires admin authentication middleware.');
   // Fail closed: all AVS learner, admin and public-verification endpoints remain unavailable
   // unless the deployment explicitly opts in with AVS_WORKSHOP_ENABLED=true.
-  const releaseGate = (req, res, next) => {
-    if (!isWorkshopEnabled()) {
-      return fail(res, 503, 'AVS workshop is not enabled. Release approval and testing are still pending.', 'workshop-disabled');
-    }
-    return next();
-  };
+  const releaseGate = createWorkshopReleaseGate();
   app.use('/api/avs-emrg-2026', releaseGate);
   app.use('/api/admin/avs-emrg-2026', releaseGate);
 
