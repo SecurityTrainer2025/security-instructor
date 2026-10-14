@@ -17,6 +17,7 @@ const mongoose = require('mongoose');
 const DiagnosticFeedback = mongoose.models.AvsEmrg2026Feedback || mongoose.model('AvsEmrg2026Feedback', new mongoose.Schema({ accessId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true }, answers: { type: mongoose.Schema.Types.Mixed, required: true }, submittedAt: { type: Date, default: Date.now } }, { timestamps: true, strict: 'throw' }), 'avs_emrg_2026_feedback');
 const { FEEDBACK_SURVEY, validateFeedbackSurvey } = require('./avs-emrg-2026-feedback-survey');
 const { getLesson } = require('./avs-emrg-2026-lessons');
+const { Certificate, isCertificateEligible, ensureCertificate, publicCertificate, certificatePayload } = require('./avs-emrg-2026-certificates');
 
 const clean = (value, max) => typeof value === 'string' ? value.trim().slice(0, max) : '';
 const fail = (res, status, message, reason) => res.status(status).json({ message, ...(reason ? { reason } : {}) });
@@ -90,6 +91,33 @@ function serialiseSnapshot(snapshot) {
 function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
   if (typeof requireAdmin !== 'function') throw new TypeError('AVS route registration requires admin authentication middleware.');
   const guard = accessTokenGuard();
+
+  // Public verification reveals only certificate metadata, never learner email or access credentials.
+  app.get('/api/avs-emrg-2026/certificate/verify/:certificateId', async (req, res) => {
+    try {
+      const certificateId = clean(req.params.certificateId, 80);
+      if (!/^SI-AVS-2026-[A-F0-9]{12}$/.test(certificateId)) return fail(res, 400, 'Invalid certificate ID.');
+      const record = await Certificate.findOne({ certificateId }).lean();
+      if (!record) return res.status(404).json({ valid: false, message: 'Certificate record not found.' });
+      return res.json({ valid: record.status === 'valid', status: record.status, certificateId: record.certificateId, workshopCode: record.workshopCode, learnerName: record.learnerName, workshopTitleEn: record.workshopTitleEn, workshopTitleAr: record.workshopTitleAr, durationHours: record.durationHours, issuedAt: record.issuedAt });
+    } catch (error) {
+      console.error('AVS certificate verification failed', error);
+      return fail(res, 500, 'Unable to verify this certificate.');
+    }
+  });
+
+  app.get('/api/avs-emrg-2026/certificate', guard, async (req, res) => {
+    try {
+      const access = await Access.findById(req.avsAccess._id).lean();
+      if (!isCertificateEligible(access)) return fail(res, 403, 'Complete all 15 knowledge checks and pass the final assessment before receiving a certificate.');
+      const record = await Certificate.findOne({ accessId: access._id }).lean();
+      if (!record) return fail(res, 404, 'Certificate record is not available yet. Please refresh after final assessment completion.');
+      return res.json({ ok: true, certificate: await certificatePayload(record) });
+    } catch (error) {
+      console.error('AVS certificate retrieval failed', error);
+      return fail(res, 500, 'Unable to load your certificate.');
+    }
+  });
 
   app.post('/api/admin/avs-emrg-2026/access', requireAdmin, async (req, res) => {
     try {
@@ -304,10 +332,22 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         $set: { finalPassed: result.passed, certificateEligible: result.passed }
       });
       if (!update.matchedCount) return fail(res, 409, 'Workshop progress changed; refresh your session before continuing.');
+      let certificate = null;
+      if (result.passed) {
+        try {
+          const eligibleAccess = await Access.findById(req.avsAccess._id).lean();
+          const record = await ensureCertificate(eligibleAccess, result.correct);
+          certificate = publicCertificate(record);
+        } catch (certificateError) {
+          // Do not lose a successfully graded assessment if certificate storage needs retry.
+          console.error('AVS certificate issuance pending retry', certificateError);
+        }
+      }
       return res.json({
         ok: true, result: { correct: result.correct, total: result.total, percent: result.percent, passed: result.passed },
         finalAttempts: latestAccess.finalAttempts,
-        certificateEligible: result.passed
+        certificateEligible: result.passed,
+        certificate
       });
     } catch (error) {
       if (error instanceof TypeError) return fail(res, 400, 'Invalid final assessment submission.');
