@@ -2,7 +2,7 @@
 
 /**
  * Dedicated AVS-EMRG-2026 assessment API.
- * Not registered until the owner approves launch and the route is tested.
+ * Registered on the API, but workshop access must remain disabled until release gates pass.
  * Uses isolated Mongo collections and never serializes answer keys to learners.
  */
 const crypto = require('node:crypto');
@@ -320,15 +320,11 @@ function register(app, { requireAdmin } = {}) {
   });
 
   app.get('/api/avs-emrg-2026/feedback', guard, (req, res) => {
-    try {
-      validateFeedbackSurvey();
-      return res.json({ ok: true, survey: FEEDBACK_SURVEY, status: 'draft-needs-owner-approval' });
-    } catch (error) {
-      return fail(res, 500, 'Feedback survey is not valid.');
-    }
+    return fail(res, 503, 'Feedback survey is still a draft and is not available to learners until approved.');
   });
 
   app.post('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
+    return fail(res, 503, 'Feedback survey is still a draft and is not available to learners until approved.');
     try {
       validateFeedbackSurvey();
       const existing = await DiagnosticFeedback.findOne({ accessId: req.avsAccess._id });
