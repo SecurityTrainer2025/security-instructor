@@ -27,7 +27,8 @@ function getToken(req) {
 }
 async function loadAccess(req) {
   const token = getToken(req);
-  if (!token) return null;
+  // Reject malformed bearer values as invalid credentials instead of turning them into 500s.
+  if (!token || token.length < 40 || token.length > 200) return null;
   const record = await Access.findOne({ tokenHash: hashAccessToken(token), workshopCode: WORKSHOP.code }).select('+tokenHash');
   if (!record || record.revokedAt || record.accessExpiresAt.getTime() <= Date.now()) return null;
   const state = policyState(record);
@@ -248,23 +249,38 @@ function register(app, { requireAdmin } = {}) {
       const attempt = await Attempt.findOne({ attemptId, accessId: req.avsAccess._id, kind: 'final' }).select('+optionOrderByQuestionId');
       if (!attempt) return fail(res, 404, 'Final assessment attempt not found.');
       if (attempt.status !== 'in-progress') return fail(res, 409, 'This attempt has already been submitted.');
-      const result = gradeQuiz('final', null, { questionOrder: attempt.questionOrder, optionOrderByQuestionId: attempt.optionOrderByQuestionId }, req.body?.answers);
-      attempt.answers = req.body.answers;
-      attempt.correctCount = result.correct;
-      attempt.questionCount = result.total;
-      attempt.passed = result.passed;
-      attempt.status = 'submitted';
-      attempt.submittedAt = new Date();
-      await attempt.save();
       const latestAccess = await Access.findById(req.avsAccess._id).lean();
-      if (!latestAccess || latestAccess.completedChecks.length !== 15) return fail(res, 403, 'Required formative checks are incomplete.');
-      await Access.updateOne({ _id: req.avsAccess._id, finalPassed: false }, {
-        $set: { finalPassed: result.passed, certificateEligible: result.passed && latestAccess.completedChecks.length === 15 }
+      if (!latestAccess || latestAccess.revokedAt || latestAccess.accessExpiresAt <= new Date() ||
+          !Array.isArray(latestAccess.completedChecks) ||
+          latestAccess.completedChecks.length !== 15 ||
+          Array.from({ length: 15 }, (_, i) => i + 1).some(n => !latestAccess.completedChecks.includes(n))) {
+        return fail(res, 403, 'Required formative checks must be complete and access must remain valid.');
+      }
+      if (latestAccess.finalPassed || attempt.attemptNumber > latestAccess.finalAttempts || latestAccess.finalAttempts > 3) {
+        return fail(res, 403, 'This final assessment attempt is no longer valid.');
+      }
+      const result = gradeQuiz('final', null, { questionOrder: attempt.questionOrder, optionOrderByQuestionId: attempt.optionOrderByQuestionId }, req.body?.answers);
+      // Claim the attempt exactly once to prevent concurrent duplicate submissions.
+      const claimed = await Attempt.updateOne(
+        { _id: attempt._id, status: 'in-progress' },
+        { $set: {
+          answers: req.body.answers, correctCount: result.correct, questionCount: result.total,
+          passed: result.passed, status: 'submitted', submittedAt: new Date()
+        } }
+      );
+      if (!claimed.modifiedCount) return fail(res, 409, 'This attempt has already been submitted.');
+      const update = await Access.updateOne({
+        _id: req.avsAccess._id, finalPassed: false, finalAttempts: { $gte: attempt.attemptNumber, $lte: 3 },
+        completedChecks: { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 },
+        accessExpiresAt: { $gt: new Date() }, revokedAt: null
+      }, {
+        $set: { finalPassed: result.passed, certificateEligible: result.passed }
       });
+      if (!update.matchedCount) return fail(res, 409, 'Workshop progress changed; refresh your session before continuing.');
       return res.json({
         ok: true, result: { correct: result.correct, total: result.total, percent: result.percent, passed: result.passed },
-        finalAttempts: req.avsAccess.finalAttempts,
-        certificateEligible: result.passed && req.avsAccess.completedChecks.length === 15
+        finalAttempts: latestAccess.finalAttempts,
+        certificateEligible: result.passed
       });
     } catch (error) {
       if (error instanceof TypeError) return fail(res, 400, 'Invalid final assessment submission.');
