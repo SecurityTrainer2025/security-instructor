@@ -90,6 +90,17 @@ function serialiseSnapshot(snapshot) {
 
 function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
   if (typeof requireAdmin !== 'function') throw new TypeError('AVS route registration requires admin authentication middleware.');
+  // Fail closed: all AVS learner, admin and public-verification endpoints remain unavailable
+  // unless the deployment explicitly opts in with AVS_WORKSHOP_ENABLED=true.
+  const releaseGate = (req, res, next) => {
+    if (process.env.AVS_WORKSHOP_ENABLED !== 'true') {
+      return fail(res, 503, 'AVS workshop is not enabled. Release approval and testing are still pending.', 'workshop-disabled');
+    }
+    return next();
+  };
+  app.use('/api/avs-emrg-2026', releaseGate);
+  app.use('/api/admin/avs-emrg-2026', releaseGate);
+
   const guard = accessTokenGuard();
 
   // Public verification reveals only certificate metadata, never learner email or access credentials.
