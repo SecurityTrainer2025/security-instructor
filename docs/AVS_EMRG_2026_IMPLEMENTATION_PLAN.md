@@ -39,7 +39,7 @@
 ## Current blockers
 - The learner screens, route integration, server-side persistence and certificate workflow are not yet implemented as a complete, separate workflow.
 - Runtime inspection confirmed the deployed startup path is `backend/package.json` → `backend/start.js` → `backend/server.js`. The existing Fire Safety self-study handlers are registered from `backend/self-study-routes.js`; AVS must be added as a separate module and must not change the Fire Safety constants or handlers.
-- The assessment and workflow policy modules currently provide pure logic only. Their callers must persist progress and the exact per-attempt question/option snapshot in MongoDB before the workflow can be considered secure or complete.
+- Added `backend/avs-emrg-2026-persistence.js` with isolated MongoDB access and attempt schemas, 256-bit random access-token generation, SHA-256 token hashing, 120-hour expiry calculation, and a safe learner-progress view. This module is intentionally not registered yet; HTTP handlers, atomic attempt creation/submission, email delivery and integration tests remain next. The route layer must persist the exact per-attempt question/option snapshot before returning a quiz.
 - The approved certificate design still needs AVS-specific issuance gating, a real QR verification link, a database record and public valid/revoked/not-found verification checks.
 - The newly drafted 10-question feedback survey needs owner/content approval before integration.
 - Automated CI is green: the latest relevant assessment/workflow run completed 28 tests with 28 passing and 0 failing. This validates the isolated logic only; route, database, email and device end-to-end tests remain outstanding.
