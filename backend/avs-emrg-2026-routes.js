@@ -323,33 +323,9 @@ function register(app, { requireAdmin } = {}) {
     return fail(res, 503, 'Feedback survey is still a draft and is not available to learners until approved.');
   });
 
-  app.post('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
+  app.post('/api/avs-emrg-2026/feedback', guard, (req, res) => {
     return fail(res, 503, 'Feedback survey is still a draft and is not available to learners until approved.');
-    try {
-      validateFeedbackSurvey();
-      const existing = await DiagnosticFeedback.findOne({ accessId: req.avsAccess._id });
-      if (existing) return fail(res, 409, 'Feedback has already been submitted.');
-      const answers = req.body?.answers;
-      if (!answers || typeof answers !== 'object' || Array.isArray(answers)) return fail(res, 400, 'Feedback answers are required.');
-      const allowed = new Map(FEEDBACK_SURVEY.questions.map(question => [question.id, question]));
-      for (const [id, value] of Object.entries(answers)) {
-        const question = allowed.get(id);
-        if (!question) return fail(res, 400, 'Unknown feedback question.');
-        if (question.type === 'rating-1-to-5' && (!Number.isInteger(value) || value < 1 || value > 5)) return fail(res, 400, 'Rating answers must be integers from 1 to 5.');
-        if (question.type === 'text' && (typeof value !== 'string' || value.length > question.maxLength)) return fail(res, 400, 'Text feedback is too long or invalid.');
-      }
-      for (const question of FEEDBACK_SURVEY.questions.filter(q => q.required)) {
-        if (answers[question.id] === undefined) return fail(res, 400, 'Please answer all required feedback questions.');
-      }
-      await DiagnosticFeedback.create({ accessId: req.avsAccess._id, answers, submittedAt: new Date() });
-      req.avsAccess.feedbackSubmittedAt = new Date();
-      await req.avsAccess.save();
-      return res.status(201).json({ ok: true, submitted: true, affectsCertificateEligibility: false });
-    } catch (error) {
-      console.error('AVS feedback submission failed', error);
-      return fail(res, 500, 'Unable to save feedback.');
-    }
-  });
+  });;
 }
 
 module.exports = { register };
