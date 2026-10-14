@@ -86,7 +86,7 @@ function serialiseSnapshot(snapshot) {
   };
 }
 
-function register(app, { requireAdmin } = {}) {
+function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
   if (typeof requireAdmin !== 'function') throw new TypeError('AVS route registration requires admin authentication middleware.');
   const guard = accessTokenGuard();
 
@@ -94,6 +94,7 @@ function register(app, { requireAdmin } = {}) {
     try {
       const learnerName = clean(req.body?.learnerName, 160);
       const learnerEmail = clean(req.body?.learnerEmail, 180).toLowerCase();
+      if (typeof sendWorkshopAccessEmail !== 'function') return fail(res, 503, 'Workshop email delivery is not configured; no access link was issued.');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(learnerEmail)) return fail(res, 400, 'A valid learner email is required.');
       const token = createAccessToken();
       const now = new Date();
@@ -107,10 +108,22 @@ function register(app, { requireAdmin } = {}) {
         tokenHash: hashAccessToken(token), accessCreatedAt: now, accessExpiresAt: accessExpiry(now),
         activeStudyHours, activeStudyStartedAt: null
       });
-      // Return the raw token only once to the authenticated admin. Email delivery is a separate release gate.
+      try {
+        await sendWorkshopAccessEmail({
+          to: learnerEmail,
+          learnerName,
+          accessUrl: 'https://securitytrainer2025.github.io/security-instructor/frontend/avs-emrg-2026.html?token=' + encodeURIComponent(token),
+          expiresAt: record.accessExpiresAt
+        });
+      } catch (mailError) {
+        console.error('AVS access email delivery failed', mailError);
+        record.revokedAt = new Date();
+        await record.save();
+        return fail(res, 503, 'Access email could not be sent. The issued link has been revoked; check email configuration and try again.');
+      }
+      // The raw token is sent only to the intended learner via email and is never returned in admin JSON.
       return res.status(201).json({
-        ok: true, access: safeAccessView(record), accessToken: token,
-        note: 'Store/send this token securely. It cannot be retrieved again from the database.'
+        ok: true, access: safeAccessView(record), emailSent: true
       });
     } catch (error) {
       console.error('AVS access creation failed', error);
