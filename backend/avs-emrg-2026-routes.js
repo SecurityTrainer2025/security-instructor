@@ -474,7 +474,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       console.error('AVS feedback submission failed', error);
       return fail(res, 500, 'Unable to save feedback.');
     }
-  });;
+  });
 }
 
 module.exports = { register };
