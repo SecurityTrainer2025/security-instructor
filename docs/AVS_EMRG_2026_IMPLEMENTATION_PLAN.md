@@ -34,7 +34,7 @@
 - Answer keys are not returned by learner-facing endpoints.
 - A learner cannot skip required checks or obtain a certificate by posting a fabricated score.
 - Access link expires after 120 hours; active-study expiry is tested independently.
-- Email delivery, access recovery, mobile/desktop behavior, feedback flow and certificate verification still need end-to-end tests. The learner page has not yet been browser-tested against the live API.
+- Email delivery, access recovery, mobile/desktop behavior, feedback flow and certificate verification still need end-to-end tests. Latest CI runs are in progress after the latest route/email changes; do not treat them as passed until their final status is available. The learner page has not yet been browser-tested against the live API.
 
 ## Current blockers
 - The first isolated bilingual learner assessment page is now added at `frontend/avs-emrg-2026.html`. It supports access-token entry, session/progress display, formative and final assessment UI, and the initial diagnostic. It is an integration scaffold, not a release-ready learning experience: the full lesson content is not yet embedded, and no email link delivery or certificate issuance/verification is wired into the page.
