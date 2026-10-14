@@ -12,7 +12,9 @@ const engine = require('./avs-emrg-2026-assessment');
 const { WORKSHOP } = require('./avs-emrg-2026-manifest');
 const { QUESTIONS: FINAL_BANK } = require('./avs-emrg-2026-final-question-bank');
 const { getFormativeCheck, validateFormativeBank, createFormativeSnapshot, buildPublicFormativeCheck, gradeFormativeCheck } = require('./avs-emrg-2026-formative-question-bank');
-const { INITIAL_ASSESSMENT } = require('./avs-emrg-2026-initial-assessment');
+const { INITIAL_ASSESSMENT, validateInitialAssessment, createInitialAssessmentSnapshot, buildPublicInitialAssessment, gradeInitialAssessment } = require('./avs-emrg-2026-initial-assessment');
+const mongoose = require('mongoose');
+const DiagnosticFeedback = mongoose.models.AvsEmrg2026Feedback || mongoose.model('AvsEmrg2026Feedback', new mongoose.Schema({ accessId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true }, answers: { type: mongoose.Schema.Types.Mixed, required: true }, submittedAt: { type: Date, default: Date.now } }, { timestamps: true, strict: 'throw' }), 'avs_emrg_2026_feedback');
 const { FEEDBACK_SURVEY, validateFeedbackSurvey } = require('./avs-emrg-2026-feedback-survey');
 
 const clean = (value, max) => typeof value === 'string' ? value.trim().slice(0, max) : '';
@@ -271,21 +273,85 @@ function register(app, { requireAdmin } = {}) {
     }
   });
 
-  app.get('/api/avs-emrg-2026/initial-assessment', guard, (req, res) => {
-    const questions = INITIAL_ASSESSMENT.questions.map(q => ({
-      id: q.id, topic: q.topic, prompt: q.prompt,
-      options: q.options.map(option => ({ id: option.id, text: option.text }))
-    }));
-    // This endpoint is informational until a separately persisted diagnostic attempt is implemented.
-    return res.json({ ok: true, requiredToPass: false, gatesWorkshopAccess: false, affectsCertificateEligibility: false, questions });
+  app.post('/api/avs-emrg-2026/initial-assessment/start', guard, async (req, res) => {
+    try {
+      validateInitialAssessment();
+      const access = req.avsAccess;
+      const prior = await Attempt.findOne({ accessId: access._id, kind: 'diagnostic' }).select('+optionOrderByQuestionId');
+      if (prior && prior.status === 'submitted') return fail(res, 409, 'The initial diagnostic has already been completed.');
+      if (prior) {
+        const snapshot = { questionOrder: prior.questionOrder, optionOrderByQuestionId: prior.optionOrderByQuestionId };
+        return res.json({ ok: true, attemptId: prior.attemptId, questions: buildPublicInitialAssessment(INITIAL_ASSESSMENT, snapshot), requiredToPass: false });
+      }
+      const snapshot = createInitialAssessmentSnapshot();
+      const attempt = await Attempt.create({
+        accessId: access._id, attemptId: snapshot.attemptId, kind: 'diagnostic', attemptNumber: 1,
+        questionOrder: snapshot.questionOrder, optionOrderByQuestionId: snapshot.optionOrderByQuestionId,
+        questionCount: 10, startedAt: new Date()
+      });
+      return res.status(201).json({ ok: true, attemptId: attempt.attemptId, questions: buildPublicInitialAssessment(INITIAL_ASSESSMENT, snapshot), requiredToPass: false });
+    } catch (error) {
+      console.error('AVS diagnostic start failed', error);
+      return fail(res, 500, 'Unable to start the initial diagnostic.');
+    }
+  });
+
+  app.post('/api/avs-emrg-2026/initial-assessment/submit', guard, async (req, res) => {
+    try {
+      const attempt = await Attempt.findOne({ attemptId: clean(req.body?.attemptId, 80), accessId: req.avsAccess._id, kind: 'diagnostic' }).select('+optionOrderByQuestionId');
+      if (!attempt) return fail(res, 404, 'Initial diagnostic attempt not found.');
+      if (attempt.status !== 'in-progress') return fail(res, 409, 'The initial diagnostic has already been submitted.');
+      const result = gradeInitialAssessment(INITIAL_ASSESSMENT, { questionOrder: attempt.questionOrder, optionOrderByQuestionId: attempt.optionOrderByQuestionId }, req.body?.answers);
+      attempt.answers = req.body.answers;
+      attempt.correctCount = result.correct;
+      attempt.questionCount = result.total;
+      attempt.passed = null;
+      attempt.status = 'submitted';
+      attempt.submittedAt = new Date();
+      await attempt.save();
+      req.avsAccess.diagnosticCompletedAt = new Date();
+      await req.avsAccess.save();
+      return res.json({ ok: true, result: { correct: result.correct, total: result.total, percent: result.percent }, requiredToPass: false, gatesWorkshopAccess: false, affectsCertificateEligibility: false });
+    } catch (error) {
+      if (error instanceof TypeError) return fail(res, 400, 'Invalid initial diagnostic submission.');
+      console.error('AVS diagnostic submission failed', error);
+      return fail(res, 500, 'Unable to grade the initial diagnostic.');
+    }
   });
 
   app.get('/api/avs-emrg-2026/feedback', guard, (req, res) => {
     try {
       validateFeedbackSurvey();
-      return res.json({ ok: true, survey: FEEDBACK_SURVEY });
+      return res.json({ ok: true, survey: FEEDBACK_SURVEY, status: 'draft-needs-owner-approval' });
     } catch (error) {
       return fail(res, 500, 'Feedback survey is not valid.');
+    }
+  });
+
+  app.post('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
+    try {
+      validateFeedbackSurvey();
+      const existing = await DiagnosticFeedback.findOne({ accessId: req.avsAccess._id });
+      if (existing) return fail(res, 409, 'Feedback has already been submitted.');
+      const answers = req.body?.answers;
+      if (!answers || typeof answers !== 'object' || Array.isArray(answers)) return fail(res, 400, 'Feedback answers are required.');
+      const allowed = new Map(FEEDBACK_SURVEY.questions.map(question => [question.id, question]));
+      for (const [id, value] of Object.entries(answers)) {
+        const question = allowed.get(id);
+        if (!question) return fail(res, 400, 'Unknown feedback question.');
+        if (question.type === 'rating-1-to-5' && (!Number.isInteger(value) || value < 1 || value > 5)) return fail(res, 400, 'Rating answers must be integers from 1 to 5.');
+        if (question.type === 'text' && (typeof value !== 'string' || value.length > question.maxLength)) return fail(res, 400, 'Text feedback is too long or invalid.');
+      }
+      for (const question of FEEDBACK_SURVEY.questions.filter(q => q.required)) {
+        if (answers[question.id] === undefined) return fail(res, 400, 'Please answer all required feedback questions.');
+      }
+      await DiagnosticFeedback.create({ accessId: req.avsAccess._id, answers, submittedAt: new Date() });
+      req.avsAccess.feedbackSubmittedAt = new Date();
+      await req.avsAccess.save();
+      return res.status(201).json({ ok: true, submitted: true, affectsCertificateEligibility: false });
+    } catch (error) {
+      console.error('AVS feedback submission failed', error);
+      return fail(res, 500, 'Unable to save feedback.');
     }
   });
 }
