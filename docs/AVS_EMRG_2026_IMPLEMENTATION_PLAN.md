@@ -36,6 +36,12 @@
 - Access link expires after 120 hours; active-study expiry is tested independently.
 - Email delivery, access recovery, mobile/desktop behavior, and certificate verification still need end-to-end tests. On the current PR head, the AVS unit-test workflow passed 33 tests with zero failures and the SI daily smoke-check workflow also passed. These CI results do not replace live API, MongoDB, email, browser, or device testing. The learner page has not yet been browser-tested against the live API.
 
+## Release gate implemented on the draft branch
+- Added a fail-closed route middleware for every `/api/avs-emrg-2026` and `/api/admin/avs-emrg-2026` endpoint. Requests receive HTTP 503 with reason `workshop-disabled` unless the runtime environment variable `AVS_WORKSHOP_ENABLED` is exactly `true`.
+- The default is disabled when the variable is missing, empty, `false`, `TRUE`, or any other value. The gate covers learner routes, admin access creation/revocation, and public certificate verification.
+- Added a unit test for the fail-closed environment-flag predicate and included it in the AVS CI workflow. This is not yet proof of a live deployed API response; the route-level behavior must still be checked in a non-production runtime.
+- **Keep `AVS_WORKSHOP_ENABLED` unset or set to `false` in every deployment until explicit owner approval. Do not set it to `true` as part of this change.**
+
 ## Current blockers
 - Added 15 bilingual draft lesson screens in `backend/avs-emrg-2026-lessons.js`, with objectives and lesson points, and a token-protected, sequentially gated lesson API. The learner page now opens lesson content before the corresponding formative check. The lesson content is a draft for qualified airport-emergency subject-matter review, not an operational procedure.
 - Runtime inspection confirmed the deployed startup path is `backend/package.json` → `backend/start.js` → `backend/server.js`. The existing Fire Safety self-study handlers are registered from `backend/self-study-routes.js`; AVS must be added as a separate module and must not change the Fire Safety constants or handlers.
