@@ -38,7 +38,7 @@ const attemptSchema = new mongoose.Schema({
   attemptId: { type: String, required: true, unique: true },
   kind: { type: String, required: true, enum: ['formative', 'final'] },
   screenNumber: { type: Number, min: 1, max: 15, default: null },
-  attemptNumber: { type: Number, required: true, min: 1, max: 3 },
+  attemptNumber: { type: Number, required: true, min: 1, max: 20 },
   questionOrder: { type: [String], required: true },
   optionOrderByQuestionId: { type: mongoose.Schema.Types.Mixed, required: true, select: false },
   status: { type: String, enum: ['in-progress', 'submitted', 'expired'], default: 'in-progress', index: true },
