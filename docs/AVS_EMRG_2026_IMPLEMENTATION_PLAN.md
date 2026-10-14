@@ -38,8 +38,11 @@
 
 ## Current blockers
 - The learner screens, route integration, server-side persistence and certificate workflow are not yet implemented as a complete, separate workflow.
+- Runtime inspection confirmed the deployed startup path is `backend/package.json` → `backend/start.js` → `backend/server.js`. The existing Fire Safety self-study handlers are registered from `backend/self-study-routes.js`; AVS must be added as a separate module and must not change the Fire Safety constants or handlers.
+- The assessment and workflow policy modules currently provide pure logic only. Their callers must persist progress and the exact per-attempt question/option snapshot in MongoDB before the workflow can be considered secure or complete.
+- The approved certificate design still needs AVS-specific issuance gating, a real QR verification link, a database record and public valid/revoked/not-found verification checks.
 - The newly drafted 10-question feedback survey needs owner/content approval before integration.
-- New bank unit tests have been added to CI; the latest complete workflow result still needs verification. End-to-end tests remain outstanding.
+- Automated CI is green: the latest relevant assessment/workflow run completed 28 tests with 28 passing and 0 failing. This validates the isolated logic only; route, database, email and device end-to-end tests remain outstanding.
 
 ## Release rule
 Keep the related pull request in draft and do not merge or activate this workshop until the implementation and all release gates have been reviewed and verified.
