@@ -106,12 +106,26 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
     }
   });
 
+  app.post('/api/admin/avs-emrg-2026/certificate/:certificateId/revoke', requireAdmin, async (req, res) => {
+    try {
+      const certificateId = clean(req.params.certificateId, 80);
+      if (!/^SI-AVS-2026-[A-F0-9]{12}$/.test(certificateId)) return fail(res, 400, 'Invalid certificate ID.');
+      const record = await Certificate.findOneAndUpdate({ certificateId, status: 'valid' }, { $set: { status: 'revoked' } }, { new: true });
+      if (!record) return fail(res, 404, 'A valid certificate with this ID was not found.');
+      return res.json({ ok: true, certificateId: record.certificateId, status: record.status });
+    } catch (error) {
+      console.error('AVS certificate revocation failed', error);
+      return fail(res, 500, 'Unable to revoke this certificate.');
+    }
+  });
+
   app.get('/api/avs-emrg-2026/certificate', guard, async (req, res) => {
     try {
       const access = await Access.findById(req.avsAccess._id).lean();
       if (!isCertificateEligible(access)) return fail(res, 403, 'Complete all 15 knowledge checks and pass the final assessment before receiving a certificate.');
       const record = await Certificate.findOne({ accessId: access._id }).lean();
       if (!record) return fail(res, 404, 'Certificate record is not available yet. Please refresh after final assessment completion.');
+      if (record.status !== 'valid') return fail(res, 410, 'This certificate has been revoked.');
       return res.json({ ok: true, certificate: await certificatePayload(record) });
     } catch (error) {
       console.error('AVS certificate retrieval failed', error);
