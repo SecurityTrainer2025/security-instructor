@@ -28,6 +28,8 @@ async function loadAccess(req) {
   if (!token) return null;
   const record = await Access.findOne({ tokenHash: hashAccessToken(token), workshopCode: WORKSHOP.code }).select('+tokenHash');
   if (!record || record.revokedAt || record.accessExpiresAt.getTime() <= Date.now()) return null;
+  const state = policyState(record);
+  if (!policy.assertAccessValid(state).valid) return null;
   return record;
 }
 function policyState(record) {
@@ -141,7 +143,7 @@ function register(app, { requireAdmin } = {}) {
       const gate = policy.canOpenScreen(state, screenNumber);
       if (!gate.allowed) return fail(res, gate.reason === 'invalid-screen' ? 400 : 403, 'This formative check is not available.', gate.reason);
       validateFormativeBank();
-      const existing = await Attempt.findOne({ accessId: record._id, kind: 'formative', screenNumber, status: 'in-progress' });
+      const existing = await Attempt.findOne({ accessId: record._id, kind: 'formative', screenNumber, status: 'in-progress' }).select('+optionOrderByQuestionId');
       if (existing) {
         const snapshot = {
           attemptId: existing.attemptId, attemptNumber: existing.attemptNumber,
@@ -205,6 +207,11 @@ function register(app, { requireAdmin } = {}) {
 
   app.post('/api/avs-emrg-2026/final/start', guard, async (req, res) => {
     try {
+      const existing = await Attempt.findOne({ accessId: req.avsAccess._id, kind: 'final', status: 'in-progress' }).select('+optionOrderByQuestionId');
+      if (existing) {
+        const snapshot = { attemptId: existing.attemptId, attemptNumber: existing.attemptNumber, questionOrder: existing.questionOrder, optionOrderByQuestionId: existing.optionOrderByQuestionId };
+        return res.json({ ok: true, attemptId: existing.attemptId, attemptNumber: existing.attemptNumber, questions: publicQuiz('final', null, snapshot) });
+      }
       const record = await Access.findOneAndUpdate({
         _id: req.avsAccess._id, finalPassed: false, finalAttempts: { $lt: 3 },
         completedChecks: { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 },
@@ -247,8 +254,10 @@ function register(app, { requireAdmin } = {}) {
       attempt.status = 'submitted';
       attempt.submittedAt = new Date();
       await attempt.save();
-      const update = await Access.updateOne({ _id: req.avsAccess._id, finalPassed: false }, {
-        $set: { finalPassed: result.passed, certificateEligible: result.passed && req.avsAccess.completedChecks.length === 15 }
+      const latestAccess = await Access.findById(req.avsAccess._id).lean();
+      if (!latestAccess || latestAccess.completedChecks.length !== 15) return fail(res, 403, 'Required formative checks are incomplete.');
+      await Access.updateOne({ _id: req.avsAccess._id, finalPassed: false }, {
+        $set: { finalPassed: result.passed, certificateEligible: result.passed && latestAccess.completedChecks.length === 15 }
       });
       return res.json({
         ok: true, result: { correct: result.correct, total: result.total, percent: result.percent, passed: result.passed },
