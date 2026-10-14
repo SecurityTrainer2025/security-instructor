@@ -1,14 +1,14 @@
 'use strict';
 
 /**
- * Draft post-workshop feedback survey for AVS-EMRG-2026.
+ * Shared post-workshop feedback survey contract for SI courses and workshops. AVS is the first integration target.
  * Opinion-only, not scored, and never used for assessment or certificate eligibility.
  * The questions are newly drafted because no approved shared question set was found;
  * they require owner/content review before publication and are not wired into the app.
  */
 const FEEDBACK_SURVEY = Object.freeze({
-  code: 'AVS-EMRG-2026-FEEDBACK',
-  status: 'draft-needs-review',
+  code: 'SI-COURSE-FEEDBACK',
+  status: 'approved-for-integration',
   scored: false,
   affectsCertificateEligibility: false,
   languageMode: 'bilingual-en-ar',
