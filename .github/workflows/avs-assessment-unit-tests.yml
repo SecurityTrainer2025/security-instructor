@@ -21,6 +21,6 @@ jobs:
         with:
           node-version: 20
       - name: Syntax-check AVS API and persistence modules
-        run: node --check backend/avs-emrg-2026-routes.js && node --check backend/avs-emrg-2026-persistence.js && node --check backend/avs-emrg-2026-lessons.js && node --check backend/avs-emrg-2026-certificates.js && node --check backend/avs-emrg-2026-certificate-policy.js && node --check backend/server.js
+        run: node --check backend/avs-emrg-2026-release-gate.js && node --check backend/avs-emrg-2026-routes.js && node --check backend/avs-emrg-2026-persistence.js && node --check backend/avs-emrg-2026-lessons.js && node --check backend/avs-emrg-2026-certificates.js && node --check backend/avs-emrg-2026-certificate-policy.js && node --check backend/server.js
       - name: Test isolated AVS assessment, workflow and certificate policies
-        run: node --test backend/avs-emrg-2026-assessment.test.js backend/avs-emrg-2026-initial-assessment.test.js backend/avs-emrg-2026-final-question-bank.test.js backend/avs-emrg-2026-formative-feedback.test.js backend/avs-emrg-2026-formative-question-bank.test.js backend/avs-emrg-2026-workflow-policy.test.js backend/avs-emrg-2026-lessons.test.js backend/avs-emrg-2026-certificates.test.js
+        run: node --test backend/avs-emrg-2026-assessment.test.js backend/avs-emrg-2026-initial-assessment.test.js backend/avs-emrg-2026-final-question-bank.test.js backend/avs-emrg-2026-formative-feedback.test.js backend/avs-emrg-2026-formative-question-bank.test.js backend/avs-emrg-2026-workflow-policy.test.js backend/avs-emrg-2026-lessons.test.js backend/avs-emrg-2026-certificates.test.js backend/avs-emrg-2026-release-gate.test.js
