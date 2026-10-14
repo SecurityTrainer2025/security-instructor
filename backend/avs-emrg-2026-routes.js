@@ -123,8 +123,19 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
     try {
       const access = await Access.findById(req.avsAccess._id).lean();
       if (!isCertificateEligible(access)) return fail(res, 403, 'Complete all 15 knowledge checks and pass the final assessment before receiving a certificate.');
-      const record = await Certificate.findOne({ accessId: access._id }).lean();
-      if (!record) return fail(res, 404, 'Certificate record is not available yet. Please refresh after final assessment completion.');
+      let record = await Certificate.findOne({ accessId: access._id }).lean();
+      if (!record) {
+        // Recover a certificate if the final result was saved but certificate storage
+        // failed during the original submission. Score is read only from the server-side
+        // graded attempt record, never from learner input.
+        const passingAttempt = await Attempt.findOne({
+          accessId: access._id, kind: 'final', status: 'submitted', passed: true,
+          correctCount: { $gte: 22 }, questionCount: 30
+        }).sort({ submittedAt: -1 }).lean();
+        if (!passingAttempt) return fail(res, 404, 'Certificate record is not available yet. Please contact the workshop administrator.');
+        const recovered = await ensureCertificate(access, passingAttempt.correctCount);
+        record = publicCertificate(recovered);
+      }
       if (record.status !== 'valid') return fail(res, 410, 'This certificate has been revoked.');
       return res.json({ ok: true, certificate: await certificatePayload(record) });
     } catch (error) {
