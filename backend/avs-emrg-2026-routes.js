@@ -434,12 +434,46 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
     }
   });
 
-  app.get('/api/avs-emrg-2026/feedback', guard, (req, res) => {
-    return fail(res, 503, 'Feedback survey is still a draft and is not available to learners until approved.');
+  app.get('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
+    try {
+      validateFeedbackSurvey();
+      const existing = await DiagnosticFeedback.findOne({ accessId: req.avsAccess._id }).lean();
+      return res.json({ survey: { code: 'SI-COURSE-FEEDBACK', languageMode: FEEDBACK_SURVEY.languageMode, scored: false, affectsCertificateEligibility: false, questions: FEEDBACK_SURVEY.questions }, submitted: !!existing, submittedAt: existing?.submittedAt || null });
+    } catch (error) {
+      console.error('AVS feedback retrieval failed', error);
+      return fail(res, 500, 'Unable to load the feedback survey.');
+    }
   });
 
-  app.post('/api/avs-emrg-2026/feedback', guard, (req, res) => {
-    return fail(res, 503, 'Feedback survey is still a draft and is not available to learners until approved.');
+  app.post('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
+    try {
+      validateFeedbackSurvey();
+      const answers = req.body?.answers;
+      if (!answers || typeof answers !== 'object' || Array.isArray(answers)) return fail(res, 400, 'Feedback answers are required.');
+      const cleanAnswers = {};
+      for (const q of FEEDBACK_SURVEY.questions) {
+        const value = answers[q.id];
+        if (q.required && value === undefined) return fail(res, 400, 'Please complete all required feedback ratings.');
+        if (value === undefined || value === null || value === '') continue;
+        if (q.type === 'rating-1-to-5') {
+          const n = Number(value);
+          if (!Number.isInteger(n) || n < 1 || n > 5) return fail(res, 400, 'Rating answers must be from 1 to 5.');
+          cleanAnswers[q.id] = n;
+        } else if (q.type === 'text') {
+          if (typeof value !== 'string' || value.length > (q.maxLength || 1000)) return fail(res, 400, 'A feedback comment is invalid or too long.');
+          cleanAnswers[q.id] = value.trim();
+        }
+      }
+      await DiagnosticFeedback.findOneAndUpdate(
+        { accessId: req.avsAccess._id },
+        { $set: { answers: cleanAnswers, submittedAt: new Date() } },
+        { upsert: true, new: true, runValidators: true }
+      );
+      return res.json({ ok: true, message: 'Thank you for your feedback. / شكرًا لملاحظاتك.' });
+    } catch (error) {
+      console.error('AVS feedback submission failed', error);
+      return fail(res, 500, 'Unable to save feedback.');
+    }
   });;
 }
 
