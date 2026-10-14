@@ -22,12 +22,7 @@ const certificateSchema = new mongoose.Schema({
 const Certificate = mongoose.models.AvsEmrg2026Certificate ||
   mongoose.model('AvsEmrg2026Certificate', certificateSchema, 'avs_emrg_2026_certificates');
 
-function isCertificateEligible(access) {
-  return Boolean(access && access.certificateEligible === true && access.finalPassed === true &&
-    Array.isArray(access.completedChecks) && access.completedChecks.length === 15 &&
-    Array.from({ length: 15 }, (_, i) => i + 1).every(n => access.completedChecks.includes(n)) &&
-    !access.revokedAt);
-}
+const { isCertificateEligible } = require('./avs-emrg-2026-certificate-policy');
 
 function makeCertificateId() {
   return 'SI-AVS-2026-' + crypto.randomBytes(6).toString('hex').toUpperCase();
