@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isCertificateEligible } = require('./avs-emrg-2026-certificates');
+const { isCertificateEligible } = require('./avs-emrg-2026-certificate-policy');
 
 const completeChecks = Array.from({ length: 15 }, (_, i) => i + 1);
 
@@ -18,4 +18,11 @@ test('AVS certificate eligibility rejects revoked access and duplicate/missing c
   assert.equal(isCertificateEligible({ certificateEligible: true, finalPassed: true, completedChecks: [...completeChecks, 15], revokedAt: null }), false);
   assert.equal(isCertificateEligible(null), false);
   assert.equal(isCertificateEligible({ certificateEligible: true, finalPassed: true, completedChecks: [1, 2], revokedAt: null }), false);
+});
+
+test('AVS certificate IDs use a fixed, non-identifying format', () => {
+  const { isCertificateId } = require('./avs-emrg-2026-certificate-policy');
+  assert.equal(isCertificateId('SI-AVS-2026-012345ABCDEF'), true);
+  assert.equal(isCertificateId('SI-AVS-2026-short'), false);
+  assert.equal(isCertificateId('SI-AVS-2026-012345abcdef'), false);
 });
