@@ -34,17 +34,17 @@
 - Answer keys are not returned by learner-facing endpoints.
 - A learner cannot skip required checks or obtain a certificate by posting a fabricated score.
 - Access link expires after 120 hours; active-study expiry is tested independently.
-- Email delivery, access recovery, mobile/desktop behavior, feedback flow and certificate verification still need end-to-end tests. Latest CI runs are in progress after the latest route/email changes; do not treat them as passed until their final status is available. The learner page has not yet been browser-tested against the live API.
+- Email delivery, access recovery, mobile/desktop behavior, feedback flow and certificate verification still need end-to-end tests. The latest AVS unit-test workflow and SI daily smoke-check workflow have completed successfully for the current PR head. The learner page has not yet been browser-tested against the live API.
 
 ## Current blockers
 - Added 15 bilingual draft lesson screens in `backend/avs-emrg-2026-lessons.js`, with objectives and lesson points, and a token-protected, sequentially gated lesson API. The learner page now opens lesson content before the corresponding formative check. The lesson content is a draft for qualified airport-emergency subject-matter review, not an operational procedure.
 - Runtime inspection confirmed the deployed startup path is `backend/package.json` → `backend/start.js` → `backend/server.js`. The existing Fire Safety self-study handlers are registered from `backend/self-study-routes.js`; AVS must be added as a separate module and must not change the Fire Safety constants or handlers.
 - Added `backend/avs-emrg-2026-persistence.js` with isolated MongoDB access and attempt schemas, 256-bit random access-token generation, SHA-256 token hashing, 120-hour expiry calculation, and a safe learner-progress view.
 - Added `backend/avs-emrg-2026-routes.js` and registered it in the actual `backend/server.js` runtime. The isolated routes now cover admin-issued access, access/session/progress, randomized formative start/submit, randomized final start/submit, randomized initial diagnostic start/submit, and feedback retrieval/submission. Per-attempt question/option order is persisted server-side, answer keys are omitted from public quiz payloads, scores are server-graded, and progress is saved in separate AVS MongoDB collections.
-- This is a first integration pass, not release-ready: no production MongoDB/API smoke test has been run from this environment; email delivery and learner-facing frontend integration are still outstanding; certificate issuance/QR verification remains outstanding; survey content is still a draft pending owner approval.
-- The approved certificate design still needs AVS-specific issuance gating, a real QR verification link, a database record and public valid/revoked/not-found verification checks.
+- This is a first integration pass, not release-ready: no production MongoDB/API smoke test has been run from this environment; email delivery and learner-facing frontend integration need end-to-end verification; certificate issuance/QR verification has been added but remains unverified end-to-end; survey content is still a draft pending owner approval.
+- AVS certificate support now includes a separate MongoDB record, eligibility-gated issuance after all 15 checks and a passing final exam, an 8-hour bilingual certificate view, locally generated QR data, and a public valid/revoked/not-found verification endpoint/page. Validate issuance, QR scanning, public status checks and the final certificate layout before release.
 - The newly drafted 10-question feedback survey needs owner/content approval before integration.
-- Automated CI is green: the latest relevant assessment/workflow run completed 28 tests with 28 passing and 0 failing. This validates the isolated logic only; route, database, email and device end-to-end tests remain outstanding.
+- Automated CI is green: the latest AVS unit-test workflow and SI daily smoke-check workflow both succeeded on the current PR head. This validates automated checks only; route, database, email and device end-to-end tests remain outstanding.
 
 ## Release rule
 Keep the related pull request in draft and do not merge or activate this workshop until the implementation and all release gates have been reviewed and verified.
