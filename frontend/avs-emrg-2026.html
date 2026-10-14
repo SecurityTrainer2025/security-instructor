@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>AVS-EMRG-2026 | SECURITY INSTRUCTOR</title>
+<link rel="stylesheet" href="style.css">
+<style>
+:root{--navy:#0B1F33;--deep:#081725;--blue:#102A43;--gold:#C8A96B;--ink:#172838;--muted:#5e6c78;--line:#d9e0e5}
+*{box-sizing:border-box}body{margin:0;background:#f2f5f7;color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.6}.top{background:linear-gradient(130deg,var(--deep),var(--blue));color:white;padding:22px max(18px,calc((100% - 1000px)/2));border-bottom:3px solid var(--gold)}.brand{font-size:13px;letter-spacing:.12em;font-weight:800;color:var(--gold)}h1{font-size:clamp(25px,4vw,38px);line-height:1.2;margin:12px 0 8px}.sub{margin:0;color:#d9e3eb;max-width:760px}.wrap{max-width:1000px;margin:24px auto;padding:0 16px 44px}.panel{background:white;border:1px solid var(--line);padding:clamp(16px,3vw,26px);margin:16px 0;box-shadow:0 3px 12px #0b1f3308}.panel h2{font-size:21px;margin:0 0 12px;color:var(--navy)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field label{display:block;font-weight:700;margin-bottom:6px}.field input{width:100%;padding:13px;border:1px solid #aebbc5;border-radius:3px;font:inherit}.btn{display:inline-flex;justify-content:center;align-items:center;border:1px solid var(--gold);background:var(--navy);color:white;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer;border-radius:2px;text-decoration:none}.btn.gold{background:var(--gold);color:var(--deep)}.btn:disabled{opacity:.45;cursor:not-allowed}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.notice{padding:12px 14px;background:#f7f4ec;border-left:4px solid var(--gold);margin:12px 0}.error{background:#fff1f0;border-left-color:#b42318}.success{background:#edf8f0;border-left-color:#24864a}.muted{color:var(--muted);font-size:14px}.statusline{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.pill{padding:6px 10px;background:#eef2f5;border:1px solid var(--line);font-size:12px;font-weight:700}.screen-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.screen{border:1px solid var(--line);padding:10px;background:#f9fafb;font-size:13px}.screen.done{border-color:#24864a;background:#edf8f0}.q{border-top:1px solid var(--line);padding:18px 0}.q:first-of-type{border-top:0}.q legend{font-weight:700;margin-bottom:10px}.option{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);margin:7px 0;cursor:pointer}.option:has(input:checked){border-color:var(--gold);background:#fbf8f1}.option input{margin-top:5px;flex:0 0 auto}.hidden{display:none!important}footer{text-align:center;background:var(--navy);color:#d9e3eb;padding:20px;font-size:12px}@media(max-width:650px){.grid,.screen-list{grid-template-columns:1fr}.top{padding:20px 16px}.actions .btn{width:100%}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">SECURITY INSTRUCTOR · SI</div><h1>Safety, Emergency &amp; Evacuation in Civil Airports</h1><p class="sub" dir="rtl">إدارة السلامة والطوارئ والإخلاء في المطارات المدنية</p><p class="sub">AVS-EMRG-2026 · Workshop duration: 8 hours · ورشة عمل: ٨ ساعات</p></header>
+<main class="wrap">
+<section class="panel" id="accessPanel"><h2>Access your workshop / الدخول إلى الورشة</h2><p>Open the private link sent to you, or enter your workshop access token below. Your progress is saved to the workshop record. Do not share your access link.</p><p dir="rtl">افتح الرابط الخاص المرسل إليك أو أدخل رمز الدخول أدناه. يتم حفظ تقدمك في سجل الورشة. لا تشارك رابط الدخول الخاص بك.</p><div class="grid"><div class="field"><label for="token">Workshop access token / رمز الدخول</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your private access token"></div><div class="field"><label for="language">Display language / لغة العرض</label><select id="language" style="width:100%;padding:13px;border:1px solid #aebbc5;font:inherit"><option value="both">English + العربية</option><option value="en">English</option><option value="ar">العربية</option></select></div></div><div class="actions"><button class="btn gold" id="connectBtn">Open workshop / فتح الورشة</button></div><div id="accessMsg" class="notice hidden" role="status" aria-live="polite"></div></section>
+<section class="panel hidden" id="dashboard"><h2 id="welcome">Workshop progress / تقدم الورشة</h2><div id="statusline" class="statusline"></div><div id="progressMsg" class="notice"></div><h3>Learning sequence / تسلسل التعلم</h3><div id="screens" class="screen-list"></div><div class="notice"><strong>Content review notice / تنبيه مراجعة المحتوى:</strong> This learner page is an integration draft. The approved lesson content and question banks still require final subject-matter review and end-to-end testing before the workshop can be released. / صفحة المتدرب هذه نسخة تكامل تجريبية. لا يزال المحتوى التعليمي وبنوك الأسئلة بحاجة إلى مراجعة نهائية واختبارات شاملة قبل إتاحة الورشة.</div><div class="actions"><button class="btn" id="diagnosticBtn">Start initial diagnostic (10) / بدء التقييم المبدئي (١٠)</button><button class="btn" id="startFormativeBtn">Start next knowledge check / بدء اختبار المعرفة التالي</button><button class="btn gold" id="startFinalBtn">Start final assessment (30) / بدء التقييم النهائي (٣٠)</button></div></section>
+<section class="panel hidden" id="quizPanel"><h2 id="quizTitle">Assessment / التقييم</h2><p id="quizIntro" class="muted"></p><form id="quizForm"><div id="questions"></div><div class="actions"><button class="btn gold" id="submitBtn" type="submit">Submit answers / إرسال الإجابات</button><button class="btn" id="cancelBtn" type="button">Return to progress / العودة للتقدم</button></div></form><div id="result" class="notice hidden" role="status" aria-live="polite"></div></section>
+</main><footer>SECURITY INSTRUCTOR · Learn • Train • Grow</footer>
+<script src="config.js"></script>
+<script>
+(function(){
+'use strict';
+const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE||'').replace(/\/$/,'');
+const $=id=>document.getElementById(id);
+let token='',session=null,activeQuiz=null,answers={},language='both';
+const titleOf=s=>language==='ar'?s.titleAr:(language==='en'?s.titleEn:s.titleEn+' / '+s.titleAr);
+function message(el,text,type){el.textContent=text;el.classList.remove('hidden','error','success');if(type)el.classList.add(type);}
+function hide(el){el.classList.add('hidden');}
+async function request(path,options){const res=await fetch(API+path,{...options,headers:{...(options&&options.headers||{}),Authorization:'Bearer '+token,...(options&&options.body?{'Content-Type':'application/json'}:{})}});let data={};try{data=await res.json()}catch{}if(!res.ok){const e=new Error(data.message||('Request failed ('+res.status+')'));e.status=res.status;throw e}return data;}
+function progressView(){
+ const a=session.access||{},done=new Set(a.completedChecks||[]);
+ $('statusline').replaceChildren();
+ [['Checks passed / الاختبارات المكتملة',done.size+'/15'],['Final attempts / محاولات النهائي',String(a.finalAttempts||0)+'/3'],['Final result / نتيجة النهائي',a.finalPassed?'Passed / ناجح':'Not passed / لم يجتز'],['Access expiry / انتهاء الرابط',a.accessExpiresAt?new Date(a.accessExpiresAt).toLocaleString():'—']].forEach(([k,v])=>{const x=document.createElement('span');x.className='pill';x.textContent=k+': '+v;$('statusline').append(x)});
+ $('screens').replaceChildren();(session.screens||[]).forEach(s=>{const x=document.createElement('div');x.className='screen'+(done.has(s.order)?' done':'');x.textContent=(done.has(s.order)?'✓ ':'')+s.order+'. '+titleOf(s);$('screens').append(x)});
+ $('progressMsg').textContent=done.size===15?'All knowledge checks are complete. / اكتملت اختبارات المعرفة. '+(session.finalAssessmentAvailable?'The final assessment is available. / التقييم النهائي متاح.':''):'Complete each knowledge check with at least 4/5 correct to unlock the next one. / أجب بشكل صحيح عن ٤ من ٥ على الأقل لفتح الاختبار التالي.';
+ $('startFinalBtn').disabled=!session.finalAssessmentAvailable||!!a.finalPassed||(a.finalAttempts||0)>=3;
+ $('startFormativeBtn').disabled=done.size===15;
+}
+async function connect(){
+ token=$('token').value.trim();language=$('language').value;
+ if(!token){message($('accessMsg'),'Enter your private access token first. / أدخل رمز الدخول أولًا.','error');return}
+ $('connectBtn').disabled=true;
+ try{session=await request('/api/avs-emrg-2026/session');$('accessPanel').classList.add('hidden');$('dashboard').classList.remove('hidden');progressView();}
+ catch(e){message($('accessMsg'),e.message+' / تعذر فتح الورشة. تحقق من الرمز أو اطلب رابطًا صالحًا من مسؤول الورشة.','error');}
+ finally{$('connectBtn').disabled=false}
+}
+function renderQuiz(data,kind,screen){
+ activeQuiz={...data,kind,screen};answers={};$('questions').replaceChildren();hide($('result'));
+ $('quizTitle').textContent=kind==='diagnostic'?'Initial diagnostic / التقييم المبدئي':kind==='final'?'Final assessment / التقييم النهائي':'Knowledge check '+screen+' / اختبار المعرفة '+screen;
+ $('quizIntro').textContent='Choose one answer for every question. The assessment is graded by the server. / اختر إجابة واحدة لكل سؤال. يتم تصحيح التقييم على الخادم.';
+ data.questions.forEach((q,i)=>{
+  const field=document.createElement('fieldset');field.className='q';const legend=document.createElement('legend');legend.textContent=(i+1)+'. '+q.prompt;field.append(legend);
+  q.options.forEach(opt=>{const label=document.createElement('label');label.className='option';const input=document.createElement('input');input.type='radio';input.name=q.id;input.value=opt.id;input.required=true;input.addEventListener('change',()=>{answers[q.id]=opt.id});const text=document.createElement('span');text.textContent=opt.text;label.append(input,text);field.append(label)});
+  $('questions').append(field);
+ });
+ $('quizPanel').classList.remove('hidden');$('quizPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function start(kind,screen){
+ try{
+  let path,body={};
+  if(kind==='diagnostic')path='/api/avs-emrg-2026/initial-assessment/start';
+  else if(kind==='final')path='/api/avs-emrg-2026/final/start';
+  else path='/api/avs-emrg-2026/formative/'+screen+'/start';
+  const data=await request(path,{method:'POST',body:JSON.stringify(body)});
+  renderQuiz(data,kind,screen);
+ }catch(e){message($('progressMsg'),e.message+' / لم يمكن بدء التقييم.','error');}
+}
+$('connectBtn').addEventListener('click',connect);
+$('language').addEventListener('change',()=>{language=$('language').value;if(session)progressView()});
+$('diagnosticBtn').addEventListener('click',()=>start('diagnostic',null));
+$('startFormativeBtn').addEventListener('click',()=>{const done=new Set(session.access.completedChecks||[]);start('formative',done.size+1)});
+$('startFinalBtn').addEventListener('click',()=>start('final',null));
+$('cancelBtn').addEventListener('click',()=>{$('quizPanel').classList.add('hidden');$('dashboard').scrollIntoView({behavior:'smooth'});});
+$('quizForm').addEventListener('submit',async e=>{
+ e.preventDefault();if(!activeQuiz)return;
+ const expected=activeQuiz.questions.length;if(Object.keys(answers).length!==expected){message($('result'),'Please answer every question before submitting. / يرجى الإجابة عن جميع الأسئلة.','error');return}
+ $('submitBtn').disabled=true;
+ try{
+  const body={attemptId:activeQuiz.attemptId,answers};let path;
+  if(activeQuiz.kind==='diagnostic')path='/api/avs-emrg-2026/initial-assessment/submit';
+  else if(activeQuiz.kind==='final')path='/api/avs-emrg-2026/final/submit';
+  else path='/api/avs-emrg-2026/formative/'+activeQuiz.screen+'/submit';
+  const data=await request(path,{method:'POST',body:JSON.stringify(body)});
+  const r=data.result||{};const pass=r.passed;
+  let msg='Score / النتيجة: '+r.correct+'/'+r.total+' ('+r.percent+'%). ';
+  if(activeQuiz.kind==='diagnostic')msg+='This is diagnostic only and does not affect completion or certificate eligibility. / هذا تقييم مبدئي ولا يؤثر في إتمام الورشة أو أهلية الشهادة.';
+  else if(pass)msg+='Passed / اجتياز. '+(data.nextScreen?'Next check unlocked / تم فتح الاختبار التالي.':'');
+  else msg+='Not passed. Review the material and try again. / لم تجتز الاختبار. راجع المحتوى وحاول مرة أخرى.';
+  message($('result'),msg,activeQuiz.kind==='diagnostic'||pass?'success':'error');
+  if(activeQuiz.kind!=='diagnostic'){const updated=await request('/api/avs-emrg-2026/session');session=updated;progressView();}
+  $('result').scrollIntoView({behavior:'smooth',block:'center'});
+ }catch(err){message($('result'),err.message+' / لم يتم إرسال الإجابات. حاول مرة أخرى.','error')}
+ finally{$('submitBtn').disabled=false}
+});
+const queryToken=new URLSearchParams(location.search).get('token');if(queryToken){$('token').value=queryToken;connect();}
+})();
+</script>
+</body></html>
