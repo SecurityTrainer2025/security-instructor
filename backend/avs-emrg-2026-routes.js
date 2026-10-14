@@ -16,6 +16,7 @@ const { INITIAL_ASSESSMENT, validateInitialAssessment, createInitialAssessmentSn
 const mongoose = require('mongoose');
 const DiagnosticFeedback = mongoose.models.AvsEmrg2026Feedback || mongoose.model('AvsEmrg2026Feedback', new mongoose.Schema({ accessId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true }, answers: { type: mongoose.Schema.Types.Mixed, required: true }, submittedAt: { type: Date, default: Date.now } }, { timestamps: true, strict: 'throw' }), 'avs_emrg_2026_feedback');
 const { FEEDBACK_SURVEY, validateFeedbackSurvey } = require('./avs-emrg-2026-feedback-survey');
+const { getLesson } = require('./avs-emrg-2026-lessons');
 
 const clean = (value, max) => typeof value === 'string' ? value.trim().slice(0, max) : '';
 const fail = (res, status, message, reason) => res.status(status).json({ message, ...(reason ? { reason } : {}) });
@@ -142,6 +143,19 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       screens: WORKSHOP.screens.map(({ id, order, titleEn, titleAr, sourceSlide }) => ({ id, order, titleEn, titleAr, sourceSlide })),
       finalAssessmentAvailable: policy.canStartFinal(state).allowed
     });
+  });
+
+  app.get('/api/avs-emrg-2026/lesson/:screen', guard, async (req, res) => {
+    const screenNumber = Number(req.params.screen);
+    if (!Number.isInteger(screenNumber) || screenNumber < 1 || screenNumber > WORKSHOP.screens.length) {
+      return fail(res, 400, 'Invalid lesson screen.');
+    }
+    const state = policyState(req.avsAccess);
+    const gate = policy.canOpenScreen(state, screenNumber);
+    if (!gate.allowed) return fail(res, gate.reason === 'invalid-screen' ? 400 : 403, 'This lesson is not available yet.', gate.reason);
+    const lesson = getLesson(screenNumber);
+    if (!lesson) return fail(res, 404, 'Lesson not found.');
+    return res.json({ ok: true, lesson });
   });
 
   app.get('/api/avs-emrg-2026/progress', guard, async (req, res) => {
