@@ -36,7 +36,7 @@ const attemptSchema = new mongoose.Schema({
   workshopCode: { type: String, required: true, immutable: true, default: WORKSHOP_CODE, index: true },
   accessId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
   attemptId: { type: String, required: true, unique: true },
-  kind: { type: String, required: true, enum: ['formative', 'final'] },
+  kind: { type: String, required: true, enum: ['diagnostic', 'formative', 'final'] },
   screenNumber: { type: Number, min: 1, max: 15, default: null },
   attemptNumber: { type: Number, required: true, min: 1, max: 20 },
   questionOrder: { type: [String], required: true },
