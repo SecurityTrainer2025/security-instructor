@@ -34,7 +34,7 @@
 - Answer keys are not returned by learner-facing endpoints.
 - A learner cannot skip required checks or obtain a certificate by posting a fabricated score.
 - Access link expires after 120 hours; active-study expiry is tested independently.
-- Email delivery, access recovery, mobile/desktop behavior, feedback flow and certificate verification still need end-to-end tests. The AVS unit-test workflow and SI daily smoke-check workflow passed on an earlier integration head. After the latest certificate print-layout and CI workflow edits, the new head SHA has not yet returned workflow runs; re-check these before merge. The learner page has not yet been browser-tested against the live API.
+- Email delivery, access recovery, mobile/desktop behavior, and certificate verification still need end-to-end tests. On the current PR head, the AVS unit-test workflow passed 33 tests with zero failures and the SI daily smoke-check workflow also passed. These CI results do not replace live API, MongoDB, email, browser, or device testing. The learner page has not yet been browser-tested against the live API.
 
 ## Current blockers
 - Added 15 bilingual draft lesson screens in `backend/avs-emrg-2026-lessons.js`, with objectives and lesson points, and a token-protected, sequentially gated lesson API. The learner page now opens lesson content before the corresponding formative check. The lesson content is a draft for qualified airport-emergency subject-matter review, not an operational procedure.
@@ -48,3 +48,27 @@
 
 ## Release rule
 Keep the related pull request in draft and do not merge or activate this workshop until the implementation and all release gates have been reviewed and verified.
+
+
+## Manual acceptance checklist — required before release
+
+Run only in a non-production environment with test accounts and a test MongoDB database. Record the result and evidence for each item; do not enable learner access during this checklist.
+
+| Area | Acceptance test | Expected result |
+| --- | --- | --- |
+| Access creation | Admin issues a link to a test learner | Email arrives once; raw token is not returned in admin API JSON or stored in plaintext |
+| Link validity | Open a valid link, then test expired and revoked links | Valid link opens; expired/revoked links are rejected |
+| Study duration | Leave active-study limit unset, then test a separately configured limit | Unset stays null; configured active-study limit is enforced independently of the 120-hour link |
+| Formative checks | Try to open a later check early; then pass each check with 4/5 | Early access is blocked; only passed checks unlock the next screen |
+| Final assessment | Submit 21/30, then 22/30 on separate test accesses | 21/30 fails; 22/30 passes; no more than three attempts can start |
+| Randomization | Start multiple attempts with controlled test data | Question and option order can vary; grading still follows the persisted server-side snapshot |
+| Answer-key privacy | Inspect learner API responses and browser network payloads | No correctOptionId, answer key, or server-only grading data is exposed |
+| Certificate issuance | Complete all 15 checks and pass the final assessment | Exactly one certificate record is associated with the access; certificate shows 8 workshop hours |
+| Certificate recovery | In test only, simulate a certificate-write failure after a passing final result, then request the certificate again | Certificate can be recovered from the persisted passing attempt without client-supplied score |
+| Certificate eligibility | Try certificate retrieval before completing checks or passing final | Request is denied |
+| Verification and revocation | Scan QR on iPhone and Android; verify valid, revoked and unknown IDs | Correct public status is displayed without exposing learner email or access token |
+| Print layout | Print/save certificate to PDF on desktop and mobile browsers | Landscape layout remains readable, complete, and QR is scannable |
+| Feedback survey | Confirm owner approval state and route behavior | Survey remains disabled until written approval; no effect on score or certificate |
+| Fire Safety regression | Run existing Fire Safety smoke checks and a representative self-study path | Existing access durations, progress, assessment, and certificate behavior remain unchanged |
+
+For each test, capture the environment/build SHA, steps, expected result, actual result, and pass/fail. Any failure blocks release until fixed and re-tested.
