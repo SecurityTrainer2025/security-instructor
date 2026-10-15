@@ -3,9 +3,9 @@
 /**
  * AVS-EMRG-2026 persistence primitives.
  *
- * This module is deliberately not registered in the running API yet. It defines
- * isolated MongoDB records and server-only helpers for the dedicated workshop
- * route integration. Never store raw access tokens or send answer keys to clients.
+ * Isolated MongoDB records and server-only helpers for the dedicated AVS workshop routes.
+ * This module is registered by the AVS route integration on the development branch.
+ * Production release remains gated. Never store raw access tokens or send answer keys to clients.
  */
 const crypto = require('node:crypto');
 const mongoose = require('mongoose');
