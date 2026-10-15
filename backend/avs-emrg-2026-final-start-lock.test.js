@@ -9,7 +9,7 @@ test('final-start lock can only be acquired for eligible, unexpired access with 
   const filter = buildFinalStartLockFilter('access-1', now);
   assert.equal(filter._id, 'access-1');
   assert.equal(filter.finalPassed, false);
-  assert.deepEqual(filter.finalAttempts, { $lt: 3 });
+  assert.equal(Object.hasOwn(filter, 'finalAttempts'), false, 'resuming attempt 3 must not be blocked by the lock filter');
   assert.deepEqual(filter.completedChecks, { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 });
   assert.equal(filter.accessExpiresAt.$gt.toISOString(), now.toISOString());
   assert.equal(filter.revokedAt, null);
