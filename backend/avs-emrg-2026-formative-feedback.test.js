@@ -46,4 +46,9 @@ test('feedback survey is ten bilingual opinion questions and never affects gradi
   assert.equal(FEEDBACK_SURVEY.scored, false);
   assert.equal(FEEDBACK_SURVEY.affectsCertificateEligibility, false);
   assert.ok(FEEDBACK_SURVEY.questions.every(q => q.prompt.includes(' / ')));
+  assert.equal(new Set(FEEDBACK_SURVEY.questions.map(q => q.id)).size, 10);
+  assert.ok(FEEDBACK_SURVEY.questions.every(q =>
+    (q.type === 'rating-1-to-5' && Array.isArray(q.scale) && q.scale.length === 5) ||
+    (q.type === 'text' && Number.isInteger(q.maxLength) && q.maxLength > 0)
+  ));
 });
