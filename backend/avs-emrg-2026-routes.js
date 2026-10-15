@@ -8,6 +8,7 @@
 const crypto = require('node:crypto');
 const { Access, Attempt, createAccessToken, hashAccessToken, accessExpiry, safeAccessView } = require('./avs-emrg-2026-persistence');
 const policy = require('./avs-emrg-2026-workflow-policy');
+const { buildFinalStartLockFilter } = require('./avs-emrg-2026-final-start-lock');
 const { createWorkshopReleaseGate } = require('./avs-emrg-2026-release-gate');
 const engine = require('./avs-emrg-2026-assessment');
 const { WORKSHOP } = require('./avs-emrg-2026-manifest');
@@ -321,17 +322,15 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
 
   app.post('/api/avs-emrg-2026/final/start', guard, async (req, res) => {
     const accessId = req.avsAccess._id;
-    const lockCutoff = new Date(Date.now() - 2 * 60 * 1000);
     let lockHeld = false;
     try {
       // Serialize final-start requests per access record. The second request must
       // re-check for an in-progress attempt only after it owns this lock.
-      const lock = await Access.findOneAndUpdate({
-        _id: accessId, finalPassed: false, finalAttempts: { $lt: 3 },
-        completedChecks: { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 },
-        accessExpiresAt: { $gt: new Date() }, revokedAt: null,
-        $or: [{ finalAttemptStartLockAt: null }, { finalAttemptStartLockAt: { $lt: lockCutoff } }]
-      }, { $set: { finalAttemptStartLockAt: new Date() } }, { new: true });
+      const lock = await Access.findOneAndUpdate(
+        buildFinalStartLockFilter(accessId),
+        { $set: { finalAttemptStartLockAt: new Date() } },
+        { new: true }
+      );
       if (!lock) return fail(res, 409, 'The final assessment is starting. Please retry shortly.');
       lockHeld = true;
       const existing = await Attempt.findOne({ accessId, kind: 'final', status: 'in-progress' }).select('+optionOrderByQuestionId');
