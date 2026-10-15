@@ -48,4 +48,8 @@ function validateFeedbackSurvey(survey = FEEDBACK_SURVEY) {
   return true;
 }
 
-module.exports = { FEEDBACK_SURVEY, validateFeedbackSurvey };
+function isFeedbackSurveyApproved(survey = FEEDBACK_SURVEY) {
+  return Boolean(survey && survey.status === 'approved');
+}
+
+module.exports = { FEEDBACK_SURVEY, validateFeedbackSurvey, isFeedbackSurveyApproved };
