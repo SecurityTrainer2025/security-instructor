@@ -16,7 +16,7 @@ const { getFormativeCheck, validateFormativeBank, createFormativeSnapshot, build
 const { INITIAL_ASSESSMENT, validateInitialAssessment, createInitialAssessmentSnapshot, buildPublicInitialAssessment, gradeInitialAssessment } = require('./avs-emrg-2026-initial-assessment');
 const mongoose = require('mongoose');
 const DiagnosticFeedback = mongoose.models.AvsEmrg2026Feedback || mongoose.model('AvsEmrg2026Feedback', new mongoose.Schema({ accessId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true }, answers: { type: mongoose.Schema.Types.Mixed, required: true }, submittedAt: { type: Date, default: Date.now } }, { timestamps: true, strict: 'throw' }), 'avs_emrg_2026_feedback');
-const { FEEDBACK_SURVEY, validateFeedbackSurvey } = require('./avs-emrg-2026-feedback-survey');
+const { FEEDBACK_SURVEY, validateFeedbackSurvey, isFeedbackSurveyApproved } = require('./avs-emrg-2026-feedback-survey');
 const { getLesson } = require('./avs-emrg-2026-lessons');
 const { Certificate, isCertificateEligible, ensureCertificate, publicCertificate, certificatePayload } = require('./avs-emrg-2026-certificates');
 
@@ -526,6 +526,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
 
   app.get('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
     try {
+      if (!isFeedbackSurveyApproved()) return fail(res, 503, 'The feedback survey is awaiting owner approval.', 'feedback-survey-pending-approval');
       validateFeedbackSurvey();
       const current = await Access.findById(req.avsAccess._id).lean();
       if (!isCertificateEligible(current)) return fail(res, 403, 'Complete all required knowledge checks and pass the final assessment before submitting feedback.');
@@ -539,6 +540,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
 
   app.post('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
     try {
+      if (!isFeedbackSurveyApproved()) return fail(res, 503, 'The feedback survey is awaiting owner approval.', 'feedback-survey-pending-approval');
       validateFeedbackSurvey();
       const current = await Access.findById(req.avsAccess._id).lean();
       if (!isCertificateEligible(current)) return fail(res, 403, 'Complete all required knowledge checks and pass the final assessment before submitting feedback.');
