@@ -266,7 +266,29 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       const attemptId = clean(req.body?.attemptId, 80);
       const attempt = await Attempt.findOne({ attemptId, accessId: req.avsAccess._id, kind: 'formative', screenNumber }).select('+optionOrderByQuestionId');
       if (!attempt) return fail(res, 404, 'Formative attempt not found.');
-      if (attempt.status !== 'in-progress') return fail(res, 409, 'This attempt has already been submitted.');
+      if (attempt.status === 'submitted') {
+        // Make a retry safe if the attempt was saved but the progress write failed.
+        // The persisted server-graded result is authoritative; never re-grade client answers.
+        if (attempt.passed === true) {
+          await Access.updateOne(
+            { _id: req.avsAccess._id, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+            { $addToSet: { completedChecks: screenNumber } }
+          );
+        }
+        const latest = await Access.findById(req.avsAccess._id).lean();
+        return res.json({
+          ok: true,
+          result: {
+            correct: attempt.correctCount, total: attempt.questionCount,
+            percent: Math.round((attempt.correctCount / attempt.questionCount) * 100),
+            passed: !!attempt.passed
+          },
+          completedChecks: latest?.completedChecks || [],
+          nextScreen: attempt.passed && screenNumber < 15 ? screenNumber + 1 : null,
+          replayed: true
+        });
+      }
+      if (attempt.status !== 'in-progress') return fail(res, 409, 'This attempt is no longer available.'); 
       const state = policyState(req.avsAccess);
       const gate = policy.canOpenScreen(state, screenNumber);
       if (!gate.allowed) return fail(res, 403, 'This formative check is not available.', gate.reason);
