@@ -470,13 +470,18 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
           cleanAnswers[q.id] = value.trim();
         }
       }
-      await DiagnosticFeedback.findOneAndUpdate(
-        { accessId: req.avsAccess._id },
-        { $set: { answers: cleanAnswers, submittedAt: new Date() } },
-        { upsert: true, new: true, runValidators: true }
-      );
+      // Create-only write plus the unique accessId index prevents duplicate submissions,
+      // including two concurrent requests that pass the earlier friendly duplicate check.
+      await DiagnosticFeedback.create({
+        accessId: req.avsAccess._id,
+        answers: cleanAnswers,
+        submittedAt: new Date()
+      });
       return res.json({ ok: true, message: 'Thank you for your feedback. / شكرًا لملاحظاتك.' });
     } catch (error) {
+      if (error?.code === 11000) {
+        return fail(res, 409, 'Feedback has already been submitted for this workshop access.');
+      }
       console.error('AVS feedback submission failed', error);
       return fail(res, 500, 'Unable to save feedback.');
     }
