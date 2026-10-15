@@ -295,13 +295,15 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       const snapshot = { questionOrder: attempt.questionOrder, optionOrderByQuestionId: attempt.optionOrderByQuestionId };
       const result = gradeQuiz('formative', screenNumber, snapshot, req.body?.answers);
       const progress = policy.recordFormativeResult(state, screenNumber, { correct: result.correct, total: result.total });
-      attempt.answers = req.body.answers;
-      attempt.correctCount = result.correct;
-      attempt.questionCount = result.total;
-      attempt.passed = result.passed;
-      attempt.status = 'submitted';
-      attempt.submittedAt = new Date();
-      await attempt.save();
+      // Claim the attempt once; a concurrent submit must not overwrite the first result.
+      const claimed = await Attempt.updateOne(
+        { _id: attempt._id, status: 'in-progress' },
+        { $set: {
+          answers: req.body.answers, correctCount: result.correct, questionCount: result.total,
+          passed: result.passed, status: 'submitted', submittedAt: new Date()
+        } }
+      );
+      if (!claimed.modifiedCount) return fail(res, 409, 'This attempt has already been submitted; retry to retrieve its saved result.');
       if (result.passed) {
         req.avsAccess.completedChecks = [...new Set([...(req.avsAccess.completedChecks || []), screenNumber])].sort((a, b) => a - b);
         await req.avsAccess.save();
@@ -483,17 +485,37 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
     try {
       const attempt = await Attempt.findOne({ attemptId: clean(req.body?.attemptId, 80), accessId: req.avsAccess._id, kind: 'diagnostic' }).select('+optionOrderByQuestionId');
       if (!attempt) return fail(res, 404, 'Initial diagnostic attempt not found.');
-      if (attempt.status !== 'in-progress') return fail(res, 409, 'The initial diagnostic has already been submitted.');
+      if (attempt.status === 'submitted') {
+        // Retry safely after a partial save: diagnostic results are informational only.
+        await Access.updateOne(
+          { _id: req.avsAccess._id, diagnosticCompletedAt: null, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+          { $set: { diagnosticCompletedAt: attempt.submittedAt || new Date() } }
+        );
+        return res.json({
+          ok: true,
+          result: {
+            correct: attempt.correctCount, total: attempt.questionCount,
+            percent: Math.round((attempt.correctCount / attempt.questionCount) * 100)
+          },
+          requiredToPass: false, gatesWorkshopAccess: false, affectsCertificateEligibility: false,
+          replayed: true
+        });
+      }
+      if (attempt.status !== 'in-progress') return fail(res, 409, 'This diagnostic attempt is no longer available.');
       const result = gradeInitialAssessment(INITIAL_ASSESSMENT, { questionOrder: attempt.questionOrder, optionOrderByQuestionId: attempt.optionOrderByQuestionId }, req.body?.answers);
-      attempt.answers = req.body.answers;
-      attempt.correctCount = result.correct;
-      attempt.questionCount = result.total;
-      attempt.passed = null;
-      attempt.status = 'submitted';
-      attempt.submittedAt = new Date();
-      await attempt.save();
-      req.avsAccess.diagnosticCompletedAt = new Date();
-      await req.avsAccess.save();
+      const submittedAt = new Date();
+      const claimed = await Attempt.updateOne(
+        { _id: attempt._id, status: 'in-progress' },
+        { $set: {
+          answers: req.body.answers, correctCount: result.correct, questionCount: result.total,
+          passed: null, status: 'submitted', submittedAt
+        } }
+      );
+      if (!claimed.modifiedCount) return fail(res, 409, 'This diagnostic has already been submitted; retry to retrieve its saved result.');
+      await Access.updateOne(
+        { _id: req.avsAccess._id, diagnosticCompletedAt: null, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+        { $set: { diagnosticCompletedAt: submittedAt } }
+      );
       return res.json({ ok: true, result: { correct: result.correct, total: result.total, percent: result.percent }, requiredToPass: false, gatesWorkshopAccess: false, affectsCertificateEligibility: false });
     } catch (error) {
       if (error instanceof TypeError) return fail(res, 400, 'Invalid initial diagnostic submission.');
