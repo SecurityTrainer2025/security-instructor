@@ -10,7 +10,6 @@ function buildFinalStartLockFilter(accessId, now = new Date()) {
   return {
     _id: accessId,
     finalPassed: false,
-    finalAttempts: { $lt: 3 },
     completedChecks: { $all: [...REQUIRED_CHECKS], $size: 15 },
     accessExpiresAt: { $gt: new Date(timestamp) },
     revokedAt: null,
