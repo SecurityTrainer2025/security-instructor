@@ -320,14 +320,27 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
   });
 
   app.post('/api/avs-emrg-2026/final/start', guard, async (req, res) => {
+    const accessId = req.avsAccess._id;
+    const lockCutoff = new Date(Date.now() - 2 * 60 * 1000);
+    let lockHeld = false;
     try {
-      const existing = await Attempt.findOne({ accessId: req.avsAccess._id, kind: 'final', status: 'in-progress' }).select('+optionOrderByQuestionId');
+      // Serialize final-start requests per access record. The second request must
+      // re-check for an in-progress attempt only after it owns this lock.
+      const lock = await Access.findOneAndUpdate({
+        _id: accessId, finalPassed: false, finalAttempts: { $lt: 3 },
+        completedChecks: { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 },
+        accessExpiresAt: { $gt: new Date() }, revokedAt: null,
+        $or: [{ finalAttemptStartLockAt: null }, { finalAttemptStartLockAt: { $lt: lockCutoff } }]
+      }, { $set: { finalAttemptStartLockAt: new Date() } }, { new: true });
+      if (!lock) return fail(res, 409, 'The final assessment is starting. Please retry shortly.');
+      lockHeld = true;
+      const existing = await Attempt.findOne({ accessId, kind: 'final', status: 'in-progress' }).select('+optionOrderByQuestionId');
       if (existing) {
         const snapshot = { attemptId: existing.attemptId, attemptNumber: existing.attemptNumber, questionOrder: existing.questionOrder, optionOrderByQuestionId: existing.optionOrderByQuestionId };
         return res.json({ ok: true, attemptId: existing.attemptId, attemptNumber: existing.attemptNumber, questions: publicQuiz('final', null, snapshot) });
       }
       const record = await Access.findOneAndUpdate({
-        _id: req.avsAccess._id, finalPassed: false, finalAttempts: { $lt: 3 },
+        _id: accessId, finalPassed: false, finalAttempts: { $lt: 3 }, finalAttemptStartLockAt: { $ne: null },
         completedChecks: { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 },
         accessExpiresAt: { $gt: new Date() }, revokedAt: null
       }, { $inc: { finalAttempts: 1 } }, { new: true });
@@ -351,6 +364,8 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
     } catch (error) {
       console.error('AVS final start failed', error);
       return fail(res, 500, 'Unable to start the final assessment.');
+    } finally {
+      if (lockHeld) await Access.updateOne({ _id: accessId }, { $set: { finalAttemptStartLockAt: null } }).catch(error => console.error('AVS final start lock release failed', error));
     }
   });
 
