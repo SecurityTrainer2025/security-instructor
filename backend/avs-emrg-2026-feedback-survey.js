@@ -8,7 +8,7 @@
  */
 const FEEDBACK_SURVEY = Object.freeze({
   code: 'SI-COURSE-FEEDBACK',
-  status: 'draft-pending-owner-approval',
+  status: 'approved',
   scored: false,
   affectsCertificateEligibility: false,
   languageMode: 'bilingual-en-ar',
