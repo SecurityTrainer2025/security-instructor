@@ -80,8 +80,8 @@ const LESSONS = Object.freeze([
   { order: 15, titleEn: 'Close, assessment & feedback', titleAr: 'الختام والتقييم والملاحظات',
     objectivesEn: ['Summarize the main learning themes.', 'Provide feedback to improve future learning.'],
     objectivesAr: ['تلخيص موضوعات التعلم الرئيسية.', 'تقديم ملاحظات لتحسين التعلم مستقبلًا.'],
-    contentEn: ['Safe airport emergency response depends on preparation, clear communication, trained people, approved plans and learning from experience.', 'Complete the required formative checks and final assessment. Certificate eligibility depends on the server-verified completion rules.', 'A post-workshop feedback survey is planned but remains unavailable until its questions are approved. Follow the current approved airport plan in real operations.'],
-    contentAr: ['تعتمد الاستجابة الآمنة لطوارئ المطارات على الاستعداد والاتصال الواضح والأشخاص المدربين والخطط المعتمدة والتعلم من الخبرة.', 'أكمل الاختبارات المرحلية والتقييم النهائي المطلوبين. وتعتمد أهلية الشهادة على قواعد الإكمال التي يتحقق منها الخادم.', 'استبيان ما بعد الورشة مخطط له لكنه غير متاح حتى اعتماد أسئلته. اتبع خطة المطار المعتمدة الحالية في العمليات الفعلية.'] }
+    contentEn: ['Safe airport emergency response depends on preparation, clear communication, trained people, approved plans and learning from experience.', 'Complete the required formative checks and final assessment. Certificate eligibility depends on the server-verified completion rules.', 'The post-workshop feedback survey is approved and will be available when the workshop is released. Follow the current approved airport plan in real operations.'],
+    contentAr: ['تعتمد الاستجابة الآمنة لطوارئ المطارات على الاستعداد والاتصال الواضح والأشخاص المدربين والخطط المعتمدة والتعلم من الخبرة.', 'أكمل الاختبارات المرحلية والتقييم النهائي المطلوبين. وتعتمد أهلية الشهادة على قواعد الإكمال التي يتحقق منها الخادم.', 'تم اعتماد استبيان ما بعد الورشة، وسيكون متاحًا عند إصدار الورشة. اتبع خطة المطار المعتمدة الحالية في العمليات الفعلية.'] }
 ]);
 
 function getLesson(order) {
