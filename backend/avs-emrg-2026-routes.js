@@ -437,6 +437,8 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
   app.get('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
     try {
       validateFeedbackSurvey();
+      const current = await Access.findById(req.avsAccess._id).lean();
+      if (!isCertificateEligible(current)) return fail(res, 403, 'Complete all required knowledge checks and pass the final assessment before submitting feedback.');
       const existing = await DiagnosticFeedback.findOne({ accessId: req.avsAccess._id }).lean();
       return res.json({ survey: { code: 'SI-COURSE-FEEDBACK', languageMode: FEEDBACK_SURVEY.languageMode, scored: false, affectsCertificateEligibility: false, questions: FEEDBACK_SURVEY.questions }, submitted: !!existing, submittedAt: existing?.submittedAt || null });
     } catch (error) {
@@ -448,6 +450,10 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
   app.post('/api/avs-emrg-2026/feedback', guard, async (req, res) => {
     try {
       validateFeedbackSurvey();
+      const current = await Access.findById(req.avsAccess._id).lean();
+      if (!isCertificateEligible(current)) return fail(res, 403, 'Complete all required knowledge checks and pass the final assessment before submitting feedback.');
+      const previous = await DiagnosticFeedback.findOne({ accessId: req.avsAccess._id }).lean();
+      if (previous) return fail(res, 409, 'Feedback has already been submitted for this workshop access.');
       const answers = req.body?.answers;
       if (!answers || typeof answers !== 'object' || Array.isArray(answers)) return fail(res, 400, 'Feedback answers are required.');
       const cleanAnswers = {};
