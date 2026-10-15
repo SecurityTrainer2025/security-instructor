@@ -33,18 +33,28 @@ async function ensureCertificate(access, score) {
   if (!Number.isInteger(score) || score < 22 || score > 30) throw new Error('A passing final assessment score is required.');
   const certificateId = makeCertificateId();
   const verificationUrl = 'https://securitytrainer2025.github.io/security-instructor/frontend/avs-emrg-2026-verify.html?certificateId=' + encodeURIComponent(certificateId);
-  return Certificate.findOneAndUpdate(
-    { accessId: access._id },
-    { $setOnInsert: {
-      accessId: access._id, certificateId, workshopCode: 'AVS-EMRG-2026',
-      learnerName: access.learnerName || '',
-      workshopTitleEn: 'Safety, Emergency & Evacuation in Civil Airports',
-      workshopTitleAr: 'إدارة السلامة والطوارئ والإخلاء في المطارات المدنية',
-      durationHours: 8, score, totalQuestions: 30, issuedAt: new Date(),
-      status: 'valid', verificationUrl
-    } },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
+  try {
+    return await Certificate.findOneAndUpdate(
+      { accessId: access._id },
+      { $setOnInsert: {
+        accessId: access._id, certificateId, workshopCode: 'AVS-EMRG-2026',
+        learnerName: access.learnerName || '',
+        workshopTitleEn: 'Safety, Emergency & Evacuation in Civil Airports',
+        workshopTitleAr: 'إدارة السلامة والطوارئ والإخلاء في المطارات المدنية',
+        durationHours: 8, score, totalQuestions: 30, issuedAt: new Date(),
+        status: 'valid', verificationUrl
+      } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+  } catch (error) {
+    // Concurrent retries can race on the unique accessId index. Recover the
+    // already-created certificate instead of making a successful pass look failed.
+    if (error?.code === 11000) {
+      const existing = await Certificate.findOne({ accessId: access._id });
+      if (existing) return existing;
+    }
+    throw error;
+  }
 }
 
 function publicCertificate(record) {
