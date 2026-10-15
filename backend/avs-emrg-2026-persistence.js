@@ -24,6 +24,7 @@ const accessSchema = new mongoose.Schema({
   activeStudyStartedAt: { type: Date, default: null },
   completedChecks: { type: [Number], default: [] },
   finalAttempts: { type: Number, default: 0, min: 0, max: 3 },
+  finalAttemptStartLockAt: { type: Date, default: null, select: false },
   finalPassed: { type: Boolean, default: false },
   certificateEligible: { type: Boolean, default: false },
   diagnosticCompletedAt: { type: Date, default: null },
