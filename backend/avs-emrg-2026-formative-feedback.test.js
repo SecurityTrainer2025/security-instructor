@@ -43,7 +43,7 @@ test('formative public view hides the answer key and grading uses the persisted 
 test('feedback survey is ten bilingual opinion questions and never affects grading or certificates', () => {
   assert.equal(FEEDBACK_SURVEY.questions.length, 10);
   assert.equal(validateFeedbackSurvey(), true);
-  assert.equal(FEEDBACK_SURVEY.status, 'draft-pending-owner-approval');
+  assert.equal(FEEDBACK_SURVEY.status, 'approved');
   assert.equal(FEEDBACK_SURVEY.scored, false);
   assert.equal(FEEDBACK_SURVEY.affectsCertificateEligibility, false);
   assert.ok(FEEDBACK_SURVEY.questions.every(q => q.prompt.includes(' / ')));
@@ -55,8 +55,8 @@ test('feedback survey is ten bilingual opinion questions and never affects gradi
 });
 
 
-test('feedback survey remains inaccessible until explicit owner approval', () => {
-  assert.equal(isFeedbackSurveyApproved(), false);
+test('feedback survey is approved while draft states remain inaccessible', () => {
+  assert.equal(isFeedbackSurveyApproved(), true);
   assert.equal(isFeedbackSurveyApproved({ status: 'draft-pending-owner-approval' }), false);
   assert.equal(isFeedbackSurveyApproved({ status: 'approved' }), true);
 });
