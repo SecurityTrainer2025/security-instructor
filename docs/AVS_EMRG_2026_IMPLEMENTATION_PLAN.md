@@ -16,13 +16,18 @@
 - Final pass rule: score strictly greater than 70%; for 30 equally weighted questions, at least 22 correct
 - Certificate: eligible only after all required formative checks and the final assessment pass
 
+## Project boundary
+- Fire Safety is a separate, complete course. It is not an airport workshop.
+- AVS-EMRG-2026 is the active airport workshop (8 hours). Reuse only suitable presentation/assessment/feedback/results patterns; do not merge content, question banks, handlers, progress, or certificates across the two projects.
+- Any change in this branch must preserve Fire Safety course behavior and certificates.
+
 ## Required implementation
 1. Create a separate airport-workshop manifest, content sequence, question bank and server-side assessment route. Do not repurpose or alter the Fire Safety course's question bank or assessment handlers.
 2. Build the 15 content screens and 15 associated quiz screens from the approved workshop material. The current 75-question bilingual formative bank is a draft mapped to the 15 screens and requires subject-matter review before integration.
 3. Randomize final-question order and each question's option order per learner/access record. Keep the answer key server-side and grade against the exact order presented to that learner.
 4. Validate submitted answers on the server. Never accept a browser-supplied score or correct-answer index as authoritative.
 5. Keep training duration, access expiry and active-study duration as three separate configuration values.
-6. A separate 10-question bilingual post-workshop feedback survey has been drafted because no existing survey was available. It is opinion-only, unscored, and does not affect certificates. Review and approve it before connecting it to the final-slide QR/link flow.
+6. A separate 10-question bilingual post-workshop feedback survey is integrated into the AVS development learner journey. It is opinion-only, unscored, and does not affect certificates. Its wording remains a draft pending explicit owner/content approval; keep it behind the eligibility checks and do not treat integration as approval.
 7. Preserve existing Fire Safety behavior and certificates.
 
 ## Required automated and end-to-end checks
@@ -34,7 +39,7 @@
 - Answer keys are not returned by learner-facing endpoints.
 - A learner cannot skip required checks or obtain a certificate by posting a fabricated score.
 - Access link expires after 120 hours; active-study expiry is tested independently.
-- Email delivery, access recovery, mobile/desktop behavior, and certificate verification still need end-to-end tests. On the current PR head, the AVS unit-test workflow passed 33 tests with zero failures and the SI daily smoke-check workflow also passed. These CI results do not replace live API, MongoDB, email, browser, or device testing. The learner page has not yet been browser-tested against the live API.
+- Email delivery, access recovery, mobile/desktop behavior, and certificate verification still need end-to-end tests. Earlier CI results are not evidence for the latest PR head. No fresh workflow result has been confirmed for the latest commit. These CI results, when available, do not replace live API, MongoDB, email, browser, or device testing. The learner page has not yet been browser-tested against the live API.
 
 ## Release gate implemented on the draft branch
 - Added a fail-closed route middleware for every `/api/avs-emrg-2026` and `/api/admin/avs-emrg-2026` endpoint. Requests receive HTTP 503 with reason `workshop-disabled` unless the runtime environment variable `AVS_WORKSHOP_ENABLED` is exactly `true`.
@@ -43,13 +48,14 @@
 - **Keep `AVS_WORKSHOP_ENABLED` unset or set to `false` in every deployment until explicit owner approval. Do not set it to `true` as part of this change.**
 
 ## Current blockers
+- Latest branch updates added server-side certificate-eligibility checks to feedback GET/POST and prevent a second feedback submission for the same access. These changes still need automated and end-to-end validation on the current head.
 - Added 15 bilingual draft lesson screens in `backend/avs-emrg-2026-lessons.js`, with objectives and lesson points, and a token-protected, sequentially gated lesson API. The learner page now opens lesson content before the corresponding formative check. The lesson content is a draft for qualified airport-emergency subject-matter review, not an operational procedure.
 - Runtime inspection confirmed the deployed startup path is `backend/package.json` → `backend/start.js` → `backend/server.js`. The existing Fire Safety self-study handlers are registered from `backend/self-study-routes.js`; AVS must be added as a separate module and must not change the Fire Safety constants or handlers.
 - Added `backend/avs-emrg-2026-persistence.js` with isolated MongoDB access and attempt schemas, 256-bit random access-token generation, SHA-256 token hashing, 120-hour expiry calculation, and a safe learner-progress view.
 - Added `backend/avs-emrg-2026-routes.js` and registered it in the actual `backend/server.js` runtime. The isolated routes now cover admin-issued access, access/session/progress, randomized formative start/submit, randomized final start/submit, randomized initial diagnostic start/submit, and feedback retrieval/submission. Per-attempt question/option order is persisted server-side, answer keys are omitted from public quiz payloads, scores are server-graded, and progress is saved in separate AVS MongoDB collections.
-- This is a first integration pass, not release-ready: no production MongoDB/API smoke test has been run from this environment; email delivery and learner-facing frontend integration need end-to-end verification; certificate issuance/QR verification has been added but remains unverified end-to-end; survey content is still a draft pending owner approval.
+- This is a first integration pass, not release-ready: no production MongoDB/API smoke test has been run from this environment; email delivery and learner-facing frontend integration need end-to-end verification; certificate issuance/QR verification has been added but remains unverified end-to-end; survey wording remains a draft pending owner approval; feedback retrieval/submission is integrated on the development branch but has not been end-to-end tested.
 - AVS certificate support now includes a separate MongoDB record, eligibility-gated issuance after all 15 checks and a passing final exam, an 8-hour bilingual certificate view, locally generated QR data, and a public valid/revoked/not-found verification endpoint/page. A landscape A4 print/save-to-PDF layout was added to the learner certificate view. Validate issuance, QR scanning, public status checks and the final certificate layout before release.
-- The newly drafted 10-question feedback survey needs owner/content approval before integration.
+- The 10-question bilingual feedback survey is wired into the AVS development learner journey, but its wording still needs owner/content approval and its end-to-end save/reload behavior must be verified.
 - Automated CI is green: the latest AVS unit-test workflow and SI daily smoke-check workflow both succeeded on the current PR head. This validates automated checks only; route, database, email and device end-to-end tests remain outstanding.
 
 ## Release rule
