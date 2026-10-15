@@ -5,7 +5,7 @@ const {
   FORMATIVE_BANK, FORMATIVE_PASS_MIN_CORRECT, getFormativeCheck,
   validateFormativeBank, createFormativeSnapshot, buildPublicFormativeCheck, gradeFormativeCheck
 } = require('./avs-emrg-2026-formative-question-bank');
-const { FEEDBACK_SURVEY, validateFeedbackSurvey } = require('./avs-emrg-2026-feedback-survey');
+const { FEEDBACK_SURVEY, validateFeedbackSurvey, isFeedbackSurveyApproved } = require('./avs-emrg-2026-feedback-survey');
 
 test('formative bank contains 75 bilingual questions grouped into 15 checks of five', () => {
   assert.equal(FORMATIVE_BANK.length, 75);
@@ -52,4 +52,11 @@ test('feedback survey is ten bilingual opinion questions and never affects gradi
     (q.type === 'rating-1-to-5' && Array.isArray(q.scale) && q.scale.length === 5) ||
     (q.type === 'text' && Number.isInteger(q.maxLength) && q.maxLength > 0)
   ));
+});
+
+
+test('feedback survey remains inaccessible until explicit owner approval', () => {
+  assert.equal(isFeedbackSurveyApproved(), false);
+  assert.equal(isFeedbackSurveyApproved({ status: 'draft-pending-owner-approval' }), false);
+  assert.equal(isFeedbackSurveyApproved({ status: 'approved' }), true);
 });
