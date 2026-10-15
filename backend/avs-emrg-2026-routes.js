@@ -357,7 +357,53 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       const attemptId = clean(req.body?.attemptId, 80);
       const attempt = await Attempt.findOne({ attemptId, accessId: req.avsAccess._id, kind: 'final' }).select('+optionOrderByQuestionId');
       if (!attempt) return fail(res, 404, 'Final assessment attempt not found.');
-      if (attempt.status !== 'in-progress') return fail(res, 409, 'This attempt has already been submitted.');
+      if (attempt.status === 'submitted') {
+        // Recover an interrupted request from the persisted server-graded result.
+        // Never grade a retry's client-supplied answers again.
+        const current = await Access.findById(req.avsAccess._id).lean();
+        const checksComplete = Array.isArray(current?.completedChecks) &&
+          current.completedChecks.length === 15 &&
+          Array.from({ length: 15 }, (_, i) => i + 1).every(n => current.completedChecks.includes(n));
+        if (!current || current.revokedAt || current.accessExpiresAt <= new Date() || !checksComplete) {
+          return fail(res, 403, 'Required formative checks must be complete and access must remain valid.');
+        }
+        if (attempt.passed === true && !current.finalPassed &&
+            current.finalAttempts >= attempt.attemptNumber && current.finalAttempts <= 3) {
+          await Access.updateOne(
+            { _id: current._id, finalPassed: false, finalAttempts: { $gte: attempt.attemptNumber, $lte: 3 }, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+            { $set: { finalPassed: true, certificateEligible: true } }
+          );
+        }
+        const latest = await Access.findById(current._id).lean();
+        let certificate = null;
+        if (latest?.certificateEligible && latest.finalPassed) {
+          try {
+            const passingAttempt = await Attempt.findOne({
+              accessId: current._id, kind: 'final', status: 'submitted', passed: true,
+              correctCount: { $gte: 22 }, questionCount: 30
+            }).sort({ submittedAt: -1 }).lean();
+            if (passingAttempt) {
+              const eligibleAccess = await Access.findById(current._id).lean();
+              certificate = publicCertificate(await ensureCertificate(eligibleAccess, passingAttempt.correctCount));
+            }
+          } catch (certificateError) {
+            console.error('AVS certificate recovery pending retry', certificateError);
+          }
+        }
+        return res.json({
+          ok: true,
+          result: {
+            correct: attempt.correctCount, total: attempt.questionCount,
+            percent: Math.round((attempt.correctCount / attempt.questionCount) * 100),
+            passed: !!attempt.passed
+          },
+          finalAttempts: latest?.finalAttempts ?? current.finalAttempts,
+          certificateEligible: !!latest?.certificateEligible,
+          certificate,
+          replayed: true
+        });
+      }
+      if (attempt.status !== 'in-progress') return fail(res, 409, 'This attempt is no longer available.');
       const latestAccess = await Access.findById(req.avsAccess._id).lean();
       if (!latestAccess || latestAccess.revokedAt || latestAccess.accessExpiresAt <= new Date() ||
           !Array.isArray(latestAccess.completedChecks) ||
