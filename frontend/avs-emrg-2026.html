@@ -44,7 +44,10 @@ function progressView(){
  $('startFinalBtn').disabled=!session.finalAssessmentAvailable||!!a.finalPassed||(a.finalAttempts||0)>=3;
  $('startFormativeBtn').disabled=done.size===15;
  const feedbackReady=done.size===15&&!!a.finalPassed;
- if(feedbackReady){loadFeedback().catch(e=>message($('feedbackMsg'),e.message+' / تعذر تحميل نموذج الملاحظات.','error'));}
+ if(feedbackReady){
+  $('feedbackPanel').classList.remove('hidden');
+  loadFeedback().catch(e=>message($('feedbackMsg'),e.message+' / تعذر تحميل نموذج الملاحظات.','error'));
+ }
 }
 async function openLesson(order){
  try{
