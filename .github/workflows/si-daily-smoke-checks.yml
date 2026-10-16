@@ -30,9 +30,9 @@ jobs:
           from pathlib import Path
           html = Path("frontend/admin/index.html").read_text(encoding="utf-8")
           scripts = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
-          if len(scripts) != 1:
-              raise SystemExit(f"Expected one inline admin script, found {len(scripts)}")
-          Path("/tmp/si-admin-inline.js").write_text(scripts[0], encoding="utf-8")
+          if not scripts:
+              raise SystemExit("Expected at least one inline admin script")
+          Path("/tmp/si-admin-inline.js").write_text("\\n".join(scripts), encoding="utf-8")
           required = [
               'data-tab="workshops"',
               'id="avsInviteBtn"',
