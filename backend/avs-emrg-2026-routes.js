@@ -6,6 +6,7 @@
  * Uses isolated Mongo collections and never serializes answer keys to learners.
  */
 const crypto = require('node:crypto');
+const { buildWorkshopAccessUrl } = require('./avs-workshop-access-url');
 const { Access, Attempt, createAccessToken, hashAccessToken, accessExpiry, safeAccessView } = require('./avs-emrg-2026-persistence');
 const policy = require('./avs-emrg-2026-workflow-policy');
 const { buildFinalStartLockFilter } = require('./avs-emrg-2026-final-start-lock');
@@ -174,7 +175,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         await sendWorkshopAccessEmail({
           to: learnerEmail,
           learnerName,
-          accessUrl: 'https://securitytrainer2025.github.io/security-instructor/frontend/avs-emrg-2026.html?token=' + encodeURIComponent(token),
+          accessUrl: buildWorkshopAccessUrl(token),
           expiresAt: record.accessExpiresAt
         });
       } catch (mailError) {
