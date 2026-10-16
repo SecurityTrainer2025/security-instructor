@@ -64,6 +64,15 @@ const FINAL_FIRE_ASSESSMENT=[
 
 if(FINAL_FIRE_ASSESSMENT.length!==30||FINAL_FIRE_ASSESSMENT.some(x=>!x.q||!Array.isArray(x.a)||x.a.length!==4||new Set(x.a).size!==4||x.correct<0||x.correct>3))throw new Error('Validated Fire Safety final assessment must contain 30 questions with four unique options each');
 const finalQuestionOrder=(q,accessId)=>shuffleOrder(String(q.q)+'|'+String(accessId));
+const finalAssessmentOrder=accessId=>{
+  const order=FINAL_FIRE_ASSESSMENT.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){
+    const seed=parseInt(sha('final-question-order|'+String(accessId)+'|'+i).slice(0,8),16);
+    const j=seed%(i+1);
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  return order;
+};
 
 const FIRE_SCREENS={
 m1:[
@@ -264,8 +273,8 @@ const COURSE_META={
     mode:'self-study',
     freeOpening:true,
     accessHours:ACCESS_HOURS,
-    durationHours:24,
     activeStudyHours:ACTIVE_STUDY_HOURS,
+    durationHours:ACTIVE_STUDY_HOURS,
     pilotProject:true,
     masteryScore:80,
     finalQuestions:30,
@@ -327,7 +336,9 @@ async function findSession(req){
   return row;
 }
 
-const normalizeAccessExpiry=async(row,now)=>{if(!row||!row.accessStartsAt||!row.accessExpiresAt)return row;const currentExpiry=new Date(row.accessExpiresAt);if(currentExpiry<=now)return row;const policyExpiry=new Date(new Date(row.accessStartsAt).getTime()+ACCESS_HOURS*3600000);if(Math.abs(currentExpiry.getTime()-policyExpiry.getTime())>1000){await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:policyExpiry,updatedAt:now}});return {...row,accessExpiresAt:policyExpiry};}return row;};
+const accessHoursFor=row=>Number(COURSE_META[row?.courseSlug]?.accessHours||ACCESS_HOURS);
+const activeStudySecondsFor=row=>Number(COURSE_META[row?.courseSlug]?.activeStudyHours||ACTIVE_STUDY_HOURS)*3600;
+const normalizeAccessExpiry=async(row,now)=>{if(!row||!row.accessStartsAt||!row.accessExpiresAt)return row;const currentExpiry=new Date(row.accessExpiresAt);if(currentExpiry<=now)return row;const policyExpiry=new Date(new Date(row.accessStartsAt).getTime()+accessHoursFor(row)*3600000);if(Math.abs(currentExpiry.getTime()-policyExpiry.getTime())>1000){await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:policyExpiry,updatedAt:now}});return {...row,accessExpiresAt:policyExpiry};}return row;};
 
 const sessionHandler=async(req,res,next)=>{
   try{req.selfStudy=await findSession(req);if(!req.selfStudy)return res.status(401).json({message:'Self-study access required'});req.selfStudy=await normalizeAccessExpiry(req.selfStudy,new Date());if(new Date(req.selfStudy.accessExpiresAt)<=new Date())return res.status(401).json({message:'Self-study access has expired. / انتهت مدة الوصول للدراسة الذاتية.'});next();}
@@ -398,10 +409,13 @@ const requestAccessHandler=async(req,res)=>{
     if(!enroll)return res.json(generic);
     const trainee=await mongoose.connection.collection('trainees').findOne({traineeId:enroll.traineeId,email});
     if(!trainee)return res.json(generic);
-    const course=COURSE_META[FIRE_SLUG];
-    let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:FIRE_SLUG});
+    // Recover access for the exact course attached to this enrollment, not Fire Safety only.
+    let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId});
     if(!row)return res.json(generic);
-    if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date())return res.json(generic);    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
+    const course=COURSE_META[row.courseSlug];
+    if(!course)return res.json(generic);
+    if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date())return res.json(generic);
+    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:expires,magicUsedAt:null,updatedAt:new Date()}});
     await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,expiresAt:row.accessExpiresAt});
     res.json(generic);
@@ -421,7 +435,7 @@ const exchangeHandler=async(req,res)=>{
     // so learners can close the page and return without requesting another email link.
     const session=randomToken(32);
     const accessStartsAt=row.accessStartsAt?new Date(row.accessStartsAt):now;
-    const accessExpiresAt=row.accessExpiresAt?new Date(row.accessExpiresAt):new Date(accessStartsAt.getTime()+ACCESS_HOURS*3600000);
+    const accessExpiresAt=row.accessExpiresAt?new Date(row.accessExpiresAt):new Date(accessStartsAt.getTime()+accessHoursFor(row)*3600000);
     const update=await c.updateOne(
       {_id:row._id,magicTokenHash:tokenHash,magicUsedAt:null,status:'active',magicTokenExpiresAt:{$gt:now}},
       {$set:{accessStartsAt,accessExpiresAt,activatedAt:row.activatedAt||now,magicUsedAt:now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(Math.min(now.getTime()+SESSION_HOURS*3600000,accessExpiresAt.getTime())),updatedAt:now}}
@@ -438,7 +452,7 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:activeStudySecondsFor(row),progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
@@ -478,16 +492,18 @@ const screenAssessmentHandler=async(req,res)=>{
     const scores={...(p.screenScores||{})};
     const modules={...(p.modules||{})};
     const previous=scores[s.id];
-    scores[s.id]={score,questions:s.questions.length,correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
-    if(score>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
-    modules[s.id.slice(0,2)]=Math.max(Number(modules[s.id.slice(0,2)]||0),score);
+    const bestScore=Math.max(Number(previous?.bestScore??previous?.score??0),score);
+    const bestCorrect=Math.max(Number(previous?.bestCorrect??previous?.correct??0),correct);
+    scores[s.id]={score:bestScore,bestScore,bestCorrect,latestScore:score,latestCorrect:correct,questions:s.questions.length,correct:bestCorrect,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
+    if(bestScore>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
+    modules[s.id.slice(0,2)]=Math.max(Number(modules[s.id.slice(0,2)]||0),bestScore);
     const all=Object.values(scores);
     p.cumulativeQuestions=all.reduce((n,x)=>n+Number(x.questions||0),0);
-    p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.correct||0),0);
+    p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.bestCorrect??x.correct??0),0);
     p.screenScores=scores;p.modules=modules;
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:p,updatedAt:new Date()}});
     const cumulative=p.cumulativeQuestions?Math.round(p.cumulativeCorrect/p.cumulativeQuestions*100):0;
-    res.json({ok:true,score,passed:score>=80,correct,total:s.questions.length,cumulativeScore:cumulative,attempts:scores[s.id].attempts});
+    res.json({ok:true,score,passed:bestScore>=80,bestScore,correct,total:s.questions.length,cumulativeScore:cumulative,attempts:scores[s.id].attempts});
   }catch(e){console.error('Self-study screen assessment error',e);res.status(500).json({message:'Unable to save screen assessment'});}
 };
 
@@ -505,11 +521,13 @@ const finalHandler=async(req,res)=>{
     if(attempts>=3)return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
     if(answers.length!==FINAL_FIRE_ASSESSMENT.length)return res.status(400).json({message:'Please answer all 30 questions.'});
-    const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
-    const score=Math.round(correct/FINAL_FIRE_ASSESSMENT.length*100);
+    const accessKey=req.selfStudy.accessId||req.selfStudy.enrollmentId;
+    const orderedQuestions=finalAssessmentOrder(accessKey).map(sourceIndex=>FINAL_FIRE_ASSESSMENT[sourceIndex]);
+    const correct=orderedQuestions.reduce((n,q,i)=>{const order=finalQuestionOrder(q,accessKey);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
+    const score=Math.round(correct/orderedQuestions.length*100);
     const finalAttempts=attempts+1;    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
-    const finalPassed=!!p.finalPassed||score>=70;
-    const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>=70,updatedAt:new Date()}];
+    const finalPassed=!!p.finalPassed||score>70;
+    const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>70,updatedAt:new Date()}];
     const updated={...p,finalAttempts,finalBestScore,finalPassed,finalScores};
     let certificateId=null;
     if(finalPassed){
@@ -522,7 +540,7 @@ const finalHandler=async(req,res)=>{
       }catch(certErr){console.error('Self-study certificate issuance failed',certErr)}
     }
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:updated,updatedAt:new Date()}});
-    res.json({ok:true,score,correct,total:FINAL_FIRE_ASSESSMENT.length,passed:score>=70||finalPassed,attempt:finalAttempts,attemptsRemaining:Math.max(0,3-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
+    res.json({ok:true,score,correct,total:FINAL_FIRE_ASSESSMENT.length,passed:finalPassed,passRule:'score > 70',attempt:finalAttempts,attemptsRemaining:Math.max(0,3-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
   }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
 };
 
@@ -546,11 +564,13 @@ const finalQuestionsHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
     const attempts=Number(p.finalAttempts||0);
-    const questions=FINAL_FIRE_ASSESSMENT.map((q,i)=>{
-      const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
+    const accessKey=req.selfStudy.accessId||req.selfStudy.enrollmentId;
+    const questions=finalAssessmentOrder(accessKey).map((sourceIndex,i)=>{
+      const q=FINAL_FIRE_ASSESSMENT[sourceIndex];
+      const order=finalQuestionOrder(q,accessKey);
       return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
     });
-    res.json({ok:true,total:questions.length,passScore:70,attempts,attemptsRemaining:Math.max(0,3-attempts),passed:!!p.finalPassed,questions});
+    res.json({ok:true,total:questions.length,passScoreExclusive:70,passRule:'score > 70',attempts,attemptsRemaining:Math.max(0,3-attempts),passed:!!p.finalPassed,questions});
   }catch(e){console.error('Self-study final assessment load error',e);res.status(500).json({message:'Unable to load final assessment'});}
 };
 const studyHeartbeatHandler=async(req,res)=>{
@@ -559,10 +579,11 @@ const studyHeartbeatHandler=async(req,res)=>{
     let used=Number(row.activeStudySeconds||0);
     const previous=row.activeStudyLastPingAt?new Date(row.activeStudyLastPingAt):null;
     if(active&&previous){const gap=(now.getTime()-previous.getTime())/1000;if(gap>0&&gap<=ACTIVE_PING_MAX_GAP_SECONDS)used+=gap;}
-    used=Math.min(ACTIVE_STUDY_SECONDS,Math.floor(used));
-    const reached=used>=ACTIVE_STUDY_SECONDS;
+    const activeStudyLimitSeconds=activeStudySecondsFor(row);
+    used=Math.min(activeStudyLimitSeconds,Math.floor(used));
+    const reached=used>=activeStudyLimitSeconds;
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{activeStudySeconds:used,activeStudyLastPingAt:active&&!reached?now:null,status:reached?'study_limit_reached':'active',updatedAt:now}});
-    if(reached)return res.status(410).json({message:'You have used the maximum 24 active study hours. Your pilot course access has ended. / لقد استهلكت الحد الأقصى وهو 24 ساعة دراسة فعلية. انتهى وصولك إلى الدورة التجريبية.',activeStudySeconds:used,activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS});
+    if(reached)return res.status(410).json({message:'You have reached the active study time limit for this course. / لقد وصلت إلى الحد الأقصى لوقت الدراسة الفعلي لهذه الدورة.',activeStudySeconds:used,activeStudyLimitSeconds});
     res.json({ok:true,activeStudySeconds:used,activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,accessExpiresAt:row.accessExpiresAt});
   }catch(e){console.error('Self-study heartbeat error',e);res.status(500).json({message:'Unable to update active study time'});}
 };

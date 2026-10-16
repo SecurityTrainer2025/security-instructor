@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>AVS-EMRG-2026 | SECURITY INSTRUCTOR</title>
+<link rel="stylesheet" href="/staging/style.css">
+<style>
+:root{--navy:#0B1F33;--deep:#081725;--blue:#102A43;--gold:#C8A96B;--ink:#172838;--muted:#5e6c78;--line:#d9e0e5}
+*{box-sizing:border-box}body{margin:0;background:#f2f5f7;color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.6}.top{background:linear-gradient(130deg,var(--deep),var(--blue));color:white;padding:22px max(18px,calc((100% - 1000px)/2));border-bottom:3px solid var(--gold)}.brand{font-size:13px;letter-spacing:.12em;font-weight:800;color:var(--gold)}h1{font-size:clamp(25px,4vw,38px);line-height:1.2;margin:12px 0 8px}.sub{margin:0;color:#d9e3eb;max-width:760px}.wrap{max-width:1000px;margin:24px auto;padding:0 16px 44px}.panel{background:white;border:1px solid var(--line);padding:clamp(16px,3vw,26px);margin:16px 0;box-shadow:0 3px 12px #0b1f3308}.panel h2{font-size:21px;margin:0 0 12px;color:var(--navy)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field label{display:block;font-weight:700;margin-bottom:6px}.field input{width:100%;padding:13px;border:1px solid #aebbc5;border-radius:3px;font:inherit}.btn{display:inline-flex;justify-content:center;align-items:center;border:1px solid var(--gold);background:var(--navy);color:white;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer;border-radius:2px;text-decoration:none}.btn.gold{background:var(--gold);color:var(--deep)}.btn:disabled{opacity:.45;cursor:not-allowed}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.notice{padding:12px 14px;background:#f7f4ec;border-left:4px solid var(--gold);margin:12px 0}.error{background:#fff1f0;border-left-color:#b42318}.success{background:#edf8f0;border-left-color:#24864a}.muted{color:var(--muted);font-size:14px}.statusline{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.pill{padding:6px 10px;background:#eef2f5;border:1px solid var(--line);font-size:12px;font-weight:700}.screen-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.screen{border:1px solid var(--line);padding:10px;background:#f9fafb;font-size:13px}.screen.done{border-color:#24864a;background:#edf8f0}.screen{width:100%;text-align:left;color:var(--ink);font:inherit;cursor:pointer}.screen:disabled{opacity:.55;cursor:not-allowed}.lesson-list{padding-left:22px}.lesson-list li{margin:8px 0}.q{border-top:1px solid var(--line);padding:18px 0}.q:first-of-type{border-top:0}.q legend{font-weight:700;margin-bottom:10px}.option{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);margin:7px 0;cursor:pointer}.option:has(input:checked){border-color:var(--gold);background:#fbf8f1}.option input{margin-top:5px;flex:0 0 auto}.hidden{display:none!important}footer{text-align:center;background:var(--navy);color:#d9e3eb;padding:20px;font-size:12px}@media(max-width:650px){.grid,.screen-list{grid-template-columns:1fr}.top{padding:20px 16px}.actions .btn{width:100%}}@media print{@page{size:A4 landscape;margin:10mm}body{background:#fff!important}.top,footer,#accessPanel,#dashboard,#lessonPanel,#quizPanel,#certificateMessage,.certificate-actions{display:none!important}main.wrap{max-width:none;margin:0;padding:0}.panel#certificatePanel{display:block!important;border:0;box-shadow:none;margin:0;padding:0}.panel#certificatePanel h2{display:none}#certificateCard{display:block!important;width:100%;min-height:175mm;border:4px solid var(--navy)!important;outline:1px solid var(--gold);padding:18mm 14mm!important;break-inside:avoid}#certificateCard h2,#certificateCard h3{margin:8px 0}#certificateQr{width:115px!important;height:115px!important}#certificateVerifyLink{display:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">SECURITY INSTRUCTOR · SI</div><h1>Safety, Emergency &amp; Evacuation in Civil Airports</h1><p class="sub" dir="rtl">إدارة السلامة والطوارئ والإخلاء في المطارات المدنية</p><p class="sub">AVS-EMRG-2026 · Workshop duration: 8 hours · ورشة عمل: ٨ ساعات</p></header>
+<main class="wrap">
+<section class="panel" id="accessPanel"><h2>Access your workshop / الدخول إلى الورشة</h2><p>Open the private link sent to you, or enter your workshop access token below. Your progress is saved to the workshop record. Do not share your access link.</p><p dir="rtl">افتح الرابط الخاص المرسل إليك أو أدخل رمز الدخول أدناه. يتم حفظ تقدمك في سجل الورشة. لا تشارك رابط الدخول الخاص بك.</p><div class="grid"><div class="field"><label for="token">Workshop access token / رمز الدخول</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your private access token"></div><div class="field"><label for="language">Display language / لغة العرض</label><select id="language" style="width:100%;padding:13px;border:1px solid #aebbc5;font:inherit"><option value="both">English + العربية</option><option value="en">English</option><option value="ar">العربية</option></select></div></div><div class="actions"><button class="btn gold" id="connectBtn">Open workshop / فتح الورشة</button></div><div id="accessMsg" class="notice hidden" role="status" aria-live="polite"></div></section>
+<section class="panel hidden" id="dashboard"><h2 id="welcome">Workshop progress / تقدم الورشة</h2><div id="statusline" class="statusline"></div><div id="progressMsg" class="notice"></div><h3>Learning sequence / تسلسل التعلم</h3><div id="screens" class="screen-list"></div><div class="notice"><strong>Content review notice / تنبيه مراجعة المحتوى:</strong> This learner page is an integration draft. The approved lesson content and question banks still require final subject-matter review and end-to-end testing before the workshop can be released. / صفحة المتدرب هذه نسخة تكامل تجريبية. لا يزال المحتوى التعليمي وبنوك الأسئلة بحاجة إلى مراجعة نهائية واختبارات شاملة قبل إتاحة الورشة.</div><div class="actions"><button class="btn" id="diagnosticBtn">Start initial diagnostic (10) / بدء التقييم المبدئي (١٠)</button><button class="btn" id="startFormativeBtn">Start next knowledge check / بدء اختبار المعرفة التالي</button><button class="btn gold" id="startFinalBtn">Start final assessment (30) / بدء التقييم النهائي (٣٠)</button></div></section>
+<section class="panel hidden" id="certificatePanel"><h2>Workshop certificate / شهادة إتمام الورشة</h2><p id="certificateMessage" class="notice">Your certificate will appear here after successful completion. / ستظهر الشهادة هنا بعد إتمام المتطلبات بنجاح.</p><div id="certificateCard" class="hidden" style="border:4px solid var(--navy);outline:1px solid var(--gold);padding:24px;background:#fbfaf6;text-align:center"><div style="font-weight:900;letter-spacing:.12em;color:var(--navy)">SI | SECURITY INSTRUCTOR</div><p style="color:#8A6C30;font-weight:800;letter-spacing:.1em">CERTIFICATE OF COMPLETION / شهادة إتمام</p><h2 id="certificateLearner"></h2><p>has successfully completed / أتم بنجاح</p><h3>Safety, Emergency &amp; Evacuation in Civil Airports</h3><h3 dir="rtl">إدارة السلامة والطوارئ والإخلاء في المطارات المدنية</h3><p><strong>Workshop duration / مدة الورشة: 8 hours / ٨ ساعات</strong></p><p id="certificateScore"></p><p id="certificateId"></p><img id="certificateQr" alt="Certificate verification QR code / رمز QR للتحقق من الشهادة" width="160" height="160" style="max-width:100%;height:auto"><p id="certificateIssued"></p><a id="certificateVerifyLink" class="btn" target="_blank" rel="noopener">Verify certificate / التحقق من الشهادة</a><div class="actions certificate-actions" style="justify-content:center"><button class="btn gold" id="printCertificateBtn" type="button">Print / Save PDF</button></div></div></section>
+<section class="panel hidden" id="lessonPanel"><h2 id="lessonTitle">Lesson / الدرس</h2><p class="muted" id="lessonReview">Draft lesson content — pending subject-matter review / محتوى مسودة — بانتظار مراجعة متخصص</p><div class="grid"><div><h3>Learning objectives / أهداف التعلم</h3><ul id="lessonObjectivesEn" class="lesson-list"></ul></div><div dir="rtl"><h3>أهداف التعلم / Learning objectives</h3><ul id="lessonObjectivesAr" class="lesson-list"></ul></div></div><div class="grid"><div><h3>Lesson content</h3><ul id="lessonContentEn" class="lesson-list"></ul></div><div dir="rtl"><h3>محتوى الدرس</h3><ul id="lessonContentAr" class="lesson-list"></ul></div></div><div class="notice">This awareness lesson does not replace the current approved airport emergency plan or role-specific training. / لا يحل هذا الدرس التوعوي محل خطة الطوارئ المعتمدة الحالية للمطار أو التدريب الخاص بالدور الوظيفي.</div><div class="actions"><button class="btn gold" id="lessonCheckBtn">Start this knowledge check / بدء اختبار هذا الدرس</button><button class="btn" id="closeLessonBtn">Return to lessons / العودة إلى الدروس</button></div></section><section class="panel hidden" id="quizPanel"><h2 id="quizTitle">Assessment / التقييم</h2><p id="quizIntro" class="muted"></p><form id="quizForm"><div id="questions"></div><div class="actions"><button class="btn gold" id="submitBtn" type="submit">Submit answers / إرسال الإجابات</button><button class="btn" id="cancelBtn" type="button">Return to progress / العودة للتقدم</button></div></form><div id="result" class="notice hidden" role="status" aria-live="polite"></div></section>
+<section class="panel hidden" id="feedbackPanel"><h2>Workshop feedback / ملاحظات الورشة</h2><p class="muted">Please share your feedback. It is not scored and does not affect your certificate. / شاركنا رأيك؛ لا تُحتسب هذه الاستمارة ضمن الدرجات ولا تؤثر في الشهادة.</p><form id="feedbackForm"><div id="feedbackQuestions"></div><div class="actions"><button class="btn gold" id="submitFeedbackBtn" type="submit">Submit feedback / إرسال الملاحظات</button></div></form><div id="feedbackMsg" class="notice hidden" role="status" aria-live="polite"></div></section>
+</main><footer>SECURITY INSTRUCTOR · Learn • Train • Grow</footer>
+<script src="/staging/config.js"></script>
+<script>
+(function(){
+'use strict';
+const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE||'').replace(/\/$/,'');
+const $=id=>document.getElementById(id);
+let token='',session=null,activeQuiz=null,answers={},language='both';
+const titleOf=s=>language==='ar'?s.titleAr:(language==='en'?s.titleEn:s.titleEn+' / '+s.titleAr);
+function message(el,text,type){el.textContent=text;el.classList.remove('hidden','error','success');if(type)el.classList.add(type);}
+function hide(el){el.classList.add('hidden');}
+async function request(path,options){const res=await fetch(API+path,{...options,headers:{...(options&&options.headers||{}),Authorization:'Bearer '+token,...(options&&options.body?{'Content-Type':'application/json'}:{})}});let data={};try{data=await res.json()}catch{}if(!res.ok){const e=new Error(data.message||('Request failed ('+res.status+')'));e.status=res.status;throw e}return data;}
+$('printCertificateBtn').addEventListener('click',()=>window.print());
+async function loadCertificate(){
+ try{const data=await request('/api/avs-emrg-2026/certificate');const cert=data.certificate;if(!cert)throw new Error('Certificate is not available yet.');$('certificateLearner').textContent=cert.learnerName||'Learner / المتدرب';$('certificateScore').textContent='Final assessment score / نتيجة التقييم النهائي: '+cert.score+'/'+cert.totalQuestions;$('certificateId').textContent='Certificate ID / رقم الشهادة: '+cert.certificateId;$('certificateQr').src=cert.qrDataUrl;$('certificateIssued').textContent='Issued / تاريخ الإصدار: '+new Date(cert.issuedAt).toLocaleDateString();$('certificateVerifyLink').href=cert.verificationUrl;$('certificateCard').classList.remove('hidden');message($('certificateMessage'),'Certificate issued and ready for verification. / تم إصدار الشهادة وأصبحت جاهزة للتحقق.','success');$('certificatePanel').classList.remove('hidden');}catch(e){message($('certificateMessage'),e.message+' / تعذر تحميل الشهادة حاليًا.','error');$('certificatePanel').classList.remove('hidden');}
+}
+function progressView(){
+ const a=session.access||{},done=new Set(a.completedChecks||[]);
+ $('statusline').replaceChildren();
+ [['Checks passed / الاختبارات المكتملة',done.size+'/15'],['Final attempts / محاولات النهائي',String(a.finalAttempts||0)+'/3'],['Final result / نتيجة النهائي',a.finalPassed?'Passed / ناجح':'Not passed / لم يجتز'],['Access expiry / انتهاء الرابط',a.accessExpiresAt?new Date(a.accessExpiresAt).toLocaleString():'—']].forEach(([k,v])=>{const x=document.createElement('span');x.className='pill';x.textContent=k+': '+v;$('statusline').append(x)});
+ $('screens').replaceChildren();(session.screens||[]).forEach(s=>{const x=document.createElement('button');x.type='button';x.className='screen'+(done.has(s.order)?' done':'');x.textContent=(done.has(s.order)?'✓ ':'')+s.order+'. '+titleOf(s);x.disabled=s.order>done.size+1;x.addEventListener('click',()=>openLesson(s.order));$('screens').append(x)});
+ $('progressMsg').textContent=done.size===15?'All knowledge checks are complete. / اكتملت اختبارات المعرفة. '+(session.finalAssessmentAvailable?'The final assessment is available. / التقييم النهائي متاح.':''):'Complete each knowledge check with at least 4/5 correct to unlock the next one. / أجب بشكل صحيح عن ٤ من ٥ على الأقل لفتح الاختبار التالي.';
+ $('startFinalBtn').disabled=!session.finalAssessmentAvailable||!!a.finalPassed||(a.finalAttempts||0)>=3;
+ $('startFormativeBtn').disabled=done.size===15;
+ const feedbackReady=done.size===15&&!!a.finalPassed;
+ if(feedbackReady){
+  $('feedbackPanel').classList.remove('hidden');
+  loadFeedback().catch(e=>message($('feedbackMsg'),e.message+' / تعذر تحميل نموذج الملاحظات.','error'));
+ }
+}
+async function openLesson(order){
+ try{
+  const data=await request('/api/avs-emrg-2026/lesson/'+order),l=data.lesson;
+  $('lessonTitle').textContent=titleOf(l);
+  $('lessonObjectivesEn').replaceChildren();$('lessonObjectivesAr').replaceChildren();
+  $('lessonContentEn').replaceChildren();$('lessonContentAr').replaceChildren();
+  const fill=(id,items)=>items.forEach(t=>{const li=document.createElement('li');li.textContent=t;$(id).append(li)});
+  fill('lessonObjectivesEn',l.objectivesEn);fill('lessonObjectivesAr',l.objectivesAr);
+  fill('lessonContentEn',l.contentEn);fill('lessonContentAr',l.contentAr);
+  $('lessonCheckBtn').onclick=()=>{ $('lessonPanel').classList.add('hidden');start('formative',order); };
+  $('lessonPanel').classList.remove('hidden');$('quizPanel').classList.add('hidden');
+  $('lessonPanel').scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(e){message($('progressMsg'),e.message+' / هذا الدرس غير متاح حتى إكمال المتطلبات السابقة.','error')}
+}
+async function connect(){
+ token=$('token').value.trim();language=$('language').value;
+ if(!token){message($('accessMsg'),'Enter your private access token first. / أدخل رمز الدخول أولًا.','error');return}
+ $('connectBtn').disabled=true;
+ try{session=await request('/api/avs-emrg-2026/session');$('accessPanel').classList.add('hidden');$('dashboard').classList.remove('hidden');progressView();}
+ catch(e){message($('accessMsg'),e.message+' / تعذر فتح الورشة. تحقق من الرمز أو اطلب رابطًا صالحًا من مسؤول الورشة.','error');}
+ finally{$('connectBtn').disabled=false}
+}
+function renderQuiz(data,kind,screen){
+ activeQuiz={...data,kind,screen};answers={};$('questions').replaceChildren();hide($('result'));
+ $('quizTitle').textContent=kind==='diagnostic'?'Initial diagnostic / التقييم المبدئي':kind==='final'?'Final assessment / التقييم النهائي':'Knowledge check '+screen+' / اختبار المعرفة '+screen;
+ $('quizIntro').textContent='Choose one answer for every question. The assessment is graded by the server. / اختر إجابة واحدة لكل سؤال. يتم تصحيح التقييم على الخادم.';
+ data.questions.forEach((q,i)=>{
+  const field=document.createElement('fieldset');field.className='q';const legend=document.createElement('legend');legend.textContent=(i+1)+'. '+q.prompt;field.append(legend);
+  q.options.forEach(opt=>{const label=document.createElement('label');label.className='option';const input=document.createElement('input');input.type='radio';input.name=q.id;input.value=opt.id;input.required=true;input.addEventListener('change',()=>{answers[q.id]=opt.id});const text=document.createElement('span');text.textContent=opt.text;label.append(input,text);field.append(label)});
+  $('questions').append(field);
+ });
+ $('quizPanel').classList.remove('hidden');$('quizPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function start(kind,screen){
+ try{
+  let path,body={};
+  if(kind==='diagnostic')path='/api/avs-emrg-2026/initial-assessment/start';
+  else if(kind==='final')path='/api/avs-emrg-2026/final/start';
+  else path='/api/avs-emrg-2026/formative/'+screen+'/start';
+  const data=await request(path,{method:'POST',body:JSON.stringify(body)});
+  renderQuiz(data,kind,screen);
+ }catch(e){message($('progressMsg'),e.message+' / لم يمكن بدء التقييم.','error');}
+}
+async function loadFeedback(){
+ const data=await request('/api/avs-emrg-2026/feedback');
+ $('feedbackPanel').classList.remove('hidden');
+ if(data.submitted){message($('feedbackMsg'),'Feedback already submitted. Thank you. / تم إرسال الملاحظات بالفعل، شكرًا لك.','success');$('submitFeedbackBtn').disabled=true;return;}
+ const host=$('feedbackQuestions');host.replaceChildren();
+ data.survey.questions.forEach(q=>{
+  const wrap=document.createElement('fieldset');wrap.className='q';
+  const legend=document.createElement('legend');legend.textContent=q.prompt;wrap.append(legend);
+  if(q.type==='rating-1-to-5'){
+   q.scale.forEach((labelText,index)=>{const label=document.createElement('label');label.className='option';const input=document.createElement('input');input.type='radio';input.name=q.id;input.value=String(index+1);input.required=!!q.required;const text=document.createElement('span');text.textContent=labelText;label.append(input,text);wrap.append(label)});
+  }else{
+   const input=document.createElement('textarea');input.name=q.id;input.maxLength=q.maxLength||1000;input.rows=3;input.style='width:100%;padding:12px;font:inherit';input.required=!!q.required;wrap.append(input);
+  }
+  host.append(wrap);
+ });
+}
+$('feedbackForm').addEventListener('submit',async e=>{
+ e.preventDefault();const answers={};
+ $('feedbackQuestions').querySelectorAll('fieldset').forEach(field=>{
+  const radio=field.querySelector('input[type=radio]:checked');
+  const text=field.querySelector('textarea');
+  if(radio)answers[field.querySelector('input').name]=Number(radio.value);
+  if(text&&text.value.trim())answers[text.name]=text.value.trim();
+ });
+ $('submitFeedbackBtn').disabled=true;
+ try{const data=await request('/api/avs-emrg-2026/feedback',{method:'POST',body:JSON.stringify({answers})});message($('feedbackMsg'),data.message||'Thank you for your feedback. / شكرًا لملاحظاتك.','success');}
+ catch(err){message($('feedbackMsg'),err.message+' / تعذر حفظ الملاحظات.','error');$('submitFeedbackBtn').disabled=false;}
+});
+$('connectBtn').addEventListener('click',connect);
+$('closeLessonBtn').addEventListener('click',()=>{$('lessonPanel').classList.add('hidden');$('dashboard').scrollIntoView({behavior:'smooth'});});
+$('language').addEventListener('change',()=>{language=$('language').value;if(session)progressView()});
+$('diagnosticBtn').addEventListener('click',()=>start('diagnostic',null));
+$('startFormativeBtn').addEventListener('click',()=>{const done=new Set(session.access.completedChecks||[]);start('formative',done.size+1)});
+$('startFinalBtn').addEventListener('click',()=>start('final',null));
+$('cancelBtn').addEventListener('click',()=>{$('quizPanel').classList.add('hidden');$('dashboard').scrollIntoView({behavior:'smooth'});});
+$('quizForm').addEventListener('submit',async e=>{
+ e.preventDefault();if(!activeQuiz)return;
+ const expected=activeQuiz.questions.length;if(Object.keys(answers).length!==expected){message($('result'),'Please answer every question before submitting. / يرجى الإجابة عن جميع الأسئلة.','error');return}
+ $('submitBtn').disabled=true;
+ try{
+  const body={attemptId:activeQuiz.attemptId,answers};let path;
+  if(activeQuiz.kind==='diagnostic')path='/api/avs-emrg-2026/initial-assessment/submit';
+  else if(activeQuiz.kind==='final')path='/api/avs-emrg-2026/final/submit';
+  else path='/api/avs-emrg-2026/formative/'+activeQuiz.screen+'/submit';
+  const data=await request(path,{method:'POST',body:JSON.stringify(body)});
+  const r=data.result||{};const pass=r.passed;
+  let msg='Score / النتيجة: '+r.correct+'/'+r.total+' ('+r.percent+'%). ';
+  if(activeQuiz.kind==='diagnostic')msg+='This is diagnostic only and does not affect completion or certificate eligibility. / هذا تقييم مبدئي ولا يؤثر في إتمام الورشة أو أهلية الشهادة.';
+  else if(pass)msg+='Passed / اجتياز. '+(data.nextScreen?'Next check unlocked / تم فتح الاختبار التالي.':'');
+  else msg+='Not passed. Review the material and try again. / لم تجتز الاختبار. راجع المحتوى وحاول مرة أخرى.';
+  message($('result'),msg,activeQuiz.kind==='diagnostic'||pass?'success':'error');
+  if(activeQuiz.kind!=='diagnostic'){const updated=await request('/api/avs-emrg-2026/session');session=updated;progressView();if(activeQuiz.kind==='final'&&data.certificateEligible){await loadCertificate();}}
+  $('result').scrollIntoView({behavior:'smooth',block:'center'});
+ }catch(err){message($('result'),err.message+' / لم يتم إرسال الإجابات. حاول مرة أخرى.','error')}
+ finally{$('submitBtn').disabled=false}
+});
+const queryToken=new URLSearchParams(location.search).get('token');if(queryToken){$('token').value=queryToken;connect();}
+})();
+</script>
+</body></html>
