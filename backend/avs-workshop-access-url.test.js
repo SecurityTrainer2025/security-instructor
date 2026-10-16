@@ -15,6 +15,10 @@ test('uses a configured staging learner page without changing the production fal
   );
 });
 
+test('fails closed instead of emailing a production URL when an enabled workshop lacks a configured frontend URL', () => {
+  assert.throws(() => buildWorkshopAccessUrl('token', '', true), /AVS_WORKSHOP_FRONTEND_URL is required/);
+});
+
 test('URL-encodes access tokens and rejects non-HTTPS configured URLs', () => {
   assert.equal(buildWorkshopAccessUrl('a b&c', 'https://example.com/staging/workshop.html'), 'https://example.com/staging/workshop.html?token=a%20b%26c');
   assert.throws(() => buildWorkshopAccessUrl('token', 'http://example.com/workshop.html'), /must be an https URL/);
