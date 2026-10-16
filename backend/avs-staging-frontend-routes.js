@@ -28,9 +28,6 @@ function createStagingFrontendGate(isEnabled = () => process.env.AVS_WORKSHOP_EN
 
 function register(app, { isEnabled } = {}) {
   const gate = createStagingFrontendGate(isEnabled);
-  app.get('/staging/admin.html', gate, (req, res) => {
-    res.sendFile(path.join(FRONTEND_DIR, 'avs-staging-admin.html'));
-  });
   app.get('/staging/avs-emrg-2026.html', gate, (req, res) => {
     res.sendFile(path.join(FRONTEND_DIR, 'avs-staging-preview.html'));
   });
