@@ -20,6 +20,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Validate SI admin dashboard script and AVS staging-only guard
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("frontend/admin/index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected one inline admin script, found {len(scripts)}")
+          Path("/tmp/si-admin-inline.js").write_text(scripts[0], encoding="utf-8")
+          required = [
+              'data-tab="workshops"',
+              'id="avsInviteBtn"',
+              "get('api')==='staging'",
+              "if(!isStagingApi)",
+          ]
+          missing = [item for item in required if item not in html]
+          if missing:
+              raise SystemExit("Missing dashboard safety features: " + ", ".join(missing))
+          print("PASS | Workshop tab, Staging-only invitation mode, and safety guard are present.")
+          PY
+          npx --yes --package=node@20 node --check /tmp/si-admin-inline.js
       - name: Check public frontend
         id: frontend
         shell: bash
