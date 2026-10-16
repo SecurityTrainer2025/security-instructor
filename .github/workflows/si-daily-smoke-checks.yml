@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
       - name: Validate SI admin dashboard script and AVS staging-only guard
         shell: bash
         run: |
@@ -42,7 +44,7 @@ jobs:
               raise SystemExit("Missing dashboard safety features: " + ", ".join(missing))
           print("PASS | Workshop tab, Staging-only invitation mode, and safety guard are present.")
           PY
-          npx --yes --package=node@20 node --check /tmp/si-admin-inline.js
+          node --check /tmp/si-admin-inline.js
       - name: Check public frontend
         id: frontend
         shell: bash
