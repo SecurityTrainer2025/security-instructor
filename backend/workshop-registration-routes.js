@@ -64,6 +64,7 @@ function registerWorkshopRegistrationRoutes(app, { requireAdmin } = {}) {
   });
   app.patch('/api/admin/workshops/avs-emrg-2026/registrations/:registrationId/status', requireAdmin, async (req, res) => {
     try {
+      if (!db()) return res.status(503).json({ message: 'Database is not ready.' });
       const status = clean(req.body?.status, 20);
       if (!['approved','invited','rejected','cancelled'].includes(status)) return res.status(400).json({ message: 'Invalid registration status.' });
       const result = await db().collection(COLLECTION).findOneAndUpdate(
