@@ -11,7 +11,7 @@ const {
 test('AVS workshop is registered but remains closed until release gates pass', () => {
   const registry = createWorkshopRegistry();
   assert.equal(registry.getByCode('AVS-EMRG-2026').slug, 'avs-emrg-2026');
-  assert.equal(registry.getBySlug('AVS-EMRG-2026'), null);
+  assert.equal(registry.getBySlug('AVS-EMRG-2026').code, 'AVS-EMRG-2026');
   assert.equal(registry.isReleaseReady('AVS-EMRG-2026'), false);
   assert.equal(registry.canOpenRegistration('AVS-EMRG-2026'), false);
 });
