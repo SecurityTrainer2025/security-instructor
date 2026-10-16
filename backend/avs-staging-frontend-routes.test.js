@@ -46,7 +46,6 @@ test('preview registers only the workshop page, its stylesheet and same-origin A
   };
   register(app, { isEnabled: () => true });
   assert.deepEqual([...routes.keys()], [
-    '/staging/admin.html',
     '/staging/avs-emrg-2026.html',
     '/staging/style.css',
     '/staging/config.js'
