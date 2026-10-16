@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workshop Registration | SECURITY INSTRUCTOR</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="bilingual.css">
+<style>
+:root{--navy:#0B1F33;--dark:#081725;--blue:#102A43;--gold:#C8A96B}
+body{background:var(--navy);color:#fff}.wrap{max-width:1050px;margin:auto;padding:38px 20px 70px}.head{text-align:center;margin:20px 0 30px}.eyebrow{color:var(--gold);font-weight:800;letter-spacing:.08em}.head h1{font-size:clamp(28px,4vw,42px);margin:10px 0}.head h2{color:var(--gold);font-size:24px;margin:0 0 12px}.head p{color:#d5dde5;line-height:1.8}.step{background:var(--blue);border:1px solid #294158;border-left:3px solid var(--gold);padding:24px;margin:18px 0}.step h3{margin-top:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.field label{display:block;font-weight:700;margin-bottom:7px}.field input,.field select{width:100%;box-sizing:border-box;padding:12px;background:var(--dark);border:1px solid #607184;color:white;border-radius:4px;font-size:15px}.full{grid-column:1/-1}.note{border:1px solid #526577;padding:16px;background:var(--dark);line-height:1.8}.choice{display:inline-flex;gap:8px;align-items:center;margin:8px 18px 8px 0}.consent{display:flex;gap:12px;line-height:1.8;color:#d5dde5}.actions{text-align:center;margin-top:22px}.btn{display:inline-block;background:var(--gold);color:#081725;border:0;padding:14px 22px;font-weight:800;cursor:pointer;text-decoration:none}.msg{display:none;margin-top:18px;padding:16px;line-height:1.8;border:1px solid var(--gold);background:var(--dark)}.msg.error{border-color:#d77;background:#311d25}.sub{color:#d5dde5;font-size:13px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.step{padding:18px}.wrap{padding:26px 14px 55px}}
+</style></head>
+<body><header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">SI</span><span>SECURITY <b>INSTRUCTOR</b></span></a><nav><a href="workshops.html">Workshops / الورش</a></nav></header>
+<main class="wrap">
+<section class="head"><div class="eyebrow">AVS-EMRG-2026 · 8 HOURS</div><h1>WORKSHOP REGISTRATION</h1><h2 dir="rtl">التسجيل في ورشة العمل</h2><p>Safety, Emergency &amp; Evacuation in Civil Airports<br><span dir="rtl">إدارة السلامة والطوارئ والإخلاء في المطارات المدنية</span></p><p>Complete the form below. Your request will be reviewed by the workshop team; this form does not issue an access link automatically.<br><span dir="rtl">يرجى استكمال النموذج. سيقوم فريق الورشة بمراجعة الطلب؛ ولا يؤدي هذا النموذج إلى إصدار رابط الدخول تلقائيًا.</span></p></section>
+<form id="form" novalidate>
+<section class="step"><h3>01 — Trainee information / بيانات المتدرب</h3><div class="grid">
+<div class="field"><label for="arName">Full name in Arabic / الاسم الكامل بالعربية *</label><input id="arName" required dir="rtl" maxlength="180"></div>
+<div class="field"><label for="enName">Full name in English / الاسم الكامل بالإنجليزية *</label><input id="enName" required maxlength="180"></div>
+<div class="field"><label for="idType">ID type / نوع الهوية *</label><select id="idType" required><option value="">Select / اختر</option><option value="national_id">National ID / الهوية الوطنية</option><option value="iqama">Iqama / الإقامة</option><option value="passport">Passport / جواز السفر</option></select></div>
+<div class="field"><label for="idNumber">ID number / رقم الهوية *</label><input id="idNumber" required maxlength="50" autocomplete="off"></div>
+<div class="field"><label for="mobile">Mobile / رقم الجوال *</label><input id="mobile" required maxlength="45" inputmode="tel" autocomplete="tel"></div>
+<div class="field"><label for="email">Email / البريد الإلكتروني *</label><input id="email" required type="email" maxlength="180" autocomplete="email"></div></div></section>
+<section class="step"><h3>02 — Registration type / نوع التسجيل</h3><label class="choice"><input type="radio" name="type" value="individual" required> Individual / فردي</label><label class="choice"><input type="radio" name="type" value="company" required> Company / شركة</label>
+<div class="grid" style="margin-top:12px"><div class="field"><label for="companyName">Company name / اسم الشركة <span class="sub">(required for company registration / مطلوب للتسجيل باسم شركة)</span></label><input id="companyName" maxlength="160"></div><div class="field"><label for="companyContact">Company contact / مسؤول التواصل بالشركة</label><input id="companyContact" maxlength="120"></div><div class="field full"><label for="companyEmail">Company email / بريد الشركة</label><input id="companyEmail" type="email" maxlength="180"></div></div>
+<div class="note" style="margin-top:18px"><strong>Workshop / الورشة:</strong><br>AVS-EMRG-2026 — Safety, Emergency &amp; Evacuation in Civil Airports<br><span dir="rtl">إدارة السلامة والطوارئ والإخلاء في المطارات المدنية</span><br>Duration / المدة: 8 hours / ٨ ساعات</div>
+<div class="consent" style="margin-top:18px"><input id="consent" type="checkbox" required><label for="consent">I confirm the information is accurate and consent to its use for workshop registration and administration.<br><span dir="rtl">أقر بصحة البيانات وأوافق على استخدامها لأغراض التسجيل في الورشة وإدارتها.</span></label></div>
+<div class="actions"><button class="btn" id="submit" type="submit">Submit registration / إرسال طلب التسجيل</button></div><div id="msg" class="msg" role="status" aria-live="polite"></div>
+</section></form></main>
+<script>
+(function(){
+ const API='https://security-instructor-staging.onrender.com';
+ const form=document.getElementById('form'),msg=document.getElementById('msg'),btn=document.getElementById('submit');
+ form.addEventListener('submit',async function(e){
+  e.preventDefault();msg.style.display='none';
+  const type=document.querySelector('input[name="type"]:checked');
+  const payload={arabicName:document.getElementById('arName').value,englishName:document.getElementById('enName').value,idType:document.getElementById('idType').value,idNumber:document.getElementById('idNumber').value,mobile:document.getElementById('mobile').value,email:document.getElementById('email').value,registrationType:type?type.value:'',companyName:document.getElementById('companyName').value,companyContact:document.getElementById('companyContact').value,companyEmail:document.getElementById('companyEmail').value,consent:document.getElementById('consent').checked};
+  if(!form.reportValidity())return;
+  btn.disabled=true;btn.textContent='Submitting… / جارٍ الإرسال';
+  try{const r=await fetch(API+'/api/workshops/avs-emrg-2026/registrations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||'Unable to submit registration.');msg.className='msg';msg.innerHTML='<strong>Registration received / تم استلام طلب التسجيل</strong><br>Reference / رقم الطلب: <strong>'+String(d.registrationId||'').replace(/[&<>"]/g,'')+'</strong><br>'+String(d.message||'').replace(/[&<>"]/g,'');msg.style.display='block';form.reset();}catch(err){msg.className='msg error';msg.textContent=err.message+' / تعذر إرسال الطلب، يرجى المحاولة لاحقًا.';msg.style.display='block';}finally{btn.disabled=false;btn.textContent='Submit registration / إرسال طلب التسجيل';}
+ });
+})();
+</script></body></html>
