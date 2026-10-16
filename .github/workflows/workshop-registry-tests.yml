@@ -1,0 +1,34 @@
+name: Workshop Registry Unit Tests
+
+on:
+  pull_request:
+    paths:
+      - 'backend/workshop-registry.js'
+      - 'backend/test/workshop-registry.test.js'
+      - '.github/workflows/workshop-registry-tests.yml'
+  push:
+    branches:
+      - feat/self-study-workflow-config
+    paths:
+      - 'backend/workshop-registry.js'
+      - 'backend/test/workshop-registry.test.js'
+      - '.github/workflows/workshop-registry-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workshop-registry-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test reusable workshop registry
+        working-directory: backend
+        run: node --test test/workshop-registry.test.js
