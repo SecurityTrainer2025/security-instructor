@@ -8,6 +8,7 @@
 const crypto = require('node:crypto');
 const { buildWorkshopAccessUrl } = require('./avs-workshop-access-url');
 const { Access, Attempt, createAccessToken, hashAccessToken, accessExpiry, safeAccessView } = require('./avs-emrg-2026-persistence');
+const { adminAccessView, revokedAccessView } = require('./avs-emrg-2026-admin-access');
 const policy = require('./avs-emrg-2026-workflow-policy');
 const { buildFinalStartLockFilter } = require('./avs-emrg-2026-final-start-lock');
 const { createWorkshopReleaseGate } = require('./avs-emrg-2026-release-gate');
@@ -161,20 +162,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         .limit(500)
         .lean();
       return res.json({
-        accesses: records.map(record => ({
-          id: String(record._id),
-          workshopCode: record.workshopCode,
-          learnerName: record.learnerName || '',
-          learnerEmail: record.learnerEmail || '',
-          accessCreatedAt: record.accessCreatedAt,
-          accessExpiresAt: record.accessExpiresAt,
-          activeStudyHours: record.activeStudyHours ?? null,
-          completedChecksCount: Array.isArray(record.completedChecks) ? record.completedChecks.length : 0,
-          finalAttempts: Number(record.finalAttempts || 0),
-          finalPassed: Boolean(record.finalPassed),
-          certificateEligible: Boolean(record.certificateEligible),
-          revoked: Boolean(record.revokedAt)
-        }))
+        accesses: records.map(adminAccessView)
       });
     } catch (error) {
       console.error('AVS admin access list failed', error);
@@ -192,12 +180,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         { new: true }
       ).lean();
       if (!record) return fail(res, 404, 'An active invitation with this ID was not found.');
-      return res.json({ ok: true, access: {
-        id: String(record._id),
-        learnerName: record.learnerName || '',
-        learnerEmail: record.learnerEmail || '',
-        revoked: true
-      } });
+      return res.json({ ok: true, access: revokedAccessView(record) });
     } catch (error) {
       console.error('AVS invitation revocation failed', error);
       return fail(res, 500, 'Unable to revoke this workshop invitation.');
