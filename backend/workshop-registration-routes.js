@@ -13,6 +13,10 @@ function registerWorkshopRegistrationRoutes(app, { requireAdmin } = {}) {
   const db = () => mongoose.connection.db;
   app.post('/api/workshops/avs-emrg-2026/registrations', async (req, res) => {
     try {
+      // Fail closed: do not collect real trainee data until both release switches are explicitly enabled.
+      if (process.env.AVS_WORKSHOP_ENABLED !== 'true' || process.env.AVS_WORKSHOP_REGISTRATION_OPEN !== 'true') {
+        return res.status(503).json({ message: 'Workshop registration is not open yet. / التسجيل في الورشة غير متاح حاليًا.', reason: 'registration-closed' });
+      }
       if (!db()) return res.status(503).json({ message: 'Registration is temporarily unavailable.' });
       const b = req.body || {};
       const r = {
