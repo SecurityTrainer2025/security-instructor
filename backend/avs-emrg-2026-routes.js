@@ -153,6 +153,57 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
     }
   });
 
+  // Administrator list returns only safe invitation metadata; the raw token and its hash are never exposed.
+  app.get('/api/admin/avs-emrg-2026/access', requireAdmin, async (req, res) => {
+    try {
+      const records = await Access.find({ workshopCode: WORKSHOP.code })
+        .sort({ accessCreatedAt: -1 })
+        .limit(500)
+        .lean();
+      return res.json({
+        accesses: records.map(record => ({
+          id: String(record._id),
+          workshopCode: record.workshopCode,
+          learnerName: record.learnerName || '',
+          learnerEmail: record.learnerEmail || '',
+          accessCreatedAt: record.accessCreatedAt,
+          accessExpiresAt: record.accessExpiresAt,
+          activeStudyHours: record.activeStudyHours ?? null,
+          completedChecksCount: Array.isArray(record.completedChecks) ? record.completedChecks.length : 0,
+          finalAttempts: Number(record.finalAttempts || 0),
+          finalPassed: Boolean(record.finalPassed),
+          certificateEligible: Boolean(record.certificateEligible),
+          revoked: Boolean(record.revokedAt)
+        }))
+      });
+    } catch (error) {
+      console.error('AVS admin access list failed', error);
+      return fail(res, 500, 'Unable to load workshop invitations.');
+    }
+  });
+
+  app.post('/api/admin/avs-emrg-2026/access/:accessId/revoke', requireAdmin, async (req, res) => {
+    try {
+      const accessId = clean(req.params.accessId, 80);
+      if (!mongoose.Types.ObjectId.isValid(accessId)) return fail(res, 400, 'Invalid access record ID.');
+      const record = await Access.findOneAndUpdate(
+        { _id: accessId, workshopCode: WORKSHOP.code, revokedAt: null },
+        { $set: { revokedAt: new Date() } },
+        { new: true }
+      ).lean();
+      if (!record) return fail(res, 404, 'An active invitation with this ID was not found.');
+      return res.json({ ok: true, access: {
+        id: String(record._id),
+        learnerName: record.learnerName || '',
+        learnerEmail: record.learnerEmail || '',
+        revoked: true
+      } });
+    } catch (error) {
+      console.error('AVS invitation revocation failed', error);
+      return fail(res, 500, 'Unable to revoke this workshop invitation.');
+    }
+  });
+
   app.post('/api/admin/avs-emrg-2026/access', requireAdmin, async (req, res) => {
     try {
       const learnerName = clean(req.body?.learnerName, 160);
