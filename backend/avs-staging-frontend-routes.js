@@ -2,7 +2,7 @@
 
 const path = require('node:path');
 
-const FRONTEND_DIR = path.resolve(__dirname, '..', 'frontend');
+const FRONTEND_DIR = __dirname;
 const STAGING_CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
@@ -29,10 +29,10 @@ function createStagingFrontendGate(isEnabled = () => process.env.AVS_WORKSHOP_EN
 function register(app, { isEnabled } = {}) {
   const gate = createStagingFrontendGate(isEnabled);
   app.get('/staging/avs-emrg-2026.html', gate, (req, res) => {
-    res.sendFile(path.join(FRONTEND_DIR, 'avs-emrg-2026.html'));
+    res.sendFile(path.join(FRONTEND_DIR, 'avs-staging-preview.html'));
   });
   app.get('/staging/style.css', gate, (req, res) => {
-    res.sendFile(path.join(FRONTEND_DIR, 'style.css'));
+    res.sendFile(path.join(FRONTEND_DIR, 'avs-staging-preview.css'));
   });
   app.get('/staging/config.js', gate, (req, res) => {
     res.type('application/javascript').send('window.APP_CONFIG={API_BASE:window.location.origin};');
