@@ -2,6 +2,7 @@
 
 const crypto = require('node:crypto');
 const mongoose = require('mongoose');
+const { isWorkshopRegistrationOpen } = require('./workshop-registration-policy');
 
 const CODE = 'AVS-EMRG-2026';
 const COLLECTION = 'avs_emrg_2026_registrations';
@@ -14,7 +15,7 @@ function registerWorkshopRegistrationRoutes(app, { requireAdmin } = {}) {
   app.post('/api/workshops/avs-emrg-2026/registrations', async (req, res) => {
     try {
       // Fail closed: do not collect real trainee data until both release switches are explicitly enabled.
-      if (process.env.AVS_WORKSHOP_ENABLED !== 'true' || process.env.AVS_WORKSHOP_REGISTRATION_OPEN !== 'true') {
+      if (!isWorkshopRegistrationOpen()) {
         return res.status(503).json({ message: 'Workshop registration is not open yet. / التسجيل في الورشة غير متاح حاليًا.', reason: 'registration-closed' });
       }
       if (!db()) return res.status(503).json({ message: 'Registration is temporarily unavailable.' });
