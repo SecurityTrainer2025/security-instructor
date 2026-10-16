@@ -20,6 +20,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Validate SI admin dashboard script and AVS staging-only guard
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("frontend/admin/index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
+          if not scripts:
+              raise SystemExit("Expected at least one inline admin script")
+          Path("/tmp/si-admin-inline.js").write_text("\n".join(scripts), encoding="utf-8")
+          required = [
+              'data-tab="workshops"',
+              'id="avsInviteBtn"',
+              "get('api')==='staging'",
+              "if(!isStagingApi)",
+          ]
+          missing = [item for item in required if item not in html]
+          if missing:
+              raise SystemExit("Missing dashboard safety features: " + ", ".join(missing))
+          print("PASS | Workshop tab, Staging-only invitation mode, and safety guard are present.")
+          PY
+          node --check /tmp/si-admin-inline.js
       - name: Check public frontend
         id: frontend
         shell: bash
