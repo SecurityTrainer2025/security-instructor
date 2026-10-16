@@ -24,7 +24,7 @@
 <script>
 (function(){
 'use strict';
-const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE||'').replace(/\/$/,'');
+const API=(window.AVS_WORKSHOP_API_BASE||'https://security-instructor-staging.onrender.com').replace(/\/$/,'');
 const $=id=>document.getElementById(id);
 let token='',session=null,activeQuiz=null,answers={},language='both';
 const titleOf=s=>language==='ar'?s.titleAr:(language==='en'?s.titleEn:s.titleEn+' / '+s.titleAr);
