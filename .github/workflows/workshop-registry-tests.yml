@@ -13,7 +13,14 @@ on:
       - feat/self-study-workflow-config
     paths:
       - 'backend/workshop-registry.js'
-      - 'backend/test/workshop-registry.test.js'
+      - 'backend/workshop-registration-policy.js'
+      - 'backend/workshop-registration-routes.js'
+      - 'backend/avs-emrg-2026-lessons.js'
+      - 'backend/avs-emrg-2026-formative-question-bank.js'
+      - 'backend/avs-emrg-2026-initial-assessment.js'
+      - 'backend/avs-emrg-2026-final-question-bank.js'
+      - 'backend/avs-emrg-2026-assessment.js'
+      - 'backend/test/*.test.js'
       - '.github/workflows/workshop-registry-tests.yml'
   workflow_dispatch:
 
