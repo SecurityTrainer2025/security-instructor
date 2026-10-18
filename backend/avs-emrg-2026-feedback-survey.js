@@ -3,12 +3,12 @@
 /**
  * Shared post-workshop feedback survey contract for SI courses and workshops. AVS is the first integration target.
  * Opinion-only, not scored, and never used for assessment or certificate eligibility.
- * Integration status: wired to the AVS learner journey on the development branch.
- * Owner/content approval of wording and production end-to-end validation remain release gates.
+ * Integration status: draft only; owner/content approval and release validation are still required.
+ * Do not treat this survey as approved until the owner reviews and explicitly approves it.
  */
 const FEEDBACK_SURVEY = Object.freeze({
   code: 'SI-COURSE-FEEDBACK',
-  status: 'approved',
+  status: 'draft',
   scored: false,
   affectsCertificateEligibility: false,
   languageMode: 'bilingual-en-ar',
