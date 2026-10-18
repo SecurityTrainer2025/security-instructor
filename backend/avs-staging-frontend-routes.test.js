@@ -48,9 +48,16 @@ test('preview registers only the workshop page, its stylesheet and same-origin A
   assert.deepEqual([...routes.keys()], [
     '/staging/avs-emrg-2026.html',
     '/staging/course-registration.html',
+    '/staging/registration-style.css',
+    '/staging/registration-bilingual.css',
     '/staging/style.css',
     '/staging/config.js'
   ]);
+  const registrationResponse = responseRecorder();
+  routes.get('/staging/course-registration.html').at(-1)({}, registrationResponse);
+  assert.equal(registrationResponse.contentType, 'text/html');
+  assert.match(registrationResponse.body, /href="\/staging\/registration-style\.css"/);
+  assert.match(registrationResponse.body, /href="\/staging\/registration-bilingual\.css"/);
   const configResponse = responseRecorder();
   routes.get('/staging/config.js').at(-1)({}, configResponse);
   assert.equal(configResponse.contentType, 'application/javascript');
