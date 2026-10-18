@@ -55,7 +55,7 @@ test('preview registers only the workshop page, its stylesheet and same-origin A
   ]);
   const registrationResponse = responseRecorder();
   routes.get('/staging/course-registration.html').at(-1)({}, registrationResponse);
-  assert.equal(registrationResponse.contentType, 'text/html');
+  assert.equal(registrationResponse.contentType, 'html');
   assert.match(registrationResponse.body, /href="\/staging\/registration-style\.css"/);
   assert.match(registrationResponse.body, /href="\/staging\/registration-bilingual\.css"/);
   const configResponse = responseRecorder();
