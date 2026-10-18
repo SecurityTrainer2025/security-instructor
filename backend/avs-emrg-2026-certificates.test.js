@@ -26,3 +26,10 @@ test('AVS certificate IDs use a fixed, non-identifying format', () => {
   assert.equal(isCertificateId('SI-AVS-2026-short'), false);
   assert.equal(isCertificateId('SI-AVS-2026-012345abcdef'), false);
 });
+
+test('AVS certificate verification URL preserves the issuing API environment', () => {
+  const { buildVerificationUrl } = require('./avs-emrg-2026-certificates');
+  const url = new URL(buildVerificationUrl('SI-AVS-2026-012345ABCDEF', 'https://security-instructor-staging.onrender.com/'));
+  assert.equal(url.searchParams.get('certificateId'), 'SI-AVS-2026-012345ABCDEF');
+  assert.equal(url.searchParams.get('apiBase'), 'https://security-instructor-staging.onrender.com');
+});
