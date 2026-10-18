@@ -32,7 +32,7 @@ function buildVerificationUrl(certificateId, apiBase = process.env.AVS_WORKSHOP_
   const frontendUrl = 'https://securitytrainer2025.github.io/security-instructor/frontend/avs-emrg-2026-verify.html';
   const url = new URL(frontendUrl);
   url.searchParams.set('certificateId', certificateId);
-  url.searchParams.set('apiBase', String(apiBase).replace(/\\/$/, ''));
+  url.searchParams.set('apiBase', String(apiBase).replace(/\/$/, ''));
   return url.toString();
 }
 
