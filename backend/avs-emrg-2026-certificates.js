@@ -28,11 +28,19 @@ function makeCertificateId() {
   return 'SI-AVS-2026-' + crypto.randomBytes(6).toString('hex').toUpperCase();
 }
 
+function buildVerificationUrl(certificateId, apiBase = process.env.AVS_WORKSHOP_API_BASE || process.env.RENDER_EXTERNAL_URL || 'https://security-instructor.onrender.com') {
+  const frontendUrl = 'https://securitytrainer2025.github.io/security-instructor/frontend/avs-emrg-2026-verify.html';
+  const url = new URL(frontendUrl);
+  url.searchParams.set('certificateId', certificateId);
+  url.searchParams.set('apiBase', String(apiBase).replace(/\\/$/, ''));
+  return url.toString();
+}
+
 async function ensureCertificate(access, score) {
   if (!isCertificateEligible(access)) throw new Error('Certificate eligibility requirements are not met.');
   if (!Number.isInteger(score) || score < 22 || score > 30) throw new Error('A passing final assessment score is required.');
   const certificateId = makeCertificateId();
-  const verificationUrl = 'https://securitytrainer2025.github.io/security-instructor/frontend/avs-emrg-2026-verify.html?certificateId=' + encodeURIComponent(certificateId);
+  const verificationUrl = buildVerificationUrl(certificateId);
   try {
     return await Certificate.findOneAndUpdate(
       { accessId: access._id },
@@ -84,4 +92,4 @@ async function certificatePayload(record) {
   return safe;
 }
 
-module.exports = { Certificate, isCertificateEligible, ensureCertificate, publicCertificate, certificatePayload };
+module.exports = { Certificate, isCertificateEligible, ensureCertificate, publicCertificate, certificatePayload, buildVerificationUrl };
