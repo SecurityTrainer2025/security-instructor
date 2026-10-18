@@ -44,4 +44,4 @@ jobs:
           node-version: 22
       - name: Test reusable workshop registry
         working-directory: backend
-        run: node --test test/*.test.js
+        run: node --test test/*.test.js avs-staging-frontend-routes.test.js
