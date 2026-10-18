@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('node:path');
+const fs = require('node:fs');
 
 const FRONTEND_DIR = __dirname;
 const STAGING_CSP = [
@@ -34,7 +35,17 @@ function register(app, { isEnabled } = {}) {
   // Serve the existing SI course-registration form in staging so the AVS workshop
   // registration can be exercised without publishing the branch to GitHub Pages.
   app.get('/staging/course-registration.html', gate, (req, res) => {
-    res.sendFile(path.join(FRONTEND_DIR, '..', 'frontend', 'course-registration.html'));
+    const file = path.join(FRONTEND_DIR, '..', 'frontend', 'course-registration.html');
+    const html = fs.readFileSync(file, 'utf8')
+      .replace('href="style.css"', 'href="/staging/registration-style.css"')
+      .replace('href="bilingual.css"', 'href="/staging/registration-bilingual.css"');
+    res.type('html').send(html);
+  });
+  app.get('/staging/registration-style.css', gate, (req, res) => {
+    res.sendFile(path.join(FRONTEND_DIR, '..', 'frontend', 'style.css'));
+  });
+  app.get('/staging/registration-bilingual.css', gate, (req, res) => {
+    res.sendFile(path.join(FRONTEND_DIR, '..', 'frontend', 'bilingual.css'));
   });
   app.get('/staging/style.css', gate, (req, res) => {
     res.sendFile(path.join(FRONTEND_DIR, 'avs-staging-preview.css'));
