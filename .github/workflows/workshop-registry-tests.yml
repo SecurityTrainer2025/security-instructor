@@ -8,8 +8,6 @@ on:
       - 'backend/workshop-registration-routes.js'
       - 'backend/avs-staging-frontend-routes.js'
       - 'backend/avs-staging-frontend-routes.test.js'
-      - 'backend/avs-staging-frontend-routes.js'
-      - 'backend/avs-staging-frontend-routes.test.js'
       - 'backend/test/*.test.js'
       - '.github/workflows/workshop-registry-tests.yml'
   push:
@@ -19,6 +17,8 @@ on:
       - 'backend/workshop-registry.js'
       - 'backend/workshop-registration-policy.js'
       - 'backend/workshop-registration-routes.js'
+      - 'backend/avs-staging-frontend-routes.js'
+      - 'backend/avs-staging-frontend-routes.test.js'
       - 'backend/avs-emrg-2026-lessons.js'
       - 'backend/avs-emrg-2026-formative-question-bank.js'
       - 'backend/avs-emrg-2026-initial-assessment.js'
