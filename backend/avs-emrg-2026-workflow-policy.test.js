@@ -47,6 +47,32 @@ test('learner cannot skip checks and must pass each check with 4 of 5', () => {
   assert.throws(() => policy.recordFormativeResult(progress, 3, { correct: 5, total: 5 }, t0));
 });
 
+test('learner must open the current lesson before its 80% knowledge check', () => {
+  const progress = policy.createInitialProgress({ accessCreatedAt: t0 });
+  assert.deepEqual(policy.canStartFormative(progress, 1, t0), {
+    allowed: false, reason: 'lesson-content-not-viewed'
+  });
+  progress.viewedLessons.push(1);
+  assert.deepEqual(policy.canStartFormative(progress, 1, t0), {
+    allowed: true, reason: null
+  });
+  assert.deepEqual(policy.canStartFormative(progress, 2, t0), {
+    allowed: false, reason: 'previous-check-not-passed'
+  });
+  const failed = policy.recordFormativeResult(progress, 1, { correct: 3, total: 5 }, t0);
+  assert.equal(failed.passed, false);
+  assert.deepEqual(failed.completedChecks, []);
+  const passed = policy.recordFormativeResult(progress, 1, { correct: 4, total: 5 }, t0);
+  progress.completedChecks = passed.completedChecks;
+  assert.deepEqual(policy.canStartFormative(progress, 2, t0), {
+    allowed: false, reason: 'lesson-content-not-viewed'
+  });
+  progress.viewedLessons.push(2);
+  assert.deepEqual(policy.canStartFormative(progress, 2, t0), {
+    allowed: true, reason: null
+  });
+});
+
 test('final assessment requires all 15 checks, strict >70%, and at most three attempts', () => {
   const progress = policy.createInitialProgress({ accessCreatedAt: t0 });
   assert.equal(policy.canStartFinal(progress, t0).reason, 'formative-checks-incomplete');
