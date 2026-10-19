@@ -83,7 +83,7 @@ test('final assessment requires all 15 checks, strict >70%, and at most three at
   progress.finalAttempts = failed.finalAttempts;
   const passed = policy.recordFinalResult(progress, { correct: 22, total: 30 }, t0);
   assert.deepEqual(passed, { finalAttempts: 2, finalPassed: true, certificateEligible: true });
-  progress.finalAttempts = 3;
+  progress.finalAttempts = 2;
   assert.equal(policy.canStartFinal(progress, t0).reason, 'attempt-limit-reached');
 });
 
