@@ -235,10 +235,35 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
     const state = policyState(record);
     const valid = policy.assertAccessValid(state);
     if (!valid.valid) return fail(res, 410, 'Workshop access has expired.', valid.reason);
+    const submittedChecks = await Attempt.find({
+      accessId: record._id, kind: 'formative', status: 'submitted'
+    }).select('screenNumber correctCount questionCount passed submittedAt').sort({ submittedAt: 1 }).lean();
+    const bestByScreen = new Map();
+    for (const attempt of submittedChecks) {
+      const previous = bestByScreen.get(attempt.screenNumber);
+      if (!previous || Number(attempt.correctCount || 0) > Number(previous.correctCount || 0)) {
+        bestByScreen.set(attempt.screenNumber, {
+          screenNumber: attempt.screenNumber,
+          correct: Number(attempt.correctCount || 0),
+          total: Number(attempt.questionCount || 5),
+          percent: Math.round((Number(attempt.correctCount || 0) / Math.max(1, Number(attempt.questionCount || 5))) * 100),
+          passed: !!attempt.passed
+        });
+      }
+    }
+    const lessonScores = [...bestByScreen.values()].sort((a, b) => a.screenNumber - b.screenNumber);
+    const cumulativeCorrect = lessonScores.reduce((sum, score) => sum + score.correct, 0);
+    const cumulativeTotal = lessonScores.reduce((sum, score) => sum + score.total, 0);
     return res.json({
       ok: true, workshop: { code: WORKSHOP.code, title: WORKSHOP.title, durations: WORKSHOP.durations },
       access: safeAccessView(record),
       screens: WORKSHOP.screens.map(({ id, order, titleEn, titleAr, sourceSlide }) => ({ id, order, titleEn, titleAr, sourceSlide })),
+      scoreTracker: {
+        lessonsScored: lessonScores.length, totalLessons: WORKSHOP.screens.length,
+        cumulativeCorrect, cumulativeTotal,
+        percentage: cumulativeTotal ? Math.round((cumulativeCorrect / cumulativeTotal) * 100) : 0,
+        lessonScores
+      },
       finalAssessmentAvailable: policy.canStartFinal(state).allowed
     });
   });
@@ -253,7 +278,11 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
     if (!gate.allowed) return fail(res, gate.reason === 'invalid-screen' ? 400 : 403, 'This lesson is not available yet.', gate.reason);
     const lesson = getLesson(screenNumber);
     if (!lesson) return fail(res, 404, 'Lesson not found.');
-    return res.json({ ok: true, lesson });
+    await Access.updateOne(
+      { _id: req.avsAccess._id, workshopCode: WORKSHOP.code, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+      { $addToSet: { viewedLessons: screenNumber } }
+    );
+    return res.json({ ok: true, lesson, lessonViewed: true });
   });
 
   app.get('/api/avs-emrg-2026/progress', guard, async (req, res) => {
@@ -270,6 +299,9 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       const state = policyState(record);
       const gate = policy.canOpenScreen(state, screenNumber);
       if (!gate.allowed) return fail(res, gate.reason === 'invalid-screen' ? 400 : 403, 'This formative check is not available.', gate.reason);
+      if (!(record.viewedLessons || []).includes(screenNumber)) {
+        return fail(res, 403, 'Open and review this lesson content before starting its knowledge check.', 'lesson-content-not-viewed');
+      }
       validateFormativeBank();
       const existing = await Attempt.findOne({ accessId: record._id, kind: 'formative', screenNumber, status: 'in-progress' }).select('+optionOrderByQuestionId');
       if (existing) {
