@@ -418,7 +418,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         return res.json({ ok: true, attemptId: existing.attemptId, attemptNumber: existing.attemptNumber, questions: publicQuiz('final', null, snapshot) });
       }
       const record = await Access.findOneAndUpdate({
-        _id: accessId, finalPassed: false, finalAttempts: { $lt: 3 }, finalAttemptStartLockAt: { $ne: null },
+        _id: accessId, finalPassed: false, finalAttempts: { $lt: 2 }, finalAttemptStartLockAt: { $ne: null },
         completedChecks: { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 },
         accessExpiresAt: { $gt: new Date() }, revokedAt: null
       }, { $inc: { finalAttempts: 1 } }, { new: true });
@@ -465,9 +465,9 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
           return fail(res, 403, 'Required formative checks must be complete and access must remain valid.');
         }
         if (attempt.passed === true && !current.finalPassed &&
-            current.finalAttempts >= attempt.attemptNumber && current.finalAttempts <= 3) {
+            current.finalAttempts >= attempt.attemptNumber && current.finalAttempts <= 2) {
           await Access.updateOne(
-            { _id: current._id, finalPassed: false, finalAttempts: { $gte: attempt.attemptNumber, $lte: 3 }, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+            { _id: current._id, finalPassed: false, finalAttempts: { $gte: attempt.attemptNumber, $lte: 2 }, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
             { $set: { finalPassed: true, certificateEligible: true } }
           );
         }
@@ -508,7 +508,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
           Array.from({ length: 15 }, (_, i) => i + 1).some(n => !latestAccess.completedChecks.includes(n))) {
         return fail(res, 403, 'Required formative checks must be complete and access must remain valid.');
       }
-      if (latestAccess.finalPassed || attempt.attemptNumber > latestAccess.finalAttempts || latestAccess.finalAttempts > 3) {
+      if (latestAccess.finalPassed || attempt.attemptNumber > latestAccess.finalAttempts || latestAccess.finalAttempts > 2) {
         return fail(res, 403, 'This final assessment attempt is no longer valid.');
       }
       const result = gradeQuiz('final', null, { questionOrder: attempt.questionOrder, optionOrderByQuestionId: attempt.optionOrderByQuestionId }, req.body?.answers);
@@ -522,7 +522,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       );
       if (!claimed.modifiedCount) return fail(res, 409, 'This attempt has already been submitted.');
       const update = await Access.updateOne({
-        _id: req.avsAccess._id, finalPassed: false, finalAttempts: { $gte: attempt.attemptNumber, $lte: 3 },
+        _id: req.avsAccess._id, finalPassed: false, finalAttempts: { $gte: attempt.attemptNumber, $lte: 2 },
         completedChecks: { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 },
         accessExpiresAt: { $gt: new Date() }, revokedAt: null
       }, {
@@ -633,7 +633,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       if (!isFeedbackSurveyApproved()) return fail(res, 503, 'The feedback survey is awaiting owner approval.', 'feedback-survey-pending-approval');
       validateFeedbackSurvey();
       const current = await Access.findById(req.avsAccess._id).lean();
-      if (!isCertificateEligible(current)) return fail(res, 403, 'Complete all required knowledge checks and pass the final assessment before submitting feedback.');
+      if (!Array.isArray(current?.completedChecks) || current.completedChecks.length !== 15 || Array.from({ length: 15 }, (_, i) => i + 1).some(n => !current.completedChecks.includes(n))) return fail(res, 403, 'Complete all 15 knowledge checks before submitting feedback.');
       const existing = await DiagnosticFeedback.findOne({ accessId: req.avsAccess._id }).lean();
       return res.json({ survey: { code: 'SI-COURSE-FEEDBACK', languageMode: FEEDBACK_SURVEY.languageMode, scored: false, affectsCertificateEligibility: false, questions: FEEDBACK_SURVEY.questions }, submitted: !!existing, submittedAt: existing?.submittedAt || null });
     } catch (error) {
