@@ -13,6 +13,10 @@ test('AVS lesson draft has 15 ordered bilingual screens with objectives and cont
     assert.ok(lesson.objectivesAr.length >= 2);
     assert.ok(lesson.contentEn.length >= 3);
     assert.ok(lesson.contentAr.length >= 3);
+    const publicLesson = getLesson(lesson.order);
+    assert.ok(publicLesson.scenarioEn && publicLesson.scenarioAr, 'each lesson needs a bilingual applied scenario');
+    assert.ok(publicLesson.reflectionEn && publicLesson.reflectionAr, 'each lesson needs a bilingual reflection prompt');
+    assert.ok(publicLesson.takeawayEn && publicLesson.takeawayAr, 'each lesson needs a bilingual key takeaway');
   });
 });
 
