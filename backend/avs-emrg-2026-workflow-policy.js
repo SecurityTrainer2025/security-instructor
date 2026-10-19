@@ -26,6 +26,7 @@ function createInitialProgress({ accessCreatedAt, activeStudyHours = null } = {}
     activeStudyHours,
     activeStudyStartedAt: null,
     completedChecks: [],
+    viewedLessons: [],
     finalAttempts: 0,
     finalPassed: false,
     certificateEligible: false
@@ -76,6 +77,15 @@ function canOpenScreen(progress, screenNumber, now = Date.now()) {
     if (!progress.completedChecks.includes(required)) {
       return { allowed: false, reason: 'previous-check-not-passed' };
     }
+  }
+  return { allowed: true, reason: null };
+}
+
+function canStartFormative(progress, screenNumber, now = Date.now()) {
+  const lessonGate = canOpenScreen(progress, screenNumber, now);
+  if (!lessonGate.allowed) return lessonGate;
+  if (!Array.isArray(progress.viewedLessons) || !progress.viewedLessons.includes(screenNumber)) {
+    return { allowed: false, reason: 'lesson-content-not-viewed' };
   }
   return { allowed: true, reason: null };
 }
@@ -141,6 +151,7 @@ module.exports = {
   startActiveStudy,
   assertAccessValid,
   canOpenScreen,
+  canStartFormative,
   recordFormativeResult,
   canStartFinal,
   recordFinalResult
