@@ -47,6 +47,7 @@ function policyState(record) {
     activeStudyHours: record.activeStudyHours ?? null,
     activeStudyStartedAt: record.activeStudyStartedAt ? record.activeStudyStartedAt.getTime() : null,
     completedChecks: record.completedChecks || [],
+    viewedLessons: record.viewedLessons || [],
     finalAttempts: record.finalAttempts || 0,
     finalPassed: !!record.finalPassed,
     certificateEligible: !!record.certificateEligible
@@ -297,10 +298,12 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       const screenNumber = Number(req.params.screen);
       const record = req.avsAccess;
       const state = policyState(record);
-      const gate = policy.canOpenScreen(state, screenNumber);
-      if (!gate.allowed) return fail(res, gate.reason === 'invalid-screen' ? 400 : 403, 'This formative check is not available.', gate.reason);
-      if (!(record.viewedLessons || []).includes(screenNumber)) {
-        return fail(res, 403, 'Open and review this lesson content before starting its knowledge check.', 'lesson-content-not-viewed');
+      const gate = policy.canStartFormative(state, screenNumber);
+      if (!gate.allowed) {
+        const message = gate.reason === 'lesson-content-not-viewed'
+          ? 'Open and review this lesson content before starting its knowledge check.'
+          : 'This formative check is not available.';
+        return fail(res, gate.reason === 'invalid-screen' ? 400 : 403, message, gate.reason);
       }
       validateFormativeBank();
       const existing = await Attempt.findOne({ accessId: record._id, kind: 'formative', screenNumber, status: 'in-progress' }).select('+optionOrderByQuestionId');
