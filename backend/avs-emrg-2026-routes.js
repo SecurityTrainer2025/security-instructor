@@ -649,7 +649,7 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       if (!isFeedbackSurveyApproved()) return fail(res, 503, 'The feedback survey is awaiting owner approval.', 'feedback-survey-pending-approval');
       validateFeedbackSurvey();
       const current = await Access.findById(req.avsAccess._id).lean();
-      if (!isCertificateEligible(current)) return fail(res, 403, 'Complete all required knowledge checks and pass the final assessment before submitting feedback.');
+      if (!Array.isArray(current?.completedChecks) || current.completedChecks.length !== 15 || Array.from({ length: 15 }, (_, i) => i + 1).some(n => !current.completedChecks.includes(n))) return fail(res, 403, 'Complete all 15 knowledge checks before submitting feedback.');
       const previous = await DiagnosticFeedback.findOne({ accessId: req.avsAccess._id }).lean();
       if (previous) return fail(res, 409, 'Feedback has already been submitted for this workshop access.');
       const answers = req.body?.answers;
