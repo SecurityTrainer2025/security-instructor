@@ -139,10 +139,24 @@ $('quizForm').addEventListener('submit',async e=>{
   else path='/api/avs-emrg-2026/formative/'+activeQuiz.screen+'/submit';
   const data=await request(path,{method:'POST',body:JSON.stringify(body)});
   const r=data.result||{};const pass=r.passed;
-  let msg='Score / النتيجة: '+r.correct+'/'+r.total+' ('+r.percent+'%). ';
-  if(activeQuiz.kind==='diagnostic')msg+='This is diagnostic only and does not affect completion or certificate eligibility. / هذا تقييم مبدئي ولا يؤثر في إتمام الورشة أو أهلية الشهادة.';
-  else if(pass)msg+='Passed / اجتياز. '+(data.nextScreen?'Next check unlocked / تم فتح الاختبار التالي.':'');
-  else msg+='Not passed. Review the material and try again. / لم تجتز الاختبار. راجع المحتوى وحاول مرة أخرى.';
+  const score=Number.isFinite(Number(r.percent))?Number(r.percent):0;
+  let msg='Score / النتيجة: '+r.correct+'/'+r.total+' ('+score+'%). ';
+  if(activeQuiz.kind==='diagnostic'){
+   const encouragement=score>=80
+    ?'Excellent start! Thank you for taking the initial assessment. You have a strong starting point—continue through all 15 learning units, complete each knowledge check, and use the workshop to build practical confidence. / بداية ممتازة! شكرًا لمشاركتك في التقييم المبدئي. لديك أساس قوي؛ واصل دراسة الوحدات الخمس عشرة، وأكمل اختبار كل وحدة، واستفد من الورشة لتعزيز ثقتك العملية.'
+    :score>=60
+    ?'Thank you for completing the initial assessment. Treat this result as a starting point, not a final judgment. Review the lessons, learn from each knowledge check, and continue to the end of the workshop. / شكرًا لإكمال التقييم المبدئي. اعتبر النتيجة نقطة بداية وليست حكمًا نهائيًا. راجع الدروس، وتعلّم من اختبارات الوحدات، وواصل حتى نهاية الورشة.'
+    :'Thank you for completing the initial assessment. This is a chance to learn, not a pass/fail decision. Take your time with the lessons, review the key points, and complete the workshop step by step. / شكرًا لإكمال التقييم المبدئي. هذه فرصة للتعلّم وليست قرار نجاح أو رسوب. خذ وقتك في دراسة الدروس ومراجعة النقاط الأساسية، وأكمل الورشة خطوة بخطوة.';
+   msg+=encouragement+' This diagnostic does not affect completion or certificate eligibility. / هذا التقييم مبدئي ولا يؤثر في إتمام الورشة أو أهلية الشهادة.';
+  }else if(activeQuiz.kind==='final'&&pass){
+   msg+='Congratulations! You passed the final assessment. Thank you for completing the workshop and applying what you learned. / تهانينا! اجتزت التقييم النهائي. شكرًا لإتمام الورشة وتطبيق ما تعلمته.';
+  }else if(activeQuiz.kind==='final'){
+   msg+='You have not reached the required score yet. Review the lessons and try again while attempts remain. Keep going—you can learn from this result. / لم تصل إلى درجة النجاح المطلوبة بعد. راجع الدروس وحاول مرة أخرى ما دامت هناك محاولات متاحة. واصل التقدم واستفد من النتيجة.';
+  }else if(pass){
+   msg+='Passed / اجتياز. Well done! Keep building your knowledge—review the next lesson and continue until all 15 checks are complete. / أحسنت! واصل بناء معرفتك، وراجع الدرس التالي واستمر حتى إكمال اختبارات الوحدات الخمس عشرة. '+(data.nextScreen?'Next check unlocked / تم فتح الاختبار التالي.':'');
+  }else{
+   msg+='Not passed yet. Review this unit and try the knowledge check again. Learning takes practice—keep going. / لم تجتز الاختبار بعد. راجع هذه الوحدة وحاول مرة أخرى. التعلّم يحتاج إلى ممارسة؛ واصل المحاولة.';
+  }
   message($('result'),msg,activeQuiz.kind==='diagnostic'||pass?'success':'error');
   if(activeQuiz.kind!=='diagnostic'){const updated=await request('/api/avs-emrg-2026/session');session=updated;progressView();if(activeQuiz.kind==='final'&&data.certificateEligible){await loadCertificate();}}
   $('result').scrollIntoView({behavior:'smooth',block:'center'});
