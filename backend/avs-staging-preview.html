@@ -26,7 +26,7 @@
 'use strict';
 const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE||'').replace(/\/$/,'');
 const $=id=>document.getElementById(id);
-let token='',session=null,activeQuiz=null,answers={},language='both';
+let token='',session=null,activeQuiz=null,answers={},language='both',certificateLoadState='idle';
 const titleOf=s=>language==='ar'?s.titleAr:(language==='en'?s.titleEn:s.titleEn+' / '+s.titleAr);
 function localizedText(value){if(typeof value==='string')return value;if(value&&typeof value==='object'){const en=typeof value.en==='string'?value.en:'';const ar=typeof value.ar==='string'?value.ar:'';if(language==='en')return en||ar;if(language==='ar')return ar||en;return en&&ar?en+' / '+ar:(en||ar);}return value==null?'':String(value);}
 function message(el,text,type){el.textContent=text;el.classList.remove('hidden','error','success');if(type)el.classList.add(type);}
@@ -34,7 +34,26 @@ function hide(el){el.classList.add('hidden');}
 async function request(path,options){const res=await fetch(API+path,{...options,headers:{...(options&&options.headers||{}),Authorization:'Bearer '+token,...(options&&options.body?{'Content-Type':'application/json'}:{})}});let data={};try{data=await res.json()}catch{}if(!res.ok){const e=new Error(data.message||('Request failed ('+res.status+')'));e.status=res.status;throw e}return data;}
 $('printCertificateBtn').addEventListener('click',()=>window.print());
 async function loadCertificate(){
- try{const data=await request('/api/avs-emrg-2026/certificate');const cert=data.certificate;if(!cert)throw new Error('Certificate is not available yet.');$('certificateLearner').textContent=cert.learnerName||'Learner / المتدرب';$('certificateScore').textContent='Final assessment score / نتيجة التقييم النهائي: '+cert.score+'/'+cert.totalQuestions;$('certificateId').textContent='Certificate ID / رقم الشهادة: '+cert.certificateId;$('certificateQr').src=cert.qrDataUrl;$('certificateIssued').textContent='Issued / تاريخ الإصدار: '+new Date(cert.issuedAt).toLocaleDateString();$('certificateVerifyLink').href=cert.verificationUrl;$('certificateCard').classList.remove('hidden');message($('certificateMessage'),'Certificate issued and ready for verification. / تم إصدار الشهادة وأصبحت جاهزة للتحقق.','success');$('certificatePanel').classList.remove('hidden');}catch(e){message($('certificateMessage'),e.message+' / تعذر تحميل الشهادة حاليًا.','error');$('certificatePanel').classList.remove('hidden');}
+ if(certificateLoadState==='loading'||certificateLoadState==='loaded')return;
+ certificateLoadState='loading';
+ $('certificatePanel').classList.remove('hidden');
+ message($('certificateMessage'),'Your workshop certificate is being retrieved. / جارٍ استرجاع شهادة الورشة.','');
+ try{
+  const data=await request('/api/avs-emrg-2026/certificate');const cert=data.certificate;
+  if(!cert)throw new Error('You passed the assessment, but the certificate record is not ready. Please retry shortly.');
+  $('certificateLearner').textContent=cert.learnerName||'Learner / المتدرب';
+  $('certificateScore').textContent='Final assessment score / نتيجة التقييم النهائي: '+cert.score+'/'+cert.totalQuestions;
+  $('certificateId').textContent='Certificate ID / رقم الشهادة: '+cert.certificateId;
+  $('certificateQr').src=cert.qrDataUrl;
+  $('certificateIssued').textContent='Issued / تاريخ الإصدار: '+new Date(cert.issuedAt).toLocaleDateString();
+  $('certificateVerifyLink').href=cert.verificationUrl;
+  $('certificateCard').classList.remove('hidden');
+  message($('certificateMessage'),'Certificate issued and ready for verification. / تم إصدار الشهادة وأصبحت جاهزة للتحقق.','success');
+  certificateLoadState='loaded';
+ }catch(e){
+  certificateLoadState='idle';
+  message($('certificateMessage'),e.message+' / تعذر تحميل الشهادة حاليًا. يمكنك إعادة تحميلها عند تحديث الصفحة.','error');
+ }
 }
 function progressView(){
  const a=session.access||{},done=new Set(a.completedChecks||[]);
@@ -47,6 +66,8 @@ function progressView(){
  $('startFormativeBtn').disabled=done.size===15;
  const feedbackReady=done.size===15&&!!a.finalPassed;
  if(feedbackReady){
+  $('certificatePanel').classList.remove('hidden');
+  loadCertificate();
   $('feedbackPanel').classList.remove('hidden');
   loadFeedback().catch(e=>message($('feedbackMsg'),e.message+' / تعذر تحميل نموذج الملاحظات.','error'));
  }
@@ -169,7 +190,7 @@ $('quizForm').addEventListener('submit',async e=>{
    msg+='Not passed yet. Review this unit and try the knowledge check again. Learning takes practice—keep going. / لم تجتز الاختبار بعد. راجع هذه الوحدة وحاول مرة أخرى. التعلّم يحتاج إلى ممارسة؛ واصل المحاولة.';
   }
   message($('result'),msg,activeQuiz.kind==='diagnostic'||pass?'success':'error');
-  if(activeQuiz.kind!=='diagnostic'){const updated=await request('/api/avs-emrg-2026/session');session=updated;progressView();if(activeQuiz.kind==='final'&&data.certificateEligible){await loadCertificate();}}
+  if(activeQuiz.kind!=='diagnostic'){const updated=await request('/api/avs-emrg-2026/session');session=updated;progressView();if(activeQuiz.kind==='final'&&pass){certificateLoadState='idle';await loadCertificate();}}
   $('result').scrollIntoView({behavior:'smooth',block:'center'});
  }catch(err){message($('result'),err.message+' / لم يتم إرسال الإجابات. حاول مرة أخرى.','error')}
  finally{$('submitBtn').disabled=false}
