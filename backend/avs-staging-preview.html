@@ -90,6 +90,13 @@ async function start(kind,screen){
   else if(kind==='final')path='/api/avs-emrg-2026/final/start';
   else path='/api/avs-emrg-2026/formative/'+screen+'/start';
   const data=await request(path,{method:'POST',body:JSON.stringify(body)});
+  if(kind==='diagnostic'&&data.completed){
+   const r=data.result||{},score=Number(r.percent)||0;
+   const msg='Initial diagnostic already completed / تم إكمال التقييم المبدئي سابقًا. Score / النتيجة: '+r.correct+'/'+r.total+' ('+score+'%). Thank you for completing it. Continue to the next knowledge check and complete all 15 units to benefit fully from the workshop. / شكرًا لإكمال التقييم. انتقل الآن إلى اختبار المعرفة التالي وأكمل الوحدات الخمس عشرة للاستفادة الكاملة من الورشة. This diagnostic does not affect certificate eligibility. / هذا التقييم لا يؤثر في أهلية الشهادة.';
+   message($('progressMsg'),msg,'success');
+   $('progressMsg').scrollIntoView({behavior:'smooth',block:'center'});
+   return;
+  }
   renderQuiz(data,kind,screen);
  }catch(e){message($('progressMsg'),e.message+' / لم يمكن بدء التقييم.','error');}
 }
