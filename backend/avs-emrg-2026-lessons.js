@@ -84,6 +84,131 @@ const LESSONS = Object.freeze([
     contentAr: ['تعتمد الاستجابة الآمنة لطوارئ المطارات على الاستعداد والاتصال الواضح والأشخاص المدربين والخطط المعتمدة والتعلم من الخبرة.', 'أكمل الاختبارات المرحلية والتقييم النهائي المطلوبين. وتعتمد أهلية الشهادة على قواعد الإكمال التي يتحقق منها الخادم.', 'تم اعتماد استبيان ما بعد الورشة، وسيكون متاحًا عند إصدار الورشة. اتبع خطة المطار المعتمدة الحالية في العمليات الفعلية.'] }
 ]);
 
+// Short applied scenarios turn each lesson into a practical learning activity.
+// These are awareness exercises, not operational instructions; local approved plans always take priority.
+const LEARNING_ACTIVITIES = Object.freeze({
+  1: {
+    scenarioEn: 'A colleague reports smoke near a service area but cannot confirm the source.',
+    scenarioAr: 'أبلغك زميل بوجود دخان قرب منطقة خدمات، لكنه لا يستطيع تأكيد مصدره.',
+    reflectionEn: 'What facts should be reported, and why should you avoid investigating beyond your training?',
+    reflectionAr: 'ما الحقائق التي ينبغي الإبلاغ عنها، ولماذا يجب تجنب التحقيق خارج نطاق تدريبك؟',
+    takeawayEn: 'Report observations promptly through approved channels; do not guess or enter danger.',
+    takeawayAr: 'أبلغ عن الملاحظات سريعًا عبر القنوات المعتمدة، ولا تخمّن أو تدخل منطقة خطر.'
+  },
+  2: {
+    scenarioEn: 'A learner scores poorly on the initial diagnostic but is motivated to improve.',
+    scenarioAr: 'حصل متدرب على درجة منخفضة في التقييم المبدئي لكنه يرغب في التحسن.',
+    reflectionEn: 'How can the learner use the result without treating it as a pass/fail decision?',
+    reflectionAr: 'كيف يستفيد المتدرب من النتيجة دون اعتبارها قرار نجاح أو رسوب؟',
+    takeawayEn: 'Use diagnostic results to focus study; progress is built through lesson review and practice.',
+    takeawayAr: 'استخدم نتيجة التقييم لتحديد ما يحتاج إلى مراجعة؛ فالتقدم يتحقق بدراسة الدروس والممارسة.'
+  },
+  3: {
+    scenarioEn: 'A disruption in one airport area may affect terminal access and service roads.',
+    scenarioAr: 'قد يؤثر تعطل في إحدى مناطق المطار على الوصول إلى الصالة وطرق الخدمات.',
+    reflectionEn: 'Why should information be shared across the approved coordination structure?',
+    reflectionAr: 'لماذا يجب مشاركة المعلومات عبر هيكل التنسيق المعتمد؟',
+    takeawayEn: 'Airport response is interconnected; share verified information with the right teams.',
+    takeawayAr: 'الاستجابة في المطار مترابطة؛ شارك المعلومات المؤكدة مع الفرق المعنية.'
+  },
+  4: {
+    scenarioEn: 'You notice a spill and damaged equipment on a route used by staff.',
+    scenarioAr: 'لاحظت انسكابًا ومعدة تالفة على مسار يستخدمه الموظفون.',
+    reflectionEn: 'What observations can you safely report without entering or touching the hazard?',
+    reflectionAr: 'ما الملاحظات التي يمكنك الإبلاغ عنها بأمان دون دخول منطقة الخطر أو لمس مصدره؟',
+    takeawayEn: 'Observe from a safe position, report the location and facts, and follow site procedures.',
+    takeawayAr: 'راقب من مكان آمن، وأبلغ عن الموقع والوقائع، واتبع إجراءات الموقع.'
+  },
+  5: {
+    scenarioEn: 'Two hazards are identified, but the team has limited time to review them.',
+    scenarioAr: 'تم تحديد مصدرَي خطر، لكن وقت الفريق المتاح لمراجعتهما محدود.',
+    reflectionEn: 'How do likelihood, severity and existing controls help compare the risks?',
+    reflectionAr: 'كيف يساعد احتمال الحدوث وشدة العواقب والضوابط الحالية في مقارنة المخاطر؟',
+    takeawayEn: 'Use the approved risk matrix consistently and review whether controls work in practice.',
+    takeawayAr: 'استخدم مصفوفة المخاطر المعتمدة بصورة متسقة، وراجع فعالية الضوابط عمليًا.'
+  },
+  6: {
+    scenarioEn: 'Two teams receive different reports about the same event.',
+    scenarioAr: 'تلقت فرقتان بلاغين مختلفين عن الحدث نفسه.',
+    reflectionEn: 'How can a clear, factual message reduce confusion and support command decisions?',
+    reflectionAr: 'كيف تقلل الرسالة الواضحة المبنية على الوقائع الالتباس وتدعم قرارات القيادة؟',
+    takeawayEn: 'Use approved channels, identify what is known and unknown, and follow the command structure.',
+    takeawayAr: 'استخدم القنوات المعتمدة، وميّز بين المعلوم وغير المؤكد، واتبع هيكل القيادة.'
+  },
+  7: {
+    scenarioEn: 'A usual pedestrian route may be unsafe, and people are asking where to go.',
+    scenarioAr: 'قد يصبح مسار المشاة المعتاد غير آمن، ويسأل الأشخاص عن الاتجاه الذي ينبغي اتباعه.',
+    reflectionEn: 'Who is authorized to direct movement, and what must be checked before communicating a route?',
+    reflectionAr: 'من المخول بتوجيه الحركة، وما الذي يجب التحقق منه قبل إعلان مسار؟',
+    takeawayEn: 'Do not invent routes or issue conflicting orders; follow authorized direction and accessibility needs.',
+    takeawayAr: 'لا تخترع مسارات أو تصدر تعليمات متعارضة؛ اتبع التوجيه المخول وراعِ احتياجات الوصول.'
+  },
+  8: {
+    scenarioEn: 'Smoke is reported near an aircraft and ground equipment is operating nearby.',
+    scenarioAr: 'ورد بلاغ عن دخان قرب طائرة مع وجود معدات أرضية تعمل بالقرب منها.',
+    reflectionEn: 'What is the safe boundary of a general awareness role while specialist responders are contacted?',
+    reflectionAr: 'ما حدود الدور التوعوي العام الآمن أثناء إبلاغ فرق الاستجابة المتخصصة؟',
+    takeawayEn: 'Raise the alarm, keep clear of danger, and leave specialist actions to trained responders.',
+    takeawayAr: 'أطلق البلاغ عبر القناة المعتمدة، وابتعد عن الخطر، واترك الإجراءات المتخصصة للمستجيبين المدربين.'
+  },
+  9: {
+    scenarioEn: 'Severe weather disrupts access to a facility and affects a critical service.',
+    scenarioAr: 'أدى طقس شديد إلى تعطيل الوصول إلى منشأة والتأثير على خدمة حيوية.',
+    reflectionEn: 'Which approved alerts, escalation routes and continuity arrangements should guide decisions?',
+    reflectionAr: 'ما التنبيهات ومسارات التصعيد وترتيبات الاستمرارية المعتمدة التي ينبغي أن توجه القرارات؟',
+    takeawayEn: 'Use official information and continuity plans; restart services only under approved conditions.',
+    takeawayAr: 'استخدم المعلومات الرسمية وخطط الاستمرارية، ولا تستأنف الخدمات إلا وفق الشروط المعتمدة.'
+  },
+  10: {
+    scenarioEn: 'An unattended item is found in a public area and its owner is unknown.',
+    scenarioAr: 'عُثر على غرض متروك في منطقة عامة ولا يُعرف صاحبه.',
+    reflectionEn: 'How should the observation be reported while avoiding actions that could increase risk?',
+    reflectionAr: 'كيف ينبغي الإبلاغ عن الملاحظة مع تجنب أي تصرف قد يزيد الخطر؟',
+    takeawayEn: 'Do not touch or investigate the item; report it and follow the approved security procedure.',
+    takeawayAr: 'لا تلمس الغرض ولا تتحقق منه بنفسك؛ أبلغ عنه واتبع الإجراء الأمني المعتمد.'
+  },
+  11: {
+    scenarioEn: 'A responder feels pressure to enter an area without suitable equipment or authorization.',
+    scenarioAr: 'يشعر أحد المستجيبين بضغط لدخول منطقة دون معدات مناسبة أو تفويض.',
+    reflectionEn: 'What should the responder consider about competence, protective equipment and stop-work authority?',
+    reflectionAr: 'ما الذي ينبغي مراعاته بشأن الكفاءة ومعدات الوقاية وصلاحية إيقاف العمل غير الآمن؟',
+    takeawayEn: 'Do not exceed training or authorization; report unsafe conditions and use required protection.',
+    takeawayAr: 'لا تتجاوز التدريب أو التفويض؛ أبلغ عن الظروف غير الآمنة واستخدم وسائل الوقاية المطلوبة.'
+  },
+  12: {
+    scenarioEn: 'In a tabletop exercise, a report arrives while a key contact is unavailable.',
+    scenarioAr: 'في تمرين مكتبي، يصل بلاغ بينما جهة اتصال رئيسية غير متاحة.',
+    reflectionEn: 'How can the team record assumptions, use approved alternatives and identify a decision owner?',
+    reflectionAr: 'كيف يوثق الفريق الافتراضات ويستخدم البدائل المعتمدة ويحدد صاحب القرار؟',
+    takeawayEn: 'Practise coordination and decision logging; do not treat an exercise as authorization for real actions.',
+    takeawayAr: 'تدرّب على التنسيق وتوثيق القرارات؛ فالتمرين لا يمنح صلاحية لتنفيذ إجراءات فعلية.'
+  },
+  13: {
+    scenarioEn: 'After an exercise, the team disagrees about whether communication worked well.',
+    scenarioAr: 'بعد تمرين، اختلف الفريق حول مدى نجاح الاتصال.',
+    reflectionEn: 'What evidence can help identify strengths, gaps and actions for improvement?',
+    reflectionAr: 'ما الأدلة التي تساعد على تحديد نقاط القوة والفجوات وإجراءات التحسين؟',
+    takeawayEn: 'Review facts without blame, assign each action an owner and due date, then verify completion.',
+    takeawayAr: 'راجع الوقائع دون لوم، وحدد مسؤولًا وموعدًا لكل إجراء، ثم تحقق من الإنجاز.'
+  },
+  14: {
+    scenarioEn: 'A learner submits a check but the progress counter does not appear to change.',
+    scenarioAr: 'أرسل متدرب إجابات الاختبار لكن عداد التقدم لا يبدو أنه تغير.',
+    reflectionEn: 'What should the learner check before retrying, and why must saved results remain authoritative?',
+    reflectionAr: 'ما الذي ينبغي التحقق منه قبل إعادة المحاولة، ولماذا يجب اعتماد النتائج المحفوظة؟',
+    takeawayEn: 'Check the result message and saved progress; do not repeatedly submit if the system reports an error.',
+    takeawayAr: 'تحقق من رسالة النتيجة والتقدم المحفوظ، ولا تكرر الإرسال بلا داعٍ إذا أبلغ النظام عن خطأ.'
+  },
+  15: {
+    scenarioEn: 'The workshop is complete and the learner wants to apply the learning at work.',
+    scenarioAr: 'أكمل المتدرب الورشة ويرغب في تطبيق ما تعلمه في العمل.',
+    reflectionEn: 'How can the learner transfer the key lessons while respecting local procedures and role limits?',
+    reflectionAr: 'كيف ينقل المتدرب الدروس الأساسية إلى العمل مع احترام الإجراءات المحلية وحدود دوره؟',
+    takeawayEn: 'Keep learning, share feedback and follow the current approved airport plan in real operations.',
+    takeawayAr: 'واصل التعلم وشارك ملاحظاتك واتبع خطة المطار المعتمدة الحالية في العمليات الفعلية.'
+  }
+});
+
 function getLesson(order) {
   if (!Number.isInteger(order) || order < 1 || order > LESSONS.length) return null;
   const lesson = LESSONS[order - 1];
@@ -95,6 +220,7 @@ function getLesson(order) {
     objectivesAr: lesson.objectivesAr,
     contentEn: lesson.contentEn,
     contentAr: lesson.contentAr,
+    ...LEARNING_ACTIVITIES[lesson.order],
     reviewStatus: 'draft-needs-subject-matter-review'
   };
 }
