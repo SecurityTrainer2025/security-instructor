@@ -523,7 +523,16 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       validateInitialAssessment();
       const access = req.avsAccess;
       const prior = await Attempt.findOne({ accessId: access._id, kind: 'diagnostic' }).select('+optionOrderByQuestionId');
-      if (prior && prior.status === 'submitted') return fail(res, 409, 'The initial diagnostic has already been completed.');
+      if (prior && prior.status === 'submitted') {
+        return res.json({
+          ok: true, completed: true, attemptId: prior.attemptId,
+          result: {
+            correct: prior.correctCount, total: prior.questionCount,
+            percent: Math.round((prior.correctCount / Math.max(1, prior.questionCount)) * 100)
+          },
+          requiredToPass: false, gatesWorkshopAccess: false, affectsCertificateEligibility: false
+        });
+      }
       if (prior) {
         const snapshot = { questionOrder: prior.questionOrder, optionOrderByQuestionId: prior.optionOrderByQuestionId };
         return res.json({ ok: true, attemptId: prior.attemptId, questions: buildPublicInitialAssessment(INITIAL_ASSESSMENT, snapshot), requiredToPass: false });
