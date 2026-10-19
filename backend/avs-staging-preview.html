@@ -190,7 +190,7 @@ $('quizForm').addEventListener('submit',async e=>{
    msg+='Not passed yet. Review this unit and try the knowledge check again. Learning takes practice—keep going. / لم تجتز الاختبار بعد. راجع هذه الوحدة وحاول مرة أخرى. التعلّم يحتاج إلى ممارسة؛ واصل المحاولة.';
   }
   message($('result'),msg,activeQuiz.kind==='diagnostic'||pass?'success':'error');
-  if(activeQuiz.kind!=='diagnostic'){const updated=await request('/api/avs-emrg-2026/session');session=updated;progressView();if(activeQuiz.kind==='final'&&pass){certificateLoadState='idle';await loadCertificate();}}
+  if(activeQuiz.kind!=='diagnostic'){const updated=await request('/api/avs-emrg-2026/session');session=updated;progressView();if(activeQuiz.kind==='final'&&pass){await loadCertificate();}}
   $('result').scrollIntoView({behavior:'smooth',block:'center'});
  }catch(err){message($('result'),err.message+' / لم يتم إرسال الإجابات. حاول مرة أخرى.','error')}
  finally{$('submitBtn').disabled=false}
