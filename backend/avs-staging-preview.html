@@ -68,7 +68,7 @@ function progressView(){
  const feedbackReady=done.size===15;
  if(feedbackReady){
   $('feedbackPanel').classList.remove('hidden');
-  loadFeedback().catch(e=>message($('feedbackMsg'),e.message+' / تعذر تحميل نموذج الملاحظات.','error'));
+  loadFeedback().catch(e=>{message($('feedbackMsg'),e.message+' / تعذر تحميل نموذج الملاحظات.','error');$('startFinalBtn').disabled=true;});
  }
  if(a.finalPassed&&done.size===15){$('certificatePanel').classList.remove('hidden');loadCertificate();}
 }
