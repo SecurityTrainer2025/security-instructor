@@ -417,6 +417,8 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         const snapshot = { attemptId: existing.attemptId, attemptNumber: existing.attemptNumber, questionOrder: existing.questionOrder, optionOrderByQuestionId: existing.optionOrderByQuestionId };
         return res.json({ ok: true, attemptId: existing.attemptId, attemptNumber: existing.attemptNumber, questions: publicQuiz('final', null, snapshot) });
       }
+      const feedback = await DiagnosticFeedback.findOne({ accessId }).select('_id').lean();
+      if (!feedback) return fail(res, 403, 'Submit the workshop feedback before starting the final assessment.');
       const record = await Access.findOneAndUpdate({
         _id: accessId, finalPassed: false, finalAttempts: { $lt: 2 }, finalAttemptStartLockAt: { $ne: null },
         completedChecks: { $all: Array.from({ length: 15 }, (_, i) => i + 1), $size: 15 },
