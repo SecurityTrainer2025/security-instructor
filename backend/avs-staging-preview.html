@@ -28,6 +28,7 @@ const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE||'').replace(/\/$/,'');
 const $=id=>document.getElementById(id);
 let token='',session=null,activeQuiz=null,answers={},language='both';
 const titleOf=s=>language==='ar'?s.titleAr:(language==='en'?s.titleEn:s.titleEn+' / '+s.titleAr);
+function localizedText(value){if(typeof value==='string')return value;if(value&&typeof value==='object'){const en=typeof value.en==='string'?value.en:'';const ar=typeof value.ar==='string'?value.ar:'';if(language==='en')return en||ar;if(language==='ar')return ar||en;return en&&ar?en+' / '+ar:(en||ar);}return value==null?'':String(value);}
 function message(el,text,type){el.textContent=text;el.classList.remove('hidden','error','success');if(type)el.classList.add(type);}
 function hide(el){el.classList.add('hidden');}
 async function request(path,options){const res=await fetch(API+path,{...options,headers:{...(options&&options.headers||{}),Authorization:'Bearer '+token,...(options&&options.body?{'Content-Type':'application/json'}:{})}});let data={};try{data=await res.json()}catch{}if(!res.ok){const e=new Error(data.message||('Request failed ('+res.status+')'));e.status=res.status;throw e}return data;}
@@ -76,8 +77,8 @@ function renderQuiz(data,kind,screen){
  $('quizTitle').textContent=kind==='diagnostic'?'Initial diagnostic / التقييم المبدئي':kind==='final'?'Final assessment / التقييم النهائي':'Knowledge check '+screen+' / اختبار المعرفة '+screen;
  $('quizIntro').textContent='Choose one answer for every question. The assessment is graded by the server. / اختر إجابة واحدة لكل سؤال. يتم تصحيح التقييم على الخادم.';
  data.questions.forEach((q,i)=>{
-  const field=document.createElement('fieldset');field.className='q';const legend=document.createElement('legend');legend.textContent=(i+1)+'. '+q.prompt;field.append(legend);
-  q.options.forEach(opt=>{const label=document.createElement('label');label.className='option';const input=document.createElement('input');input.type='radio';input.name=q.id;input.value=opt.id;input.required=true;input.addEventListener('change',()=>{answers[q.id]=opt.id});const text=document.createElement('span');text.textContent=opt.text;label.append(input,text);field.append(label)});
+  const field=document.createElement('fieldset');field.className='q';const legend=document.createElement('legend');legend.textContent=(i+1)+'. '+localizedText(q.prompt);field.append(legend);
+  q.options.forEach(opt=>{const label=document.createElement('label');label.className='option';const input=document.createElement('input');input.type='radio';input.name=q.id;input.value=opt.id;input.required=true;input.addEventListener('change',()=>{answers[q.id]=opt.id});const text=document.createElement('span');text.textContent=localizedText(opt.text);label.append(input,text);field.append(label)});
   $('questions').append(field);
  });
  $('quizPanel').classList.remove('hidden');$('quizPanel').scrollIntoView({behavior:'smooth',block:'start'});
