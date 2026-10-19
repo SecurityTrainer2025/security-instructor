@@ -214,8 +214,10 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         });
       } catch (mailError) {
         console.error('AVS access email delivery failed', mailError);
-        record.revokedAt = new Date();
-        await record.save();
+        await Access.updateOne(
+          { _id: record._id, workshopCode: WORKSHOP.code, revokedAt: null },
+          { $set: { revokedAt: new Date() } }
+        );
         return fail(res, 503, 'Access email could not be sent. The issued link has been revoked; check email configuration and try again.');
       }
       // The raw token is sent only to the intended learner via email and is never returned in admin JSON.
@@ -286,8 +288,10 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         questionCount: 5, startedAt: new Date()
       });
       if (!record.activeStudyStartedAt && record.activeStudyHours !== null) {
-        record.activeStudyStartedAt = new Date();
-        await record.save();
+        await Access.updateOne(
+          { _id: record._id, workshopCode: WORKSHOP.code, activeStudyStartedAt: null, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+          { $set: { activeStudyStartedAt: new Date() } }
+        );
       }
       return res.status(201).json({ ok: true, attemptId: attempt.attemptId, questions: publicQuiz('formative', screenNumber, snapshot) });
     } catch (error) {
@@ -330,7 +334,6 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
       if (!gate.allowed) return fail(res, 403, 'This formative check is not available.', gate.reason);
       const snapshot = { questionOrder: attempt.questionOrder, optionOrderByQuestionId: attempt.optionOrderByQuestionId };
       const result = gradeQuiz('formative', screenNumber, snapshot, req.body?.answers);
-      const progress = policy.recordFormativeResult(state, screenNumber, { correct: result.correct, total: result.total });
       // Claim the attempt once; a concurrent submit must not overwrite the first result.
       const claimed = await Attempt.updateOne(
         { _id: attempt._id, status: 'in-progress' },
@@ -340,13 +343,19 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
         } }
       );
       if (!claimed.modifiedCount) return fail(res, 409, 'This attempt has already been submitted; retry to retrieve its saved result.');
+      let completedChecks = req.avsAccess.completedChecks || [];
       if (result.passed) {
-        req.avsAccess.completedChecks = [...new Set([...(req.avsAccess.completedChecks || []), screenNumber])].sort((a, b) => a - b);
-        await req.avsAccess.save();
+        const progressUpdate = await Access.updateOne(
+          { _id: req.avsAccess._id, workshopCode: WORKSHOP.code, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+          { $addToSet: { completedChecks: screenNumber } }
+        );
+        if (!progressUpdate.matchedCount) return fail(res, 410, 'Workshop access is no longer valid.');
       }
+      const latestAccess = await Access.findById(req.avsAccess._id).select('completedChecks').lean();
+      completedChecks = latestAccess?.completedChecks || completedChecks;
       return res.json({
         ok: true, result: { correct: result.correct, total: result.total, percent: result.percent, passed: result.passed },
-        completedChecks: progress.completedChecks, nextScreen: result.passed && screenNumber < 15 ? screenNumber + 1 : null
+        completedChecks, nextScreen: result.passed && screenNumber < 15 ? screenNumber + 1 : null
       });
     } catch (error) {
       if (error instanceof TypeError) return fail(res, 400, 'Invalid formative submission.');
@@ -387,8 +396,10 @@ function register(app, { requireAdmin, sendWorkshopAccessEmail } = {}) {
           questionCount: 30, startedAt: new Date()
         });
         if (!record.activeStudyStartedAt && record.activeStudyHours !== null) {
-          record.activeStudyStartedAt = new Date();
-          await record.save();
+          await Access.updateOne(
+            { _id: record._id, workshopCode: WORKSHOP.code, activeStudyStartedAt: null, revokedAt: null, accessExpiresAt: { $gt: new Date() } },
+            { $set: { activeStudyStartedAt: new Date() } }
+          );
         }
         return res.status(201).json({ ok: true, attemptId: attempt.attemptId, attemptNumber: attempt.attemptNumber, questions: publicQuiz('final', null, snapshot) });
       } catch (error) {
