@@ -32,6 +32,10 @@ function register(app, { isEnabled } = {}) {
   app.get('/staging/avs-emrg-2026.html', gate, (req, res) => {
     res.sendFile(path.join(FRONTEND_DIR, 'avs-staging-preview.html'));
   });
+  app.get('/staging/avs-emrg-2026-verify.html', gate, (req, res) => {
+    const file = path.join(FRONTEND_DIR, '..', 'frontend', 'avs-emrg-2026-verify.html');
+    res.sendFile(file);
+  });
   // Serve the existing SI course-registration form in staging so the AVS workshop
   // registration can be exercised without publishing the branch to GitHub Pages.
   app.get('/staging/course-registration.html', gate, (req, res) => {
