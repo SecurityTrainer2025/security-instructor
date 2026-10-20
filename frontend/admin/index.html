@@ -215,6 +215,8 @@ const avsInviteTools=document.getElementById('avsInviteTools');if(avsInviteTools
 <script src="../contact-admin.js?v=20260929-02"></script>
 <script>
 (function(){
+  var articleFrame=document.querySelector('.articles-frame');
+  if(articleFrame&&new URLSearchParams(window.location.search).get('api')==='staging')articleFrame.src='../admin-articles.html?api=staging';
   function integrateArticleTab(){
     var legacy=document.querySelector('[data-tab="article-moderation"]');
     if(legacy){legacy.style.display='none';}
