@@ -45,6 +45,35 @@ jobs:
           print("PASS | Workshop tab, Staging-only invitation mode, and safety guard are present.")
           PY
           node --check /tmp/si-admin-inline.js
+      - name: Validate expert article submission and moderation flow
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          server = Path("backend/server.js").read_text(encoding="utf-8")
+          form = Path("frontend/article-submit.html").read_text(encoding="utf-8")
+          checks = {
+              "single-language submission route": "submittedContent" in server and "Article content must be between 500 and 1000 words" in server,
+              "pending-only article submission": "status:'pending'" in server,
+              "admin completion required before approval": "Complete the following editorial fields before approval" in server,
+              "translation readiness returned to admin": "translationStatus:a.titleEn&&a.titleAr" in server,
+              "author photo is optional": not re.search(r'id="authorPhoto"[^>]*\\brequired\\b', form),
+              "category is optional": not re.search(r'id="category"[^>]*\\brequired\\b', form),
+              "no forced second-language fields in submission payload": "titleEn:sourceLang.value==='en'?sourceTitle.value:''" in form and "titleAr:sourceLang.value==='ar'?sourceTitle.value:''" in form,
+          }
+          failed = [name for name, ok in checks.items() if not ok]
+          for name, ok in checks.items():
+              print(("PASS" if ok else "FAIL") + " | " + name)
+          if failed:
+              raise SystemExit("Article workflow checks failed: " + ", ".join(failed))
+          scripts = re.findall(r"<script>(.*?)</script>", form, flags=re.S)
+          if not scripts:
+              raise SystemExit("No inline article submission script found")
+          Path("/tmp/si-article-submit.js").write_text("\\n".join(scripts), encoding="utf-8")
+          PY
+          node --check backend/server.js
+          node --check /tmp/si-article-submit.js
       - name: Check public frontend
         id: frontend
         shell: bash
