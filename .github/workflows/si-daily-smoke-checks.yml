@@ -56,7 +56,7 @@ jobs:
           checks = {
               "single-language submission route": "submittedContent" in server and "Article content must be between 500 and 1000 words" in server,
               "pending-only article submission": "status:'pending'" in server,
-              "admin completion required before approval": "Complete the following editorial fields before approval" in server,
+              "admin completion required before approval": "Approval blocked. Complete the article review and both language versions first" in server,
               "translation readiness returned to admin": "translationStatus:a.titleEn&&a.titleAr" in server,
               "author photo is optional": not re.search(r'id="authorPhoto"[^>]*\brequired\b', form),
               "category is optional": not re.search(r'id="category"[^>]*\brequired\b', form),
