@@ -29,7 +29,14 @@ function makeCertificateId() {
 }
 
 function buildVerificationUrl(certificateId, apiBase = process.env.AVS_WORKSHOP_API_BASE || process.env.RENDER_EXTERNAL_URL || 'https://security-instructor.onrender.com') {
-  const frontendUrl = 'https://securitytrainer2025.github.io/security-instructor/frontend/avs-emrg-2026-verify.html';
+  const configuredFrontend = process.env.AVS_WORKSHOP_FRONTEND_URL || '';
+  let frontendUrl = 'https://securitytrainer2025.github.io/security-instructor/frontend/avs-emrg-2026-verify.html';
+  try {
+    const configured = new URL(configuredFrontend);
+    if (configured.protocol === 'https:' && configured.hostname === 'security-instructor-staging.onrender.com') {
+      frontendUrl = new URL('/staging/avs-emrg-2026-verify.html', configured.origin).toString();
+    }
+  } catch (_) {}
   const url = new URL(frontendUrl);
   url.searchParams.set('certificateId', certificateId);
   url.searchParams.set('apiBase', String(apiBase).replace(/\/$/, ''));
@@ -85,6 +92,9 @@ function publicCertificate(record) {
 async function certificatePayload(record) {
   const safe = publicCertificate(record);
   if (!safe) return null;
+  // Rebuild the verification URL for the currently deployed environment so older
+  // certificate records do not keep pointing at a missing GitHub Pages file.
+  safe.verificationUrl = buildVerificationUrl(record.certificateId);
   safe.qrDataUrl = await QRCode.toDataURL(safe.verificationUrl, {
     errorCorrectionLevel: 'M', margin: 1, width: 240,
     color: { dark: '#0B1F33', light: '#FFFFFF' }
