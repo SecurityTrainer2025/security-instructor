@@ -1,5 +1,5 @@
 (function(){
-  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const isStagingApi=new URLSearchParams(location.search).get('api')==='staging',API=isStagingApi?'https://security-instructor-staging.onrender.com':'https://security-instructor.onrender.com',K='securityInstructorAdminToken'+(isStagingApi?':staging':'');
   const esc=s=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
   const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||'')});
   async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{...auth(),...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||'Request failed');return d}
