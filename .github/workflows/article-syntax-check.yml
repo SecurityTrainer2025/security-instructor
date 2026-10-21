@@ -1,0 +1,38 @@
+name: Article Syntax Check
+
+on:
+  push:
+    branches:
+      - fix/bilingual-article-review-display
+  pull_request:
+    paths:
+      - "frontend/article-admin.js"
+      - "frontend/articles.js"
+      - "frontend/article-view.html"
+      - ".github/workflows/article-syntax-check.yml"
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check article admin JavaScript
+        run: node --check frontend/article-admin.js
+      - name: Check public articles JavaScript
+        run: node --check frontend/articles.js
+      - name: Check inline JavaScript in article view
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("frontend/article-view.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected one inline script, found {len(scripts)}")
+          Path("/tmp/article-view-inline.js").write_text(scripts[0], encoding="utf-8")
+          PY
+          node --check /tmp/article-view-inline.js
