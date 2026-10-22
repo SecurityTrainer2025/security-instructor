@@ -21,7 +21,7 @@ body.article-reading-shell main.article-reading-shell{width:100%;max-width:none;
 <script>
 const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';
 const esc=s=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
-const text=s=>esc(s).replace(/\r?\n/g,'<br><br>');
+const text=s=>esc(s).replace(/\r?\n{2,}/g,'<br><br>').replace(/\r?\n/g,'<br>');
 const slug=new URLSearchParams(location.search).get('slug');
 const staticArticle={category:'Professional Knowledge Exchange',categoryAr:'تبادل المعرفة المهنية',titleEn:"Let's Exchange Our Knowledge",titleAr:'هيا نتبادل معلوماتنا',authorEn:'SECURITY INSTRUCTOR Knowledge Community',authorAr:'مجتمع المعرفة في SECURITY INSTRUCTOR',authorTitleEn:'Professional Security & Training Community',authorTitleAr:'مجتمع مهني للأمن والتدريب',sections:[
 ['Why knowledge exchange matters','لماذا يهمنا تبادل المعرفة؟','Security, safety and training professionals rarely face exactly the same environment. Each workplace, team and challenge can reveal a different lesson. Sharing those lessons responsibly helps professionals learn faster and make better-informed decisions.','نادراً ما يواجه متخصصو الأمن والسلامة والتدريب البيئة نفسها تماماً. فكل موقع وفريق وتحدٍ قد يكشف درساً مختلفاً. إن مشاركة هذه الدروس بمسؤولية تساعد المتخصصين على التعلم بشكل أسرع واتخاذ قرارات أكثر وعيًا.'],
