@@ -1,17 +1,26 @@
 (function(){
   const isStaging = new URLSearchParams(window.location.search).get('api') === 'staging'
     || window.location.hostname === 'si-avs-staging-test.onrender.com';
-  const API = isStaging ? window.location.origin : 'https://security-instructor.onrender.com';
+  const PRODUCTION_API = 'https://security-instructor.onrender.com';
+  const API = isStaging ? window.location.origin : PRODUCTION_API;
   const K = isStaging ? 'securityInstructorAdminToken:staging' : 'securityInstructorAdminToken';
   const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||'')});
   const originalFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
-    const url=typeof input==='string'?input:(input&&input.url)||'';
+    const originalUrl=typeof input==='string'?input:(input&&input.url)||'';
+    const url=isStaging && originalUrl.startsWith(PRODUCTION_API)
+      ? API + originalUrl.slice(PRODUCTION_API.length)
+      : originalUrl;
     if(url.startsWith(API+'/api/admin/reports?')){
       const u=new URL(url);if(u.searchParams.get('type')==='operations'){
         const qs=new URLSearchParams();['from','to','course','status'].forEach(k=>qs.set(k,u.searchParams.get(k)||''));
-        return originalFetch(API+'/api/admin/operations/report?'+qs.toString(),{headers:{...auth(),...(init&&init.headers||{})}});
+        const headers={...auth(),...(init&&init.headers||{})};
+        return originalFetch(API+'/api/admin/operations/report?'+qs.toString(),{headers});
       }
+    }
+    if(isStaging && url !== originalUrl){
+      if(typeof input === 'string') return originalFetch(url,init);
+      if(input instanceof Request) return originalFetch(new Request(url,input),init);
     }
     return originalFetch(input,init);
   };
