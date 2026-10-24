@@ -52,6 +52,7 @@ test('preview registers only the workshop page, its stylesheet and same-origin A
     '/staging/registration-style.css',
     '/staging/registration-bilingual.css',
     '/staging/style.css',
+    '/staging/avs-workshop-style.css',
     '/staging/config.js'
   ]);
   const registrationResponse = responseRecorder();
@@ -62,6 +63,6 @@ test('preview registers only the workshop page, its stylesheet and same-origin A
   const configResponse = responseRecorder();
   routes.get('/staging/config.js').at(-1)({}, configResponse);
   assert.equal(configResponse.contentType, 'application/javascript');
-  assert.equal(configResponse.body, 'window.APP_CONFIG={API_BASE:window.location.origin};');
+  assert.equal(configResponse.body, 'window.APP_CONFIG={API_BASE:window.location.origin};window.AVS_WORKSHOP_API_BASE=window.location.origin;');
   assert.doesNotMatch(configResponse.body, /security-instructor\.onrender\.com/);
 });
