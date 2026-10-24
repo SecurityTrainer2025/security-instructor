@@ -41,10 +41,16 @@ test('staging frontend gate adds a same-origin-only policy when enabled', () => 
 
 test('preview registers only the workshop page, its stylesheet and same-origin API config', () => {
   const routes = new Map();
+  const mounts = [];
   const app = {
+    use(route, ...handlers) { mounts.push({ route, handlers }); },
     get(route, ...handlers) { routes.set(route, handlers); }
   };
   register(app, { isEnabled: () => true });
+  assert.equal(mounts.length, 1);
+  assert.equal(mounts[0].route, '/staging/frontend');
+  assert.equal(typeof mounts[0].handlers[0], 'function');
+  assert.equal(typeof mounts[0].handlers[1], 'function');
   assert.deepEqual([...routes.keys()], [
     '/staging/avs-emrg-2026.html',
     '/staging/avs-emrg-2026-verify.html',
