@@ -17,9 +17,11 @@
     if (isStaging && isAdminApi) {
       const headers = new Headers(input instanceof Request ? input.headers : undefined);
       new Headers(init && init.headers || {}).forEach((value, key) => headers.set(key, value));
-      if (!headers.has('Authorization') && authToken()) {
-        headers.set('Authorization', 'Bearer ' + authToken());
-      }
+      // On staging, the dedicated staging session is authoritative. Some admin
+      // modules pass an empty/stale Authorization header; replace it when the
+      // staging token exists instead of treating any header as valid.
+      const stagingToken = authToken();
+      if (stagingToken) headers.set('Authorization', 'Bearer ' + stagingToken);
       if (input instanceof Request) {
         const request = new Request(url, input);
         const merged = new Headers(request.headers);
@@ -35,7 +37,8 @@
         const qs = new URLSearchParams();
         ['from','to','course','status'].forEach(k => qs.set(k, u.searchParams.get(k) || ''));
         const headers = new Headers(init && init.headers || {});
-        if (!headers.has('Authorization') && authToken()) headers.set('Authorization', 'Bearer ' + authToken());
+        const stagingToken = authToken();
+        if (stagingToken) headers.set('Authorization', 'Bearer ' + stagingToken);
         return originalFetch(API + '/api/admin/operations/report?' + qs.toString(), { headers });
       }
     }
