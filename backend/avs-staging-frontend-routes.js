@@ -29,6 +29,9 @@ function createStagingFrontendGate(isEnabled = () => process.env.AVS_WORKSHOP_EN
 
 function register(app, { isEnabled } = {}) {
   const gate = createStagingFrontendGate(isEnabled);
+  // Serve the existing SI admin UI and its relative assets on the staging host only.
+  // This lets the admin page call the same-origin staging API without publishing it to GitHub Pages.
+  app.use('/staging/frontend', gate, require('express').static(path.join(FRONTEND_DIR, '..', 'frontend'), { index: false }));
   app.get('/staging/avs-emrg-2026.html', gate, (req, res) => {
     const file = path.join(FRONTEND_DIR, '..', 'frontend', 'avs-emrg-2026.html');
     const html = fs.readFileSync(file, 'utf8')
