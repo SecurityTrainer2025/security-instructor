@@ -46,7 +46,7 @@ test('preview registers only the workshop page, its stylesheet and same-origin A
     use(route, ...handlers) { mounts.push({ route, handlers }); },
     get(route, ...handlers) { routes.set(route, handlers); }
   };
-  register(app, { isEnabled: () => true, staticMiddleware: (root, options) => ({ root, options, middleware: true }) });
+  register(app, { isEnabled: () => true, staticMiddleware: (root, options) => Object.assign((_req, _res, next) => next && next(), { root, options, middleware: true }) });
   assert.equal(mounts.length, 1);
   assert.equal(mounts[0].route, '/staging/frontend');
   assert.equal(typeof mounts[0].handlers[0], 'function');
