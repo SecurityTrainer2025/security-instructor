@@ -41,10 +41,16 @@ test('staging frontend gate adds a same-origin-only policy when enabled', () => 
 
 test('preview registers only the workshop page, its stylesheet and same-origin API config', () => {
   const routes = new Map();
+  const mounts = [];
   const app = {
+    use(route, ...handlers) { mounts.push({ route, handlers }); },
     get(route, ...handlers) { routes.set(route, handlers); }
   };
-  register(app, { isEnabled: () => true });
+  register(app, { isEnabled: () => true, staticMiddleware: (root, options) => Object.assign((_req, _res, next) => next && next(), { root, options, middleware: true }) });
+  assert.equal(mounts.length, 1);
+  assert.equal(mounts[0].route, '/staging/frontend');
+  assert.equal(typeof mounts[0].handlers[0], 'function');
+  assert.equal(typeof mounts[0].handlers[1], 'function');
   assert.deepEqual([...routes.keys()], [
     '/staging/avs-emrg-2026.html',
     '/staging/avs-emrg-2026-verify.html',
@@ -52,6 +58,7 @@ test('preview registers only the workshop page, its stylesheet and same-origin A
     '/staging/registration-style.css',
     '/staging/registration-bilingual.css',
     '/staging/style.css',
+    '/staging/avs-workshop-style.css',
     '/staging/config.js'
   ]);
   const registrationResponse = responseRecorder();
@@ -62,6 +69,6 @@ test('preview registers only the workshop page, its stylesheet and same-origin A
   const configResponse = responseRecorder();
   routes.get('/staging/config.js').at(-1)({}, configResponse);
   assert.equal(configResponse.contentType, 'application/javascript');
-  assert.equal(configResponse.body, 'window.APP_CONFIG={API_BASE:window.location.origin};');
+  assert.equal(configResponse.body, 'window.APP_CONFIG={API_BASE:window.location.origin};window.AVS_WORKSHOP_API_BASE=window.location.origin;');
   assert.doesNotMatch(configResponse.body, /security-instructor\.onrender\.com/);
 });

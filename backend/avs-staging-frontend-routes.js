@@ -27,10 +27,17 @@ function createStagingFrontendGate(isEnabled = () => process.env.AVS_WORKSHOP_EN
   };
 }
 
-function register(app, { isEnabled } = {}) {
+function register(app, { isEnabled, staticMiddleware } = {}) {
   const gate = createStagingFrontendGate(isEnabled);
+  // Serve the existing SI admin UI and its relative assets on the staging host only.
+  // This lets the admin page call the same-origin staging API without publishing it to GitHub Pages.
+  const serveFrontend = staticMiddleware || require('express').static;
+  app.use('/staging/frontend', gate, serveFrontend(path.join(FRONTEND_DIR, '..', 'frontend'), { index: false }));
   app.get('/staging/avs-emrg-2026.html', gate, (req, res) => {
-    res.sendFile(path.join(FRONTEND_DIR, 'avs-staging-preview.html'));
+    const file = path.join(FRONTEND_DIR, '..', 'frontend', 'avs-emrg-2026.html');
+    const html = fs.readFileSync(file, 'utf8')
+      .replace('href="style.css"', 'href="/staging/avs-workshop-style.css"');
+    res.type('html').send(html);
   });
   app.get('/staging/avs-emrg-2026-verify.html', gate, (req, res) => {
     const file = path.join(FRONTEND_DIR, '..', 'frontend', 'avs-emrg-2026-verify.html');
@@ -54,8 +61,11 @@ function register(app, { isEnabled } = {}) {
   app.get('/staging/style.css', gate, (req, res) => {
     res.sendFile(path.join(FRONTEND_DIR, 'avs-staging-preview.css'));
   });
+  app.get('/staging/avs-workshop-style.css', gate, (req, res) => {
+    res.sendFile(path.join(FRONTEND_DIR, '..', 'frontend', 'style.css'));
+  });
   app.get('/staging/config.js', gate, (req, res) => {
-    res.type('application/javascript').send('window.APP_CONFIG={API_BASE:window.location.origin};');
+    res.type('application/javascript').send('window.APP_CONFIG={API_BASE:window.location.origin};window.AVS_WORKSHOP_API_BASE=window.location.origin;');
   });
 }
 
