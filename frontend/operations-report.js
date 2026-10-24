@@ -1,5 +1,8 @@
 (function(){
-  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const isStaging = new URLSearchParams(window.location.search).get('api') === 'staging'
+    || window.location.hostname === 'si-avs-staging-test.onrender.com';
+  const API = isStaging ? window.location.origin : 'https://security-instructor.onrender.com';
+  const K = isStaging ? 'securityInstructorAdminToken:staging' : 'securityInstructorAdminToken';
   const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||'')});
   const originalFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
