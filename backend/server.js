@@ -55,7 +55,7 @@ app.get('/api/admin/dashboard',requireAdmin,async(req,res)=>{try{const [trainees
   // counters follow the actual collection names instead of guessed collection names.
   const [trainees,enrollments,visitors,feedback,challengeAttempts,certificates,activeCourses,draftCourses,archivedCourses,newMessages,pendingArticles,approvedArticles,rejectedArticles]=await Promise.all([
     Trainee.countDocuments(),Enrollment.countDocuments(),Visitor.countDocuments(),Feedback.countDocuments(),ChallengeAttempt.countDocuments(),count('trainingcertificates'),
-    count('trainingcourses',{status:'active'}),count('trainingcourses',{status:'draft'}),count('trainingcourses',{status:'archived'}),
+    (await count('trainingcourses',{status:'active'}))+Object.keys(courses).length,count('trainingcourses',{status:'draft'}),count('trainingcourses',{status:'archived'}),
     ContactMessage.countDocuments({status:'new'}),Article.countDocuments({status:'pending'}),Article.countDocuments({status:'approved'}),Article.countDocuments({status:'rejected'})
   ]);
   const [statusRows,monthlyRows,courseRows,viewsRows]=await Promise.all([
