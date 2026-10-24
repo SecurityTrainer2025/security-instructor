@@ -51,10 +51,12 @@ app.get('/api/admin/dashboard',requireAdmin,async(req,res)=>{try{const [trainees
   const db=mongoose.connection.db;
   const names=new Set((await db.listCollections({}, {nameOnly:true}).toArray()).map(x=>x.name));
   const count=async(name,filter={})=>names.has(name)?db.collection(name).countDocuments(filter):0;
+  // Use the same Mongoose models as the working Admin endpoints so the analytics
+  // counters follow the actual collection names instead of guessed collection names.
   const [trainees,enrollments,visitors,feedback,challengeAttempts,certificates,activeCourses,draftCourses,archivedCourses,newMessages,pendingArticles,approvedArticles,rejectedArticles]=await Promise.all([
-    count('trainees'),count('enrollments'),count('visitors'),count('coursefeedbacks'),count('challengeattempts'),count('trainingcertificates'),
-    count('courses',{status:'active'}),count('courses',{status:'draft'}),count('courses',{status:'archived'}),
-    count('contactmessages',{status:'new'}),count('securityarticles',{status:'pending'}),count('securityarticles',{status:'approved'}),count('securityarticles',{status:'rejected'})
+    Trainee.countDocuments(),Enrollment.countDocuments(),Visitor.countDocuments(),Feedback.countDocuments(),ChallengeAttempt.countDocuments(),count('trainingcertificates'),
+    count('trainingcourses',{status:'active'}),count('trainingcourses',{status:'draft'}),count('trainingcourses',{status:'archived'}),
+    ContactMessage.countDocuments({status:'new'}),Article.countDocuments({status:'pending'}),Article.countDocuments({status:'approved'}),Article.countDocuments({status:'rejected'})
   ]);
   const [statusRows,monthlyRows,courseRows,viewsRows]=await Promise.all([
     db.collection('enrollments').aggregate([{$group:{_id:'$status',count:{$sum:1}}},{$sort:{count:-1}}]).toArray(),
