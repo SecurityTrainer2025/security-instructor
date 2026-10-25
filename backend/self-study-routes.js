@@ -485,7 +485,7 @@ const screenAssessmentHandler=async(req,res)=>{
     const previous=scores[s.id];
     scores[s.id]={score,questions:s.questions.length,correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
     if(score>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
-    modules[moduleIdForScreen(s)]=Math.max(Number(modules[s.id.slice(0,2)]||0),score);
+    modules[moduleIdForScreen(s)]=Math.max(Number(modules[moduleIdForScreen(s)]||0),score);
     const all=Object.values(scores);
     p.cumulativeQuestions=all.reduce((n,x)=>n+Number(x.questions||0),0);
     p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.correct||0),0);
