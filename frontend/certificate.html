@@ -278,6 +278,9 @@ html,body{background:#0B1F33}
  #certificate.wrap:before{display:block!important}
 }
 
+
+/* Institutional certificate issuer: preserve existing logo, seal and QR verification. */
+#certificate .signature{font-family:Arial,Tahoma,sans-serif!important;font-size:10px!important;font-weight:900!important;font-style:normal!important;letter-spacing:.04em!important;line-height:1.35!important;white-space:normal!important;overflow-wrap:anywhere!important;text-align:center!important;}
 </style>
 </head>
 <body>
@@ -312,7 +315,7 @@ html,body{background:#0B1F33}
 <div class="row"><b>TRAINING ID / رقم التدريب</b><span id="trainingId">—</span></div>
 <div class="row"><b>ID NUMBER / رقم الهوية</b><span id="idNumber">—</span></div>
 </div>
-<div class="sign"><div class="seal"><div><strong>SI</strong></div><small>KNOWLEDGE BUILDS SAFER COMMUNITIES</small></div><div class="signatureBlock"><div id="signature" class="signature">Abdallah Shalaby</div></div></div>
+<div class="sign"><div class="seal"><div><strong>SI</strong></div><small>KNOWLEDGE BUILDS SAFER COMMUNITIES</small></div><div class="signatureBlock"><div id="signature" class="signature">SECURITY INSTRUCTOR TEAM</div></div></div>
 <div class="qr"><div id="qr" class="qrbox"></div><a id="verifyLink" href="#" target="_blank" rel="noopener">Verify Certificate / التحقق من الشهادة</a></div>
 </section>
 <footer class="footer"><span>SECURITY INSTRUCTOR</span><span>شهادة إتمام دورة تدريبية</span><span>KNOWLEDGE BUILDS SAFER COMMUNITIES</span></footer>
@@ -366,7 +369,7 @@ try{
   document.getElementById('courseMeta').hidden=dh===''&&courseLevel==='—';
   durationValue.innerHTML=dh!==''?'<strong>'+String(dh).replace(/</g,'&lt;')+' Hours</strong> | '+String(dh).replace(/</g,'&lt;')+' ساعة':'';
   levelValue.textContent=courseLevel==='—'?'':courseLevel;
-  document.getElementById('signature').textContent='Abdallah Shalaby';
+  document.getElementById('signature').textContent='SECURITY INSTRUCTOR TEAM';
 
   const grid=document.getElementById('topicGrid');
   if(grid){
