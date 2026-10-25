@@ -553,7 +553,7 @@ const finalQuestionsHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
     const attempts=Number(p.finalAttempts||0);
-    const finalAssessment=finalFor(req.selfStudy.courseSlug);
+    const finalAssessment=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId);
     const questions=finalAssessment.map((q,i)=>{
       const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
       return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
