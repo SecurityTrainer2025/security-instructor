@@ -258,6 +258,7 @@ const FIRE_SCREEN_LIST=Object.values(FIRE_SCREENS).flat();
 const screensFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_SCREENS:(slug===FIRE_SLUG?FIRE_SCREEN_LIST:[]);
 const finalFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_FINAL_ASSESSMENT:(slug===FIRE_SLUG?FINAL_FIRE_ASSESSMENT:[]);
 const screenFor=(slug,id)=>screensFor(slug).find(x=>x.id===id)||null;
+const moduleIdForScreen=s=>String(s.id).startsWith('tm')?String(s.id).slice(0,3):String(s.id).slice(0,2);
 
 const COURSE_META={
   [TRAFFIC_SLUG]:TRAFFIC_META,
@@ -458,7 +459,7 @@ const screenHandler=async(req,res)=>{
         if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
       }
     }
-    res.json({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
+    res.json({id:s.id,moduleId:moduleIdForScreen(s),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
   }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
 };
 const screenAssessmentHandler=async(req,res)=>{
@@ -484,7 +485,7 @@ const screenAssessmentHandler=async(req,res)=>{
     const previous=scores[s.id];
     scores[s.id]={score,questions:s.questions.length,correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
     if(score>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
-    modules[s.id.slice(0,2)]=Math.max(Number(modules[s.id.slice(0,2)]||0),score);
+    modules[moduleIdForScreen(s)]=Math.max(Number(modules[s.id.slice(0,2)]||0),score);
     const all=Object.values(scores);
     p.cumulativeQuestions=all.reduce((n,x)=>n+Number(x.questions||0),0);
     p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.correct||0),0);
@@ -575,7 +576,7 @@ const studyHeartbeatHandler=async(req,res)=>{
 function register(app){
   app.post('/api/self-study/heartbeat',sessionHandler,studyHeartbeatHandler);
   app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,slug:clean(req.params.slug,80),screenCount:screensFor(clean(req.params.slug,80)).length});});
-  app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:screensFor(slug).map((s,i)=>({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
+  app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:screensFor(slug).map((s,i)=>({id:s.id,moduleId:moduleIdForScreen(s),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
   app.get('/api/self-study/screens/:screenId',sessionHandler,screenHandler);
   app.post('/api/self-study/screens/:screenId/assessment',sessionHandler,screenAssessmentHandler);
   app.post('/api/self-study/register',registerHandler);
