@@ -11,6 +11,7 @@ const ACTIVE_STUDY_SECONDS=ACTIVE_STUDY_HOURS*3600;
 const ACTIVE_PING_MAX_GAP_SECONDS=45;
 const MAGIC_MINUTES=15;
 const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||120);
+const {TRAFFIC_SLUG,TRAFFIC_META,TRAFFIC_SCREENS,TRAFFIC_FINAL_ASSESSMENT}=require('./self-study-traffic-config.js');
 const FIRE_SLUG='fire-safety-emergency-response';
 const baseProgress=()=>({
   completedScreens:[],
@@ -254,9 +255,12 @@ m4:[
 {id:'m5s15',slide:70,titleEn:'Thank You',titleAr:'شكراً لك',bodyEn:'Thank you for completing the SECURITY INSTRUCTOR Fire Safety self-study learning content. Continue to the final assessment when the required learning screens are mastered.',bodyAr:'شكراً لإكمال محتوى الدراسة الذاتية لدورة السلامة من الحرائق من SECURITY INSTRUCTOR. انتقل إلى الاختبار النهائي عند إتقان شاشات التعلم المطلوبة.',assessmentRequired:false,videoUrl:''}
 ]};
 const FIRE_SCREEN_LIST=Object.values(FIRE_SCREENS).flat();
-const screenById=new Map(FIRE_SCREEN_LIST.map(x=>[x.id,x]));
+const screensFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_SCREENS:(slug===FIRE_SLUG?FIRE_SCREEN_LIST:[]);
+const finalFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_FINAL_ASSESSMENT:(slug===FIRE_SLUG?FINAL_FIRE_ASSESSMENT:[]);
+const screenFor=(slug,id)=>screensFor(slug).find(x=>x.id===id)||null;
 
 const COURSE_META={
+  [TRAFFIC_SLUG]:TRAFFIC_META,
   [FIRE_SLUG]:{
     code:'CRS-FIRE-001',
     en:'FIRE SAFETY & EMERGENCY RESPONSE',
@@ -398,8 +402,8 @@ const requestAccessHandler=async(req,res)=>{
     if(!enroll)return res.json(generic);
     const trainee=await mongoose.connection.collection('trainees').findOne({traineeId:enroll.traineeId,email});
     if(!trainee)return res.json(generic);
-    const course=COURSE_META[FIRE_SLUG];
-    let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:FIRE_SLUG});
+    let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:{$in:Object.keys(COURSE_META)}});
+    const course=row?COURSE_META[row.courseSlug]:null;
     if(!row)return res.json(generic);
     if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date())return res.json(generic);    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:expires,magicUsedAt:null,updatedAt:new Date()}});
@@ -436,19 +440,19 @@ const meHandler=async(req,res)=>{
   const p=row.progress||baseProgress();
   const q=Number(p.cumulativeQuestions||0),correct=Number(p.cumulativeCorrect||0);
   const cumulative=q?Math.round(correct/q*100):0;
-  const assessed=FIRE_SCREEN_LIST.filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
+  const assessed=screensFor(row.courseSlug).filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
   res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,3-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
   try{
-    const s=screenById.get(clean(req.params.screenId,100));
+    const s=screenFor(req.selfStudy.courseSlug,clean(req.params.screenId,100));
     if(!s)return res.status(404).json({message:'Learning screen not found'});
     const p=req.selfStudy.progress||baseProgress();
-    const pos=FIRE_SCREEN_LIST.findIndex(x=>x.id===s.id);
+    const courseScreens=screensFor(req.selfStudy.courseSlug);const pos=courseScreens.findIndex(x=>x.id===s.id);
     if(pos>0){
-      const previousAssessed=[...FIRE_SCREEN_LIST].slice(0,pos).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
+      const previousAssessed=[...courseScreens].slice(0,pos).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
       if(previousAssessed){
         const previousScore=Number((p.screenScores||{})[previousAssessed.id]?.score||0);
         if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
@@ -459,12 +463,12 @@ const screenHandler=async(req,res)=>{
 };
 const screenAssessmentHandler=async(req,res)=>{
   try{
-    const s=screenById.get(clean(req.params.screenId,100));
+    const s=screenFor(req.selfStudy.courseSlug,clean(req.params.screenId,100));
     if(!s)return res.status(404).json({message:'Learning screen not found'});
     const p0=req.selfStudy.progress||baseProgress();
-    const pos0=FIRE_SCREEN_LIST.findIndex(x=>x.id===s.id);
+    const courseScreens=screensFor(req.selfStudy.courseSlug);const pos0=courseScreens.findIndex(x=>x.id===s.id);
     if(pos0>0){
-      const previousAssessed=[...FIRE_SCREEN_LIST].slice(0,pos0).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
+      const previousAssessed=[...courseScreens].slice(0,pos0).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
       if(previousAssessed){
         const previousScore=Number((p0.screenScores||{})[previousAssessed.id]?.score||0);
         if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
@@ -504,12 +508,13 @@ const finalHandler=async(req,res)=>{
     if(p.finalPassed)return res.status(409).json({message:'The final assessment has already been passed. / تم اجتياز الاختبار النهائي بالفعل.'});
     if(attempts>=3)return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
-    if(answers.length!==FINAL_FIRE_ASSESSMENT.length)return res.status(400).json({message:'Please answer all 30 questions.'});
-    const correct=FINAL_FIRE_ASSESSMENT.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
-    const score=Math.round(correct/FINAL_FIRE_ASSESSMENT.length*100);
+    const finalAssessment=finalFor(req.selfStudy.courseSlug);
+    if(answers.length!==finalAssessment.length)return res.status(400).json({message:'Please answer all 30 questions.'});
+    const correct=finalAssessment.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
+    const score=Math.round(correct/finalAssessment.length*100);
     const finalAttempts=attempts+1;    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
     const finalPassed=!!p.finalPassed||score>=70;
-    const finalScores=[...(p.finalScores||[]),{score,correct,total:FINAL_FIRE_ASSESSMENT.length,attempt:finalAttempts,passed:score>=70,updatedAt:new Date()}];
+    const finalScores=[...(p.finalScores||[]),{score,correct,total:finalAssessment.length,attempt:finalAttempts,passed:score>=70,updatedAt:new Date()}];
     const updated={...p,finalAttempts,finalBestScore,finalPassed,finalScores};
     let certificateId=null;
     if(finalPassed){
@@ -522,7 +527,7 @@ const finalHandler=async(req,res)=>{
       }catch(certErr){console.error('Self-study certificate issuance failed',certErr)}
     }
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:updated,updatedAt:new Date()}});
-    res.json({ok:true,score,correct,total:FINAL_FIRE_ASSESSMENT.length,passed:score>=70||finalPassed,attempt:finalAttempts,attemptsRemaining:Math.max(0,3-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
+    res.json({ok:true,score,correct,total:finalAssessment.length,passed:score>=70||finalPassed,attempt:finalAttempts,attemptsRemaining:Math.max(0,3-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
   }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
 };
 
@@ -546,7 +551,8 @@ const finalQuestionsHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
     const attempts=Number(p.finalAttempts||0);
-    const questions=FINAL_FIRE_ASSESSMENT.map((q,i)=>{
+    const finalAssessment=finalFor(req.selfStudy.courseSlug);
+    const questions=finalAssessment.map((q,i)=>{
       const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
       return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
     });
@@ -568,8 +574,8 @@ const studyHeartbeatHandler=async(req,res)=>{
 };
 function register(app){
   app.post('/api/self-study/heartbeat',sessionHandler,studyHeartbeatHandler);
-  app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:FIRE_SCREEN_LIST.length});});
-  app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:FIRE_SCREEN_LIST.map((s,i)=>({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
+  app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:screensFor(clean(req.params.slug,80)).length});});
+  app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:screensFor(slug).map((s,i)=>({id:s.id,moduleId:s.id.slice(0,2),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
   app.get('/api/self-study/screens/:screenId',sessionHandler,screenHandler);
   app.post('/api/self-study/screens/:screenId/assessment',sessionHandler,screenAssessmentHandler);
   app.post('/api/self-study/register',registerHandler);
