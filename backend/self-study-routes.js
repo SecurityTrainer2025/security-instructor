@@ -257,6 +257,7 @@ m4:[
 const FIRE_SCREEN_LIST=Object.values(FIRE_SCREENS).flat();
 const screensFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_SCREENS:(slug===FIRE_SLUG?FIRE_SCREEN_LIST:[]);
 const finalFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_FINAL_ASSESSMENT:(slug===FIRE_SLUG?FINAL_FIRE_ASSESSMENT:[]);
+const orderedFinalFor=(slug,accessId)=>finalFor(slug).map((q,i)=>({q,i,key:sha(String(accessId)+'|final-question|'+q.q)})).sort((a,b)=>a.key.localeCompare(b.key)||a.i-b.i).map(x=>x.q);
 const screenFor=(slug,id)=>screensFor(slug).find(x=>x.id===id)||null;
 const moduleIdForScreen=s=>String(s.id).startsWith('tm')?String(s.id).slice(0,3):String(s.id).slice(0,2);
 
@@ -509,7 +510,7 @@ const finalHandler=async(req,res)=>{
     if(p.finalPassed)return res.status(409).json({message:'The final assessment has already been passed. / تم اجتياز الاختبار النهائي بالفعل.'});
     if(attempts>=3)return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
-    const finalAssessment=finalFor(req.selfStudy.courseSlug);
+    const finalAssessment=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId);
     if(answers.length!==finalAssessment.length)return res.status(400).json({message:'Please answer all 30 questions.'});
     const correct=finalAssessment.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/finalAssessment.length*100);
