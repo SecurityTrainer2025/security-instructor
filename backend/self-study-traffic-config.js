@@ -89,6 +89,6 @@ q('How should a handover be confirmed? / كيف يتم التأكد من الت�
 q('What supports improvement after an incident? / ما الذي يدعم التحسين بعد الحادث؟',['Review facts and agreed corrective actions / مراجعة الحقائق والإجراءات التصحيحية المتفق عليها','Blame without evidence / إلقاء اللوم دون دليل','Delete the record / حذف السجل','Ignore recurring risks / تجاهل المخاطر المتكررة'])
 ]}
 ];
-const TRAFFIC_FINAL_ASSESSMENT=TRAFFIC_SCREENS.flatMap(s=>s.questions).slice(0,30);
+const TRAFFIC_FINAL_ASSESSMENT=TRAFFIC_SCREENS.flatMap(s=>s.questions.slice(0,3));
 if(TRAFFIC_SCREENS.length!==10||TRAFFIC_SCREENS.some(s=>!Array.isArray(s.questions)||s.questions.length!==5)||TRAFFIC_FINAL_ASSESSMENT.length!==30||TRAFFIC_FINAL_ASSESSMENT.some(x=>x.a.length!==4||new Set(x.a).size!==4||x.correct<0||x.correct>3))throw new Error('Traffic self-study content validation failed');
 module.exports={TRAFFIC_SLUG,TRAFFIC_META,TRAFFIC_SCREENS,TRAFFIC_FINAL_ASSESSMENT};
