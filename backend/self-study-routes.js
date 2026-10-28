@@ -310,7 +310,9 @@ async function nextNumber(collection,prefix,field){
 async function sendAccessEmail({to,name,course,token,expiresAt}){  const apiKey=(process.env.BREVO_API_KEY||'').trim();
   const from=(process.env.MAIL_FROM||'').trim();
   if(!apiKey||!from)return {sent:false,error:'Brevo email settings are not configured'};
-  const link=FRONTEND_URL+(FRONTEND_URL.includes('?')?'&':'?')+'course='+encodeURIComponent(Object.keys(COURSE_META).find(slug=>COURSE_META[slug]===course)||FIRE_SLUG)+'#token='+encodeURIComponent(token);
+  const mailCourseSlug=Object.keys(COURSE_META).find(slug=>COURSE_META[slug]===course)||FIRE_SLUG;
+  const courseFrontendUrl=mailCourseSlug===TRAFFIC_SLUG?(process.env.TRAFFIC_STAGING_FRONTEND_URL||'https://si-staging-ui.onrender.com/fire-safety-self-study.html'):FRONTEND_URL;
+  const link=courseFrontendUrl+(courseFrontendUrl.includes('?')?'&':'?')+'course='+encodeURIComponent(mailCourseSlug)+'#token='+encodeURIComponent(token);
   const expiry=expiresAt?new Date(expiresAt).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'}):null;
   const subject='SECURITY INSTRUCTOR — Self-Study Access';
   const text='Dear '+name+',\\n\\nYour access to '+course.en+' / '+course.ar+' is ready.\\n\\nYour 5-day access window starts when you first open the course using this secure link. You may study for up to 24 active hours during that window; inactive time is not counted.\\nStart: '+link+(expiry?'\\nAccess expires: '+expiry:'')+'\\n\\nYour Enrollment ID is provided on the registration confirmation page. Keep it to request a new access link if needed.\\n\\nComplete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.\\n\\nSECURITY INSTRUCTOR';
