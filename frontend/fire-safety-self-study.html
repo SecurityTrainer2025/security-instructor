@@ -25,7 +25,7 @@ async function startAccess(){
 }
 async function loadCourse(){
  me=await api('/api/self-study/me');accessExpires=me.accessExpiresAt;activeStudySeconds=Number(me.activeStudySeconds||0);activeStudyLimitSeconds=Number(me.activeStudyLimitSeconds||86400);startHeartbeat();tick();
- document.title=(me.course?.en||'Self-Study')+' | SECURITY INSTRUCTOR';const courseScreens=await api('/api/self-study/courses/'+encodeURIComponent(courseSlug)+'/screens').catch(()=>null);
+ if(me.course?.en){const liveCourseTitle=me.course.en.toUpperCase()+' SELF-STUDY';document.getElementById('courseBrandTitle').textContent=liveCourseTitle;document.title=liveCourseTitle+' | SECURITY INSTRUCTOR';}const courseScreens=await api('/api/self-study/courses/'+encodeURIComponent(courseSlug)+'/screens').catch(()=>null);
  if(courseScreens?.screens?.length)screens=courseScreens.screens.map(x=>x.id);else screens=[...fallbackScreens];
  if(!screens.length)throw new Error('No learning screens are currently published.');
  index=Number(sessionStorage.getItem(indexKey)||0);index=Math.min(Math.max(index,0),screens.length-1);renderModules();renderScreen();
