@@ -1,5 +1,5 @@
 // Deployed statistics API
-window.APP_CONFIG={API_BASE:'https://security-instructor.onrender.com'};
+window.APP_CONFIG={API_BASE:location.hostname.endsWith('.onrender.com')?'https://si-avs-staging-test.onrender.com':'https://security-instructor.onrender.com'};
 (function(){
   var nativeFetch=window.fetch.bind(window);
   function splitForTranslation(text,max){
