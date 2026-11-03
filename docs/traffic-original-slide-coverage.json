@@ -1,0 +1,127 @@
+{
+  "course": "Traffic Management & Vehicle Control",
+  "source": "Traffic_Management_Watermarked_No_Sources.pptx",
+  "sourceSlideCount": 45,
+  "screenCount": 10,
+  "coverageStatus": "DRAFT MAPPING — content and assessments require review",
+  "screenToSourceSlides": [
+    {
+      "screenId": "tm1s1",
+      "slides": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "focus": "Overview, objectives, agenda and site traffic fundamentals"
+    },
+    {
+      "screenId": "tm1s2",
+      "slides": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "focus": "Center/corner positions, STOP sign, automatic signals, posture and PPE"
+    },
+    {
+      "screenId": "tm2s1",
+      "slides": [
+        23,
+        24,
+        25,
+        26
+      ],
+      "focus": "Traffic priorities, emergency vehicles, gate duty and TMP"
+    },
+    {
+      "screenId": "tm2s2",
+      "slides": [
+        27,
+        28,
+        29,
+        30
+      ],
+      "focus": "Traffic separation, driver induction, violations and vehicle impacts"
+    },
+    {
+      "screenId": "tm3s1",
+      "slides": [
+        36,
+        37,
+        38,
+        39,
+        40,
+        41
+      ],
+      "focus": "Traffic calming and engineering measures"
+    },
+    {
+      "screenId": "tm3s2",
+      "slides": [
+        31,
+        32,
+        33,
+        34,
+        35
+      ],
+      "focus": "Parking design, stand-off distances, access technology and occupancy"
+    },
+    {
+      "screenId": "tm4s1",
+      "slides": [
+        20,
+        21,
+        24,
+        30
+      ],
+      "focus": "Emergency stop, high-hazard positions, emergency vehicles and impacts"
+    },
+    {
+      "screenId": "tm4s2",
+      "slides": [
+        28,
+        29,
+        30
+      ],
+      "focus": "Driver noncompliance, SCRIM reporting and impact hazards"
+    },
+    {
+      "screenId": "tm5s1",
+      "slides": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "focus": "Hand signals, whistle codes and hazard-position procedures"
+    },
+    {
+      "screenId": "tm5s2",
+      "slides": [
+        42,
+        43,
+        44,
+        45
+      ],
+      "focus": "Practical exercise, evaluation, summary and completion"
+    }
+  ],
+  "unmappedSlides": [],
+  "releaseBlocks": [
+    "Original final assessment not yet imported into runtime",
+    "Validate content depth and lesson questions against mapped slides",
+    "Run end-to-end registration, score, certificate and QR checks on staging"
+  ]
+}
