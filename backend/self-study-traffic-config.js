@@ -9,11 +9,11 @@ const TRAFFIC_META={
   activeStudyHours:24,pilotProject:true,masteryScore:80,finalQuestions:30,
   finalPassScore:70,finalRetakes:2,
   modules:[
-    {id:'tm1',en:'Traffic Safety Fundamentals',ar:'أساسيات السلامة المرورية'},
-    {id:'tm2',en:'Vehicle Movement & Access Control',ar:'حركة المركبات والتحكم في الدخول'},
-    {id:'tm3',en:'Pedestrian Safety & Site Layout',ar:'سلامة المشاة وتخطيط الموقع'},
-    {id:'tm4',en:'Incident Response & Reporting',ar:'الاستجابة للحوادث والإبلاغ'},
-    {id:'tm5',en:'Operational Control & Communication',ar:'التحكم التشغيلي والاتصالات'}
+    {id:'tm1',en:'Fundamentals of Traffic Control',ar:'أساسيات التحكم في حركة المرور'},
+    {id:'tm2',en:'Traffic Responsibilities & Gate Duty',ar:'مسؤوليات المرور وواجبات البوابة'},
+    {id:'tm3',en:'Parking Lot Management & Traffic Calming',ar:'إدارة المواقف وتهدئة حركة المرور'},
+    {id:'tm4',en:'Traffic Hazards, Incidents & Reporting',ar:'مخاطر المرور والحوادث والإبلاغ'},
+    {id:'tm5',en:'Hand Signals, Communication & Practice',ar:'إشارات اليد والتواصل والتطبيق العملي'}
   ]
 };
 const q=(question,answers,correct=0)=>({q:question,a:answers,correct});
