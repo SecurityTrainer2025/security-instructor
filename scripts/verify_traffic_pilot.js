@@ -28,7 +28,7 @@ assert.ok(vtt.startsWith('WEBVTT'));
 assert.equal((vtt.match(/--> /g)||[]).length,5);
 const html=fs.readFileSync(path.join(root,'frontend/fire-safety-self-study.html'),'utf8');
 const vm = require('node:vm');
-const inlineScripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)].map(match=>match[1]).filter(Boolean);
+const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match=>match[1]).filter(Boolean);
 assert.ok(inlineScripts.length, 'course page missing inline JavaScript');
 for(const source of inlineScripts) new vm.Script(source, {filename:'fire-safety-self-study.html'});
 assert.ok(html.includes("courseSlug==='traffic-management-vehicle-control'"),'traffic UI guard missing');
