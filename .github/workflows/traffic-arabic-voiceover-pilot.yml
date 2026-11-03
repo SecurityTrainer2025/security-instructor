@@ -1,0 +1,40 @@
+name: Traffic intro Arabic narration pilot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-narration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout pilot branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install audio tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          python -m pip install 'edge-tts>=6.1,<8'
+      - name: Verify original video exists
+        run: test -s frontend/assets/traffic-videos/00_course_introduction.mp4
+      - name: Generate and validate narrated video
+        run: python scripts/build_traffic_intro_voiceover.py
+      - name: Confirm audio track and duration
+        run: |
+          test -s frontend/assets/traffic-videos/00_course_introduction_narrated.mp4
+          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 frontend/assets/traffic-videos/00_course_introduction_narrated.mp4 | grep -qx aac
+      - name: Upload review-only video
+        uses: actions/upload-artifact@v4
+        with:
+          name: traffic-intro-arabic-narration-review
+          path: frontend/assets/traffic-videos/00_course_introduction_narrated.mp4
+          if-no-files-found: error
+          retention-days: 7
