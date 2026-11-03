@@ -5,6 +5,7 @@ on:
       - feat/self-study-traffic-course
     paths:
       - scripts/build_traffic_training_videos.py
+      - scripts/build_traffic_intro_pilot.py
       - .github/workflows/build-traffic-preview-videos.yml
   workflow_dispatch:
 permissions:
@@ -26,10 +27,12 @@ jobs:
           sudo apt-get install -y -qq ffmpeg fonts-noto-core
           python -m pip install --disable-pip-version-check pillow
       - name: Render bilingual MP4 videos
-        run: python scripts/build_traffic_training_videos.py
+        run: |
+          python scripts/build_traffic_training_videos.py
+          python scripts/build_traffic_intro_pilot.py
       - name: Verify all videos can be decoded
         run: |
-          test "$(find frontend/assets/traffic-videos -maxdepth 1 -name '*.mp4' | wc -l)" -eq 6
+          test "$(find frontend/assets/traffic-videos -maxdepth 1 -name '*.mp4' | wc -l)" -eq 7
           for f in frontend/assets/traffic-videos/*.mp4; do
             ffprobe -v error -show_entries format=duration -of default=nw=1 "$f"
             ffmpeg -v error -i "$f" -f null - </dev/null
