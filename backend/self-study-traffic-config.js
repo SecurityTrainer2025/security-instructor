@@ -90,36 +90,306 @@ q('What supports improvement after an incident? / ما الذي يدعم الت�
 ]}
 ];
 const TRAFFIC_FINAL_ASSESSMENT=[
-q('What should a traffic controller do before a shift begins? / ماذا يفعل مراقب المرور قبل بدء المناوبة؟',['Review current hazards and site instructions / مراجعة المخاطر الحالية وتعليمات الموقع','Change traffic rules independently / تغيير قواعد المرور بشكل مستقل','Ignore temporary restrictions / تجاهل القيود المؤقتة','Begin without checking equipment / البدء دون فحص المعدات']),
-q('Why should temporary traffic controls be clearly marked? / لماذا يجب تحديد ضوابط المرور المؤقتة بوضوح؟',['To help drivers and pedestrians understand the safe route / لمساعدة السائقين والمشاة على فهم المسار الآمن','To allow unrestricted movement / للسماح بالحركة دون قيود','To replace staff communication / لاستبدال التواصل بين الموظفين','To hide changes from visitors / لإخفاء التغييرات عن الزوار']),
-q('What is the safest response when visibility is poor? / ما التصرف الأكثر أماناً عندما تكون الرؤية ضعيفة؟',['Slow or stop movement as required and follow site controls / إبطاء الحركة أو إيقافها حسب الحاجة واتباع ضوابط الموقع','Continue at normal speed / الاستمرار بالسرعة المعتادة','Rely only on vehicle horns / الاعتماد على أبواق المركبات فقط','Stand closer to moving vehicles / الوقوف بالقرب من المركبات المتحركة']),
-q('What should be considered when setting a safe vehicle speed? / ما الذي يجب مراعاته عند تحديد سرعة آمنة للمركبة؟',['Site limits, visibility, traffic and pedestrians / حدود الموقع والرؤية وحركة المرور والمشاة','Driver preference alone / رغبة السائق فقط','The shortest travel time only / أقصر زمن للرحلة فقط','The vehicle colour / لون المركبة']),
-q('When should a vehicle be stopped at an access point? / متى ينبغي إيقاف المركبة عند نقطة الدخول؟',['When required checks or authorization are incomplete / عندما تكون الفحوصات أو الموافقات المطلوبة غير مكتملة','Whenever the driver is familiar / عندما يكون السائق معروفاً','Only after entering the site / بعد دخول الموقع فقط','Only when the queue is empty / عندما يكون الطابور فارغاً فقط']),
-q('How should an unexpected vehicle approach be managed? / كيف يتم التعامل مع اقتراب مركبة بشكل غير متوقع؟',['Use approved procedures and communicate clearly from a safe position / استخدام الإجراءات المعتمدة والتواصل بوضوح من موقع آمن','Step into its path / الوقوف في مسارها','Give conflicting hand signals / إعطاء إشارات متعارضة','Assume the driver has seen everyone / افتراض أن السائق رأى الجميع']),
-q('What is a key purpose of access control? / ما أحد الأهداف الأساسية للتحكم في الدخول؟',['Allow authorized movement while managing risk / السماح بالحركة المصرح بها مع إدارة المخاطر','Keep no record of entries / عدم تسجيل الدخول','Remove all vehicle checks / إلغاء جميع فحوصات المركبات','Give every vehicle priority / إعطاء الأولوية لكل المركبات']),
-q('What should staff do if a vehicle fails an access requirement? / ماذا يفعل الموظفون إذا لم تستوفِ المركبة متطلبات الدخول؟',['Follow the refusal and escalation procedure / اتباع إجراء رفض الدخول والتصعيد','Allow entry to save time / السماح بالدخول لتوفير الوقت','Ignore the missing requirement / تجاهل المتطلب الناقص','Ask pedestrians to decide / مطالبة المشاة باتخاذ القرار']),
-q('Why should vehicle inspections be performed in a designated area? / لماذا يجب إجراء فحص المركبات في منطقة محددة؟',['To reduce exposure to traffic and create a controlled process / لتقليل التعرض لحركة المرور وتوفير إجراء منضبط','To block the emergency lane / لإغلاق مسار الطوارئ','To avoid keeping records / لتجنب حفظ السجلات','To increase pedestrian crossing / لزيادة عبور المشاة']),
-q('What should an inspector do if a check cannot be completed safely? / ماذا يفعل المفتش إذا تعذر إكمال الفحص بأمان؟',['Pause and request a safe arrangement / التوقف وطلب ترتيب آمن','Continue despite the hazard / الاستمرار رغم الخطر','Move into a blind spot / الانتقال إلى نقطة عمياء','Skip the site procedure / تجاوز إجراء الموقع']),
-q('What helps prevent vehicle-pedestrian conflicts? / ما الذي يساعد على منع التعارض بين المركبات والمشاة؟',['Physical separation and clearly marked routes where possible / الفصل المادي وتحديد المسارات بوضوح حيثما أمكن','Removing all crossing signs / إزالة جميع علامات العبور','Using vehicle lanes as walkways / استخدام مسارات المركبات كممرات للمشاة','Allowing informal shortcuts / السماح بالاختصارات غير المنظمة']),
-q('What should be done if a pedestrian route is blocked? / ماذا يجب فعله إذا كان مسار المشاة مغلقاً؟',['Report it and arrange an approved safe alternative / الإبلاغ عنه وترتيب بديل آمن معتمد','Direct pedestrians into vehicle traffic / توجيه المشاة إلى حركة المركبات','Ignore the blockage / تجاهل الإغلاق','Remove barriers without permission / إزالة الحواجز دون إذن']),
-q('What is important before a reversing manoeuvre? / ما المهم قبل مناورة الرجوع للخلف؟',['Confirm the route is clear and use approved guidance where required / التأكد من خلو المسار واستخدام التوجيه المعتمد عند الحاجة','Assume mirrors show every hazard / افتراض أن المرايا تكشف كل المخاطر','Stand directly behind the vehicle / الوقوف مباشرة خلف المركبة','Allow pedestrians to pass close by / السماح للمشاة بالمرور بالقرب منها']),
-q('How should a loading zone be managed? / كيف ينبغي إدارة منطقة التحميل؟',['Keep it controlled and separate people from vehicle movements / إبقاؤها تحت السيطرة وفصل الأشخاص عن حركة المركبات','Allow goods to obstruct emergency access / السماح للبضائع بإعاقة وصول الطوارئ','Permit uncontrolled reversing / السماح بالرجوع للخلف دون ضبط','Use it as a pedestrian waiting area / استخدامها منطقة انتظار للمشاة']),
-q('What should happen if a driver ignores a safe instruction? / ماذا ينبغي أن يحدث إذا تجاهل السائق توجيهاً آمناً؟',['Stop or hold movement safely and escalate under procedure / إيقاف الحركة أو تعليقها بأمان والتصعيد وفق الإجراء','Stand in front of the vehicle / الوقوف أمام المركبة','Give a different instruction without coordination / إعطاء توجيه مختلف دون تنسيق','Continue directing other traffic into danger / الاستمرار في توجيه حركة أخرى إلى الخطر']),
-q('What is the first priority at a vehicle collision? / ما الأولوية الأولى عند تصادم مركبات؟',['Protect people and request the appropriate emergency response / حماية الأشخاص وطلب الاستجابة المناسبة للطوارئ','Move all vehicles immediately regardless of risk / تحريك جميع المركبات فوراً بغض النظر عن الخطر','Assign blame at once / تحديد المسؤولية فوراً','Reopen the road before checking hazards / فتح الطريق قبل التحقق من المخاطر']),
-q('What should a staff member do when a spill creates a road hazard? / ماذا يفعل الموظف عندما يسبب انسكاب خطراً على الطريق؟',['Warn others, report it and follow the site response procedure / تحذير الآخرين والإبلاغ واتباع إجراء الاستجابة بالموقع','Walk through it to inspect it closely / المرور خلاله لفحصه عن قرب','Wash it away without knowing the substance / غسله دون معرفة المادة','Leave it for the next shift / تركه للمناوبة التالية']),
-q('Why should emergency routes remain clear? / لماذا يجب إبقاء مسارات الطوارئ خالية؟',['So emergency responders can reach the incident / لتمكين فرق الطوارئ من الوصول إلى الحادث','To provide extra staff parking / لتوفير مواقف إضافية للموظفين','To store inspection tools / لتخزين أدوات الفحص','To reduce visibility of signs / لتقليل وضوح اللافتات']),
-q('Which information belongs in a traffic incident report? / أي معلومات ينبغي إدراجها في تقرير حادث مروري؟',['Time, location, observed facts and actions taken / الوقت والموقع والحقائق الملحوظة والإجراءات المتخذة','Assumptions about motives / افتراضات حول الدوافع','Unconfirmed rumours / شائعات غير مؤكدة','Personal opinions presented as facts / آراء شخصية مقدمة كحقائق']),
-q('What should be done with incident details? / ماذا ينبغي فعله بتفاصيل الحادث؟',['Share them only with authorized people through approved channels / مشاركتها فقط مع الأشخاص المخولين عبر القنوات المعتمدة','Post them publicly for awareness / نشرها علناً للتوعية','Send them to all drivers / إرسالها إلى جميع السائقين','Change details to avoid concern / تغيير التفاصيل لتجنب القلق']),
-q('Why are agreed hand signals important? / لماذا تعد إشارات اليد المتفق عليها مهمة؟',['They reduce confusion between controllers and drivers / تقلل الالتباس بين المراقبين والسائقين','They remove the need for safe positioning / تلغي الحاجة إلى الوقوف الآمن','They allow several conflicting commands / تسمح بتوجيهات متعارضة متعددة','They replace all site procedures / تستبدل جميع إجراءات الموقع']),
-q('What should a controller do if a signal is misunderstood? / ماذا يفعل المراقب إذا أسيء فهم الإشارة؟',['Stop movement safely and clarify the instruction / إيقاف الحركة بأمان وتوضيح التوجيه','Repeat a different signal while traffic moves / إعطاء إشارة مختلفة أثناء حركة المرور','Assume the driver will correct it / افتراض أن السائق سيصحح الأمر','Move into the vehicle path / الانتقال إلى مسار المركبة']),
-q('Which communication is best during a busy traffic operation? / ما أفضل أسلوب للتواصل أثناء حركة مرور مزدحمة؟',['Short, clear instructions using the approved channel / تعليمات قصيرة وواضحة عبر القناة المعتمدة','Long messages with several meanings / رسائل طويلة ذات معانٍ متعددة','Unverified messages from bystanders / رسائل غير مؤكدة من المارة','Silence when a hazard appears / الصمت عند ظهور خطر']),
-q('What should be included in a shift handover? / ماذا يجب أن يتضمن تسليم المناوبة؟',['Active hazards, incidents, restrictions and pending actions / المخاطر القائمة والحوادث والقيود والإجراءات المعلقة','Only routine greetings / التحيات المعتادة فقط','Personal opinions without facts / آراء شخصية دون حقائق','No mention of temporary arrangements / عدم ذكر الترتيبات المؤقتة']),
-q('How should a damaged traffic control device be handled? / كيف يتم التعامل مع جهاز تحكم مروري تالف؟',['Report it and follow the approved control procedure / الإبلاغ عنه واتباع إجراء التحكم المعتمد','Keep using it without assessment / الاستمرار في استخدامه دون تقييم','Hide it from the next shift / إخفاؤه عن المناوبة التالية','Repair it without authorization / إصلاحه دون تصريح']),
-q('What should happen when traffic conditions change suddenly? / ماذا ينبغي عندما تتغير ظروف المرور فجأة؟',['Reassess the risk and apply approved controls / إعادة تقييم المخاطر وتطبيق الضوابط المعتمدة','Continue the old arrangement regardless / الاستمرار في الترتيب السابق مهما حدث','Remove barriers immediately / إزالة الحواجز فوراً','Wait until the shift ends to report it / الانتظار حتى نهاية المناوبة للإبلاغ']),
-q('Why is a risk assessment useful for traffic control? / لماذا يعد تقييم المخاطر مفيداً للتحكم المروري؟',['It helps identify hazards and choose suitable controls / يساعد في تحديد المخاطر واختيار الضوابط المناسبة','It guarantees no incidents can occur / يضمن عدم وقوع أي حوادث','It replaces training and procedures / يستبدل التدريب والإجراءات','It is only a record for visitors / هو مجرد سجل للزوار']),
-q('What should staff do if an area cannot be controlled safely? / ماذا يفعل الموظفون إذا تعذر التحكم في منطقة بأمان؟',['Pause the activity and escalate for safe support / تعليق النشاط والتصعيد للحصول على دعم آمن','Continue to avoid delays / الاستمرار لتجنب التأخير','Allow unrestricted access / السماح بالدخول دون قيود','Ignore warning signs / تجاهل علامات التحذير']),
-q('Why must traffic arrangements be consistent across shifts? / لماذا يجب أن تكون ترتيبات المرور متسقة بين المناوبات؟',['To ensure each team follows the same safe controls / لضمان اتباع كل فريق لضوابط السلامة نفسها','To prevent reporting changes / لمنع الإبلاغ عن التغييرات','To avoid briefing new staff / لتجنب إحاطة الموظفين الجدد','To remove responsibility / لإلغاء المسؤولية']),
-q('What is the best way to improve after a traffic incident? / ما أفضل طريقة للتحسين بعد حادث مروري؟',['Review verified facts and implement agreed corrective actions / مراجعة الحقائق المؤكدة وتنفيذ الإجراءات التصحيحية المتفق عليها','Delete the report when the road reopens / حذف التقرير عند فتح الطريق','Blame a person without evidence / إلقاء اللوم على شخص دون دليل','Ignore repeated warning signs / تجاهل علامات التحذير المتكررة'])
+  {
+    "q": "Why is site traffic control important? / لماذا تعتبر إدارة المرور بالموقع مهمة؟",
+    "a": [
+      "It supports safe movement of vehicles and pedestrians / يدعم الحركة الآمنة للمركبات والمشاة",
+      "It increases congestion / يزيد الازدحام",
+      "It removes signs / يزيل اللافتات",
+      "It stops all vehicles / يوقف جميع المركبات"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What areas can traffic duty include? / ما المناطق التي قد تشملها مهام المرور؟",
+    "a": [
+      "Intersections, gates and parking areas / التقاطعات والبوابات ومناطق المواقف",
+      "Only offices / المكاتب فقط",
+      "Only elevators / المصاعد فقط",
+      "Only warehouses / المستودعات فقط"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is a center roadway position good for? / لماذا يستخدم التمركز في وسط التقاطع؟",
+    "a": [
+      "It provides a full view of the intersection / يوفر رؤية كاملة للتقاطع",
+      "It is always the safest position / هو دائمًا الموقع الأكثر أمانًا",
+      "It is for parking only / يُستخدم للمواقف فقط",
+      "It is for fire inspection / يُستخدم لفحص الحريق"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "When may the center position be used? / متى يمكن استخدام التمركز في وسط التقاطع؟",
+    "a": [
+      "When signals are inoperative and speeds are low / عندما تكون الإشارات معطلة وتكون السرعات منخفضة",
+      "At all times / في جميع الأوقات",
+      "Only at night / ليلًا فقط",
+      "Only in parking lots / في مواقف السيارات فقط"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is an advantage of the corner position? / ما ميزة التمركز عند زاوية التقاطع؟",
+    "a": [
+      "Greater personal safety / مزيد من السلامة الشخصية",
+      "Less visibility / رؤية أقل",
+      "No control of traffic / عدم التحكم في المرور",
+      "Higher collision risk / ارتفاع خطر الاصطدام"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is one function of a STOP sign? / ما إحدى وظائف لوحة STOP؟",
+    "a": [
+      "Regulate vehicle flow / تنظيم حركة المركبات",
+      "Increase speed / زيادة السرعة",
+      "Hide intersections / إخفاء التقاطعات",
+      "Replace all officers / استبدال جميع رجال الأمن"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "When is a point-control officer needed? / متى يحتاج الموقع إلى رجل أمن للتحكم بالنقطة؟",
+    "a": [
+      "During construction, accidents, peak hours or congestion / أثناء أعمال الإنشاء أو الحوادث أو ساعات الذروة أو الازدحام",
+      "Only during lunch / أثناء الغداء فقط",
+      "Only when traffic is empty / عندما تكون حركة المرور خالية فقط",
+      "Never / أبدًا"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What does professional posture communicate? / ماذا توصل الوقفة المهنية؟",
+    "a": [
+      "That the officer is in command / أن رجل الأمن هو المسؤول",
+      "That the officer is off duty / أن رجل الأمن خارج الخدمة",
+      "That traffic is closed forever / أن المرور مغلق إلى الأبد",
+      "That no rules apply / أن القواعد لا تنطبق"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What should be worn for high visibility? / ماذا يجب ارتداؤه لرفع مستوى الوضوح البصري؟",
+    "a": [
+      "Reflective/high-visibility material / مواد عاكسة أو عالية الوضوح",
+      "Dark clothing only / ملابس داكنة فقط",
+      "No safety gear / دون معدات سلامة",
+      "Office shoes only / أحذية مكتبية فقط"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Why are clear hand signals important? / لماذا تعتبر إشارات اليد الواضحة مهمة؟",
+    "a": [
+      "They support prompt driver compliance / تساعد على امتثال السائقين بسرعة",
+      "They create confusion / تسبب الارتباك",
+      "They replace all signs / تستبدل جميع اللافتات",
+      "They stop pedestrians / توقف المشاة"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What should the officer maintain with the driver? / ما الذي يجب أن يحافظ عليه رجل الأمن مع السائق؟",
+    "a": [
+      "Comfortable eye contact / تواصل بصري مريح",
+      "No visibility / انعدام الرؤية",
+      "Continuous shouting / الصراخ المستمر",
+      "No communication / عدم التواصل"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "How is the STOP hand signal started? / كيف تبدأ إشارة إيقاف المرور باليد؟",
+    "a": [
+      "Look at and point to the selected driver / النظر إلى السائق المحدد والإشارة إليه",
+      "Turn away from traffic / الابتعاد عن حركة المرور",
+      "Close both eyes / إغلاق كلتا العينين",
+      "Walk behind the vehicle / المشي خلف المركبة"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Where should the palm face for a stop signal? / إلى أين تتجه راحة اليد عند إشارة التوقف؟",
+    "a": [
+      "Toward the driver / نحو السائق",
+      "Toward the ground / نحو الأرض",
+      "Toward the rear only / نحو الخلف فقط",
+      "Toward the officer's face / نحو وجه رجل الأمن"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Before starting waiting traffic, what should be checked? / ماذا يجب التأكد منه قبل بدء حركة المركبات المنتظرة؟",
+    "a": [
+      "That the intersection is clear / أن التقاطع خالٍ",
+      "That the parking lot is full / أن موقف السيارات ممتلئ",
+      "That all alarms are off / أن جميع الإنذارات متوقفة",
+      "That pedestrians are absent everywhere / عدم وجود مشاة في أي مكان"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What can help a slow driver respond? / ما الذي يمكن أن يساعد السائق البطيء على الاستجابة؟",
+    "a": [
+      "A clearer/faster decisive gesture / إشارة أو حركة أكثر وضوحًا وحسمًا وسرعة",
+      "Random shouting / الصراخ العشوائي",
+      "Turning away / الابتعاد",
+      "Removing all signs / إزالة جميع اللافتات"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is the whistle used for? / فيما تستخدم الصافرة؟",
+    "a": [
+      "Attracting attention and gaining compliance / جذب الانتباه والحصول على الامتثال",
+      "Starting a fire / إشعال حريق",
+      "Opening vehicles / فتح المركبات",
+      "Checking IDs / التحقق من الهويات"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What does one long whistle blast mean in the course? / ماذا تعني صفارة طويلة واحدة وفقاً للدورة؟",
+    "a": [
+      "STOP / توقف",
+      "START / ابدأ",
+      "TURN LEFT / انعطف يسارًا",
+      "PARK / اركن"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What should be avoided when directing traffic? / ما الذي يجب تجنبه عند توجيه المرور؟",
+    "a": [
+      "Complicated arm movements and shouting / حركات الذراع المعقدة والصراخ",
+      "Clear gestures / الإشارات الواضحة",
+      "Eye contact / التواصل البصري",
+      "Reflective clothing / الملابس العاكسة"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Why are shoulders aligned with traffic flow? / لماذا يجب أن تكون الكتفان موازيتين لتدفق المرور؟",
+    "a": [
+      "To support safe movement and response / لدعم الحركة والاستجابة الآمنة",
+      "To hide from drivers / الاختباء من السائقين",
+      "To increase confusion / زيادة الارتباك",
+      "To stop all pedestrians / إيقاف جميع المشاة"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is a key safety concern for a cold or wet officer? / ما أحد مخاطر رجل الأمن البارد أو المبتل؟",
+    "a": [
+      "Reduced safety for the officer and motorists / انخفاض مستوى السلامة لرجل الأمن وسائقي المركبات",
+      "Improved visibility / تحسن الرؤية",
+      "No risk / لا يوجد خطر",
+      "Better traffic flow automatically / تحسن حركة المرور تلقائيًا"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What does traffic separation help achieve? / ماذا يساعد فصل الحركة المرورية على تحقيقه؟",
+    "a": [
+      "Safer movement of different traffic types / حركة أكثر أمانًا لأنواع المرور المختلفة",
+      "More conflicts / مزيد من التعارضات",
+      "Less visibility / رؤية أقل",
+      "No organization / عدم وجود تنظيم"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is a traffic induction intended to do? / ما الهدف من الإيجاز التعريفي المروري؟",
+    "a": [
+      "Explain site traffic rules and arrangements / شرح قواعد المرور وترتيبات الموقع",
+      "Replace all signs / استبدال جميع اللافتات",
+      "Stop training / إيقاف التدريب",
+      "Remove barriers / إزالة الحواجز"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Why are parking rules important? / لماذا تعتبر قواعد المواقف مهمة؟",
+    "a": [
+      "They organize vehicle parking and movement / تنظيم مواقف المركبات وحركتها",
+      "They increase random parking / زيادة المواقف العشوائية",
+      "They remove access routes / إزالة مسارات الوصول",
+      "They stop all pedestrians / إيقاف جميع المشاة"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is traffic calming intended to reduce? / ما الذي تهدف تدابير تهدئة المرور إلى تقليله؟",
+    "a": [
+      "Vehicle speed and accidents / سرعة المركبات والحوادث",
+      "Safety / السلامة",
+      "Visibility / الرؤية",
+      "Communication / التواصل"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What can parking technologies support? / ماذا يمكن أن تدعم تقنيات إدارة المواقف؟",
+    "a": [
+      "Organized parking management / إدارة منظمة للمواقف",
+      "Fire growth / نمو الحريق",
+      "Crowd panic / هلع الحشد",
+      "Baggage searches / تفتيش الأمتعة"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is the role of a gate-duty officer? / ما دور رجل الأمن في واجب البوابة؟",
+    "a": [
+      "Control and direct site access and traffic / التحكم في دخول الموقع وحركة المرور وتوجيههما",
+      "Ignore vehicles / تجاهل المركبات",
+      "Repair engines / إصلاح المحركات",
+      "Run fire extinguishers / تشغيل طفايات الحريق"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Why should traffic officers be visible? / لماذا يجب أن يكون رجال المرور واضحين للسائقين؟",
+    "a": [
+      "To communicate commands safely / التواصل بالأوامر بأمان",
+      "To hide from traffic / الاختباء من حركة المرور",
+      "To reduce compliance / تقليل الامتثال",
+      "To avoid all communication / تجنب جميع أشكال التواصل"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What can improper hand signals cause? / ماذا قد تسبب إشارات اليد الخاطئة؟",
+    "a": [
+      "Confusion, hesitation and accidents / الارتباك والتردد والحوادث",
+      "Better traffic flow / تحسن حركة المرور",
+      "Automatic parking / إيقاف المواقف تلقائيًا",
+      "Fire suppression / إخماد الحريق"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What should the officer do when not signaling? / ماذا يفعل رجل الأمن عندما لا يعطي إشارة؟",
+    "a": [
+      "Stand facing traffic in the specified ready position / الوقوف في مواجهة حركة المرور في وضع الاستعداد المحدد",
+      "Turn his back to traffic / إدارة الظهر لحركة المرور",
+      "Sit in the roadway / الجلوس في الطريق",
+      "Leave the post / مغادرة الموقع"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "What is the overall aim of traffic control? / ما الهدف العام من التحكم في المرور؟",
+    "a": [
+      "Safe and orderly movement / حركة آمنة ومنظمة",
+      "Maximum congestion / أقصى قدر من الازدحام",
+      "Random vehicle movement / حركة عشوائية للمركبات",
+      "No pedestrian protection / عدم حماية المشاة"
+    ],
+    "correct": 0
+  }
 ];
 // Fail closed if an editor accidentally changes the approved self-study structure.
 const isValidQuestion=(item)=>item&&typeof item.q==='string'&&item.q.trim().length>0&&
