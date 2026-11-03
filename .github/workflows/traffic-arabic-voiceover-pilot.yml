@@ -1,6 +1,11 @@
 name: Traffic intro Arabic narration pilot
 
 on:
+  push:
+    branches:
+      - pilot/traffic-arabic-voiceover
+    paths:
+      - .github/workflows/traffic-arabic-voiceover-pilot.yml
   workflow_dispatch:
 
 permissions:
