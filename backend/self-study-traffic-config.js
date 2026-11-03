@@ -121,5 +121,20 @@ q('What should staff do if an area cannot be controlled safely? / ماذا يف�
 q('Why must traffic arrangements be consistent across shifts? / لماذا يجب أن تكون ترتيبات المرور متسقة بين المناوبات؟',['To ensure each team follows the same safe controls / لضمان اتباع كل فريق لضوابط السلامة نفسها','To prevent reporting changes / لمنع الإبلاغ عن التغييرات','To avoid briefing new staff / لتجنب إحاطة الموظفين الجدد','To remove responsibility / لإلغاء المسؤولية']),
 q('What is the best way to improve after a traffic incident? / ما أفضل طريقة للتحسين بعد حادث مروري؟',['Review verified facts and implement agreed corrective actions / مراجعة الحقائق المؤكدة وتنفيذ الإجراءات التصحيحية المتفق عليها','Delete the report when the road reopens / حذف التقرير عند فتح الطريق','Blame a person without evidence / إلقاء اللوم على شخص دون دليل','Ignore repeated warning signs / تجاهل علامات التحذير المتكررة'])
 ];
-if(TRAFFIC_SCREENS.length!==10||TRAFFIC_SCREENS.some(s=>!Array.isArray(s.questions)||s.questions.length!==5)||TRAFFIC_FINAL_ASSESSMENT.length!==30||TRAFFIC_FINAL_ASSESSMENT.some(x=>x.a.length!==4||new Set(x.a).size!==4||x.correct<0||x.correct>3))throw new Error('Traffic self-study content validation failed');
+// Fail closed if an editor accidentally changes the approved self-study structure.
+const isValidQuestion=(item)=>item&&typeof item.q==='string'&&item.q.trim().length>0&&
+  Array.isArray(item.a)&&item.a.length===4&&
+  item.a.every(answer=>typeof answer==='string'&&answer.trim().length>0)&&
+  new Set(item.a.map(answer=>answer.trim().toLowerCase())).size===4&&
+  Number.isInteger(item.correct)&&item.correct>=0&&item.correct<4;
+const screenIds=TRAFFIC_SCREENS.map(screen=>screen.id);
+const finalQuestionTexts=TRAFFIC_FINAL_ASSESSMENT.map(item=>item.q.trim().toLowerCase());
+if(TRAFFIC_SCREENS.length!==10||
+  new Set(screenIds).size!==10||
+  TRAFFIC_SCREENS.some(screen=>!screen.titleEn||!screen.titleAr||!screen.bodyEn||!screen.bodyAr||
+    !Array.isArray(screen.questions)||screen.questions.length!==5||screen.questions.some(item=>!isValidQuestion(item)))||
+  TRAFFIC_FINAL_ASSESSMENT.length!==30||
+  TRAFFIC_FINAL_ASSESSMENT.some(item=>!isValidQuestion(item))||
+  new Set(finalQuestionTexts).size!==30)
+  throw new Error('Traffic self-study content validation failed');
 module.exports={TRAFFIC_SLUG,TRAFFIC_META,TRAFFIC_SCREENS,TRAFFIC_FINAL_ASSESSMENT};
