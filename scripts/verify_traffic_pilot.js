@@ -27,6 +27,10 @@ const vtt = fs.readFileSync(path.join(root, 'frontend/assets/traffic-videos/00_c
 assert.ok(vtt.startsWith('WEBVTT'));
 assert.equal((vtt.match(/--> /g)||[]).length,5);
 const html=fs.readFileSync(path.join(root,'frontend/fire-safety-self-study.html'),'utf8');
+const vm = require('node:vm');
+const inlineScripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)].map(match=>match[1]).filter(Boolean);
+assert.ok(inlineScripts.length, 'course page missing inline JavaScript');
+for(const source of inlineScripts) new vm.Script(source, {filename:'fire-safety-self-study.html'});
 assert.ok(html.includes("courseSlug==='traffic-management-vehicle-control'"),'traffic UI guard missing');
 assert.ok(html.includes('traffic-body-ar')&&html.includes('traffic-body-en'),'language switch missing');
 assert.ok(html.includes('00_course_introduction.en.vtt'),'subtitle track missing');
