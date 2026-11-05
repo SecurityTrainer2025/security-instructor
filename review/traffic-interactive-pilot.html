@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SI | نموذج تدريب إدارة حركة المرور</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#eef3f7;background:#081725}*{box-sizing:border-box}body{margin:0}header{background:#102a43;border-bottom:3px solid #c8a96b;padding:16px max(16px,calc((100vw - 960px)/2))}header strong{color:#c8a96b;font-size:1.7rem}main{max-width:960px;margin:auto;padding:22px 16px}h1{font-size:1.5rem;color:#c8a96b}h2{font-size:1.2rem}p{line-height:1.8}.panel{border:1px solid #4a6375;background:#102a43;padding:20px;border-radius:14px;margin:18px 0}video{width:100%;max-height:500px;background:black;border-radius:10px}.progress{height:8px;background:#314b5f;border-radius:8px;overflow:hidden}.progress div{height:100%;background:#c8a96b;transition:width .2s}.question{margin:18px 0}.question fieldset{border:1px solid #547084;border-radius:10px;margin:12px 0;padding:12px}.question legend{font-weight:bold}.question label{display:block;padding:9px 6px;cursor:pointer}button{border:0;border-radius:9px;background:#c8a96b;color:#081725;padding:12px 18px;font-weight:bold;font-size:1rem;cursor:pointer;margin:8px 0}button:disabled{opacity:.4;cursor:not-allowed}.muted{color:#bdceda}.notice{padding:12px;border-radius:9px;background:#1c4152}.hidden{display:none}small{color:#bcd0db}#status{font-weight:bold}
+</style></head><body><header><strong>SI</strong> &nbsp; SECURITY INSTRUCTOR <small> | Interactive Traffic Training Pilot</small></header>
+<main><h1>إدارة حركة المرور والتحكم بالمركبات</h1><p class="muted">نموذج تجريبي للتعلم الذاتي — لا يُسجل بيانات شخصية، ولا يمنح شهادة، ولا يرتبط بنظام المنصة الرئيسي.</p>
+<div class="progress" aria-label="تقدم الدروس"><div id="bar" style="width:0%"></div></div><p id="counter"></p>
+<section class="panel"><h2 id="heading"></h2><video id="lessonVideo" controls preload="metadata" playsinline></video><p id="summary"></p><p class="muted">شاهد الفيديو ثم أجب عن الأسئلة الخمسة. مطلوب 4 إجابات صحيحة من 5 (80%) للانتقال.</p></section>
+<section class="panel"><h2>التحقق من الاستيعاب</h2><form id="quiz"></form><button id="check" type="button">تصحيح الإجابات</button><p id="status" role="status" aria-live="polite"></p><button id="next" class="hidden" type="button">الدرس التالي</button></section>
+</main>
+<script>
+'use strict';
+const lessons=[
+{title:'مقدمة إدارة حركة المرور',file:'00_course_introduction_narrated.mp4',summary:'الأولوية لحماية الأشخاص، وتنظيم حركة المركبات وفق خطة الموقع.',facts:[
+['ما الأولوية الأساسية لتنظيم حركة المرور؟','سلامة الأشخاص','زيادة سرعة المركبات','تقليل عدد الحراس'],
+['كيف تُدار حركة المركبات بالموقع؟','وفق خطة المرور المعتمدة','باجتهاد كل سائق','دون تنظيم'],
+['ما الإجراء الصحيح عند وجود مشاة؟','حمايتهم وفصل مساراتهم','زيادة سرعة المرور','تجاهل نقطة العبور'],
+['ما أهمية مسارات الطوارئ؟','إبقاؤها مفتوحة للاستجابة','استخدامها كمواقف','إغلاقها أثناء الازدحام'],
+['كيف يحمي الموظف نفسه؟','تجنب النقاط العمياء','الوقوف خلف مركبة متحركة','تجاهل تقييم المخاطر']]},
+{title:'تنظيم الدخول عند البوابات',file:'01_gate_access_narrated.mp4',summary:'التحقق من التصاريح والحفاظ على وضوح مسار الدخول.',facts:[
+['ماذا تتحقق منه عند البوابة؟','تصريح الدخول','لون المركبة فقط','موسيقى السائق'],
+['أي إجراء ينظم الدخول؟','اتباع إجراءات الموقع','السماح للجميع','إلغاء التفتيش المعتمد'],
+['كيف تحافظ على سلامة البوابة؟','إبقاء مسار الاقتراب واضحًا','إيقاف المركبات عشوائيًا','سد المخرج'],
+['عند عدم وضوح التصريح ماذا تفعل؟','تتبع إجراء التحقق المعتمد','تسمح بالمرور فورًا','تتجاهل المشكلة'],
+['ما الذي يجب تجنبه؟','إعاقة مسار الدخول والخروج','تنظيم الطابور','التحقق من الإذن']]},
+{title:'حماية المشاة وفصل المسارات',file:'02_pedestrian_separation_narrated.mp4',summary:'فصل مسارات المشاة وإيقاف المركبات قبل العبور.',facts:[
+['ماذا تفعل قبل عبور المشاة؟','إيقاف المركبات','تسريع المركبات','إلغاء نقطة العبور'],
+['ما الهدف من فصل المسارات؟','تقليل خطر التصادم','زيادة الازدحام','توفير مواقف'],
+['أي مرجع يحكم إجراءات العبور؟','خطة الموقع المعتمدة','رأي السائق وحده','العادات الشخصية'],
+['عند عبور المشاة ما الأولوية؟','حماية المشاة','سرعة المركبات','اختصار المسافة'],
+['كيف تُدار نقطة عبور؟','بتحكم واضح في حركة المركبات','بإشارات متضاربة','دون مراقبة']]},
+{title:'إدارة المواقف ومسارات الطوارئ',file:'03_parking_operations_narrated.mp4',summary:'تنظيم الوقوف مع منع إغلاق مسارات الاستجابة للطوارئ.',facts:[
+['أين يجب توجيه المركبات للوقوف؟','الأماكن المحددة','مسار الطوارئ','مخرج الإخلاء'],
+['كيف تُعامل مسارات الطوارئ؟','تُترك مفتوحة دائمًا','تُستخدم للانتظار','تُغلق وقت الذروة'],
+['ما الهدف من تنظيم المواقف؟','منع التعارض والعرقلة','إغلاق المداخل','زيادة المخاطر'],
+['عند وجود مركبة تسد الطوارئ ماذا تفعل؟','تتبع إجراء إزالة العائق المعتمد','تتجاهلها','تضيف مركبة أخرى'],
+['ما الإجراء غير المقبول؟','إعاقة وصول مركبات الاستجابة','تنظيم الوقوف','تحديد المسارات']]},
+{title:'الاستجابة الآمنة للحوادث',file:'04_incident_response_narrated.mp4',summary:'تأمين المكان دون التعرض للخطر وإبلاغ غرفة التحكم.',facts:[
+['ما الأولوية عند وقوع حادث؟','سلامة الأشخاص والمستجيب','التقاط الصور أولًا','استمرار المرور دون تقييم'],
+['لمن يُرفع البلاغ؟','غرفة التحكم حسب الإجراء','أي زائر','لا أحد'],
+['كيف تؤمّن المكان؟','دون تعريض نفسك للخطر','بالوقوف وسط حركة سريعة','بتجاهل المركبات'],
+['ما نوع المعلومات التي تُبلغ؟','حقائق دقيقة عن الحادث','تخمينات غير مؤكدة','شائعات'],
+['ما المرجع عند الاستجابة؟','خطة الطوارئ المعتمدة','التصرف الفردي فقط','تعليمات السائق']]},
+{title:'إشارات اليد والتواصل',file:'05_hand_signals_narrated.mp4',summary:'استخدام إشارات معتمدة وواضحة والتوقف عند سوء الفهم.',facts:[
+['أي إشارات تُستخدم؟','الإشارات المعتمدة','إشارات مرتجلة متضاربة','إشارات غير مرئية'],
+['إذا لم يفهم السائق الإشارة؟','أوقف الحركة بأمان','كرر الحركة بشكل عشوائي','اقترب من العجلات'],
+['ما صفة الإشارة الجيدة؟','واضحة للسائق','غامضة','متناقضة'],
+['ما هدف التواصل؟','توجيه آمن ومتوقع','إرباك السائق','زيادة السرعة'],
+['كيف تتصرف عند تعارض التعليمات؟','توقف واتبع إجراء الموقع','تخمن المقصود','تسمح بالمرور']]},
+{title:'التمركز الآمن وتقييم المخاطر',file:'06_risk_position_narrated.mp4',summary:'الوقوف في مكان مرئي وتجنب النقاط العمياء مع وجود مسار آمن للابتعاد.',facts:[
+['أين تتمركز؟','حيث يراك السائق','في النقطة العمياء','خلف مركبة ترجع'],
+['ما الذي يجب تجنبه؟','النقاط العمياء','الملابس المرئية','خطة الموقع'],
+['ما الذي يجب تحديده قبل العمل؟','مسار آمن للابتعاد','مكان لإخفاء الرؤية','أقصر طريق وسط المركبات'],
+['ما المرجع الأساسي للتمركز؟','تقييم المخاطر وخطة الموقع','التخمين','رغبة السائق'],
+['كيف تحافظ على سلامتك؟','بقاء مسافة آمنة ورؤية واضحة','الوقوف أمام مركبة تتحرك','تجاهل حركة المرور']]}
+];
+let index=0,passed=0,graded=false;
+const $=id=>document.getElementById(id);
+function shuffled(items,seed){const a=items.map((v,i)=>({v,i}));for(let i=a.length-1;i>0;i--){const j=(seed*37+i*17+i*i)% (i+1);[a[i],a[j]]=[a[j],a[i]];}return a}
+function render(){graded=false;const l=lessons[index];$('heading').textContent=l.title;$('counter').textContent='الدرس '+(index+1)+' من '+lessons.length;$('bar').style.width=(passed/lessons.length*100)+'%';$('lessonVideo').src=l.file;$('lessonVideo').load();$('summary').textContent=l.summary;$('status').textContent='';$('next').classList.add('hidden');$('check').disabled=false;const form=$('quiz');form.replaceChildren();l.facts.forEach(([q,...answers],qi)=>{const fs=document.createElement('fieldset'),legend=document.createElement('legend');legend.textContent=(qi+1)+'. '+q;fs.append(legend);shuffled(answers,index*23+qi*13+7).forEach(({v,i})=>{const label=document.createElement('label'),input=document.createElement('input');input.type='radio';input.name='q'+qi;input.value=String(i);label.append(input,document.createTextNode(' '+v));fs.append(label)});form.append(fs)})}
+$('check').addEventListener('click',()=>{if(graded)return;const form=$('quiz');let score=0;for(let i=0;i<5;i++){const answer=form.querySelector('input[name="q'+i+'"]:checked');if(!answer){$('status').textContent='أجب عن جميع الأسئلة الخمسة أولًا.';return}if(answer.value==='0')score++}if(score>=4){graded=true;passed=Math.max(passed,index+1);$('status').textContent='ناجح: '+score+'/5 ('+(score*20)+'%). يمكنك المتابعة.';$('next').classList.remove('hidden');$('next').textContent=index===lessons.length-1?'إنهاء النموذج':'الدرس التالي';$('check').disabled=true;$('bar').style.width=(passed/lessons.length*100)+'%'}else{$('status').textContent='النتيجة '+score+'/5 ('+(score*20)+'%). المطلوب 80%. راجع المحتوى وأعد المحاولة.'}});
+$('next').addEventListener('click',()=>{if(!graded)return;if(index<lessons.length-1){index++;render();window.scrollTo(0,0)}else{$('status').textContent='أكملت النموذج التجريبي بنجاح. لا تُصدر شهادة من هذه الصفحة.';$('next').classList.add('hidden')}});
+render();
+</script></body></html>
