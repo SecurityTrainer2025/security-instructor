@@ -54,9 +54,13 @@ async def main():
    voice=tmp/f'{i:02d}.mp3'
    await edge_tts.Communicate(speech,'ar-SA-HamedNeural',rate='+12%').save(str(voice))
    duration=probe(voice)
-   if not (0.5<duration<=19.5):raise RuntimeError(f'Scene {i+1} speech duration {duration:.2f}s exceeds 20s slot')
+   if not (0.5 < duration <= 24.0):
+    raise RuntimeError(f'Scene {i+1} narration duration {duration:.2f}s is outside safe adaptation range')
+   # Adjust only when necessary; atempo preserves pitch and avoids clipping speech.
+   tempo = max(1.0, duration / 18.5)
+   print(f'Scene {i+1}: original narration {duration:.2f}s, tempo {tempo:.3f}x')
    part=tmp/f'part{i:02d}.mp4'
-   subprocess.run(['ffmpeg','-y','-loglevel','error','-loop','1','-framerate','1','-i',str(pic),'-i',str(voice),'-filter_complex','[1:a]apad[a]','-map','0:v:0','-map','[a]','-c:v','libx264','-preset','veryfast','-pix_fmt','yuv420p','-r','2','-c:a','aac','-b:a','128k','-t','20','-movflags','+faststart',str(part)],check=True)
+   subprocess.run(['ffmpeg','-y','-loglevel','error','-loop','1','-framerate','1','-i',str(pic),'-i',str(voice),'-filter_complex',f'[1:a]atempo={tempo:.5f},apad[a]','-map','0:v:0','-map','[a]','-c:v','libx264','-preset','veryfast','-pix_fmt','yuv420p','-r','2','-c:a','aac','-b:a','128k','-t','20','-movflags','+faststart',str(part)],check=True)
    parts.append(part);print(f'Scene {i+1}: narration {duration:.2f}s')
   listing=tmp/'concat.txt';listing.write_text(''.join(f"file '{p}'\n" for p in parts))
   output=OUT/'01_foundations_extended_narrated.mp4'
