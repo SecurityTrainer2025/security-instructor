@@ -11,7 +11,7 @@ import edge_tts
 ROOT=Path(__file__).resolve().parents[1]
 VIDEO=ROOT/"frontend/assets/traffic-videos/00_course_introduction.mp4"
 OUT=ROOT/"frontend/assets/traffic-videos/00_course_introduction_narrated.mp4"
-VOICE="ar-EG-ShakirNeural"
+VOICE="ar-SA-HamedNeural"
 SCENES=[
 "أهلاً بكم في دورة إدارة حركة المرور. هدفنا الأول حماية الأشخاص وتنظيم حركة المركبات بصورة آمنة وواضحة.",
 "عند البوابات، تحقق من التصاريح وفق إجراءات الموقع المعتمدة، وحافظ على مسارات الدخول والخروج واضحة.",
