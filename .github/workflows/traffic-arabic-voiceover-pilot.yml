@@ -9,6 +9,8 @@ on:
       - scripts/build_traffic_lesson_voiceovers.py
       - review/traffic-voiceover-review.html
       - review/traffic-interactive-pilot.html
+      - review/traffic-module-01-enhanced.html
+      - scripts/build_traffic_module_01_extended.py
   workflow_dispatch:
 
 permissions:
@@ -30,13 +32,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
-          python -m pip install 'edge-tts>=6.1,<8'
+          python -m pip install 'edge-tts>=6.1,<8' pillow
       - name: Verify original video exists
         run: test -s frontend/assets/traffic-videos/00_course_introduction.mp4
       - name: Generate and validate narrated video
         run: python scripts/build_traffic_intro_voiceover.py
       - name: Generate six lesson narrations
         run: python scripts/build_traffic_lesson_voiceovers.py
+      - name: Build extended four-minute foundations module
+        run: python scripts/build_traffic_module_01_extended.py
       - name: Confirm audio track and duration
         run: |
           test -s frontend/assets/traffic-videos/00_course_introduction_narrated.mp4
@@ -46,7 +50,11 @@ jobs:
           mkdir -p /tmp/si-traffic-review
           cp review/traffic-voiceover-review.html /tmp/si-traffic-review/index.html
           cp review/traffic-interactive-pilot.html /tmp/si-traffic-review/interactive.html
+          cp review/traffic-module-01-enhanced.html /tmp/si-traffic-review/module-01.html
+          cp frontend/assets/traffic-videos/01_foundations_extended_en.vtt /tmp/si-traffic-review/
           cp frontend/assets/traffic-videos/*_narrated.mp4 /tmp/si-traffic-review/
+          test -s /tmp/si-traffic-review/01_foundations_extended_narrated.mp4
+          test -s /tmp/si-traffic-review/module-01.html
           test "$(find /tmp/si-traffic-review -name '*_narrated.mp4' | wc -l)" -eq 7
       - name: Upload review-only video
         uses: actions/upload-artifact@v4
