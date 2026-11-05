@@ -8,6 +8,7 @@ on:
       - .github/workflows/traffic-arabic-voiceover-pilot.yml
       - scripts/build_traffic_lesson_voiceovers.py
       - review/traffic-voiceover-review.html
+      - review/traffic-interactive-pilot.html
   workflow_dispatch:
 
 permissions:
@@ -44,6 +45,7 @@ jobs:
         run: |
           mkdir -p /tmp/si-traffic-review
           cp review/traffic-voiceover-review.html /tmp/si-traffic-review/index.html
+          cp review/traffic-interactive-pilot.html /tmp/si-traffic-review/interactive.html
           cp frontend/assets/traffic-videos/*_narrated.mp4 /tmp/si-traffic-review/
           test "$(find /tmp/si-traffic-review -name '*_narrated.mp4' | wc -l)" -eq 7
       - name: Upload review-only video
