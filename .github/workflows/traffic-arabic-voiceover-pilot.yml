@@ -13,6 +13,7 @@ on:
       - scripts/build_traffic_module_01_extended.py
       - scripts/build_traffic_module_02_extended.py
       - review/traffic-module-02-enhanced.html
+      - scripts/validate_traffic_review_bundle.py
   workflow_dispatch:
 
 permissions:
@@ -64,6 +65,8 @@ jobs:
           test -s /tmp/si-traffic-review/module-02.html
           test -s /tmp/si-traffic-review/02_gate_access_extended_narrated.mp4
           test "$(find /tmp/si-traffic-review -name '*_narrated.mp4' | wc -l)" -eq 9
+      - name: Validate bilingual interactive modules and review assets
+        run: python scripts/validate_traffic_review_bundle.py
       - name: Upload review-only video
         uses: actions/upload-artifact@v4
         with:
