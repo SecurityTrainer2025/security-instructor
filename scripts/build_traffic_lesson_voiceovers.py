@@ -10,7 +10,7 @@ import edge_tts
 
 ROOT = Path(__file__).resolve().parents[1]
 DIR = ROOT / "frontend/assets/traffic-videos"
-VOICE = "ar-EG-ShakirNeural"
+VOICE = "ar-SA-HamedNeural"
 ITEMS = [
     ("01_gate_access", "عند البوابة، راجع التصريح واتبع إجراءات الموقع. حافظ على مسار الدخول واضحًا."),
     ("02_pedestrian_separation", "أوقف المركبات قبل عبور المشاة. وافصل المسارات حسب خطة الموقع المعتمدة."),
