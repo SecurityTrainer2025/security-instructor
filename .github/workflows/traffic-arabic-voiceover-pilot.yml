@@ -55,7 +55,7 @@ jobs:
           cp frontend/assets/traffic-videos/*_narrated.mp4 /tmp/si-traffic-review/
           test -s /tmp/si-traffic-review/01_foundations_extended_narrated.mp4
           test -s /tmp/si-traffic-review/module-01.html
-          test "$(find /tmp/si-traffic-review -name '*_narrated.mp4' | wc -l)" -eq 7
+          test "$(find /tmp/si-traffic-review -name '*_narrated.mp4' | wc -l)" -eq 8
       - name: Upload review-only video
         uses: actions/upload-artifact@v4
         with:
