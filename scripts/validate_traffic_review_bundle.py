@@ -5,7 +5,8 @@ import subprocess
 root=Path('/tmp/si-traffic-review')
 for page,vid,cap in [
  ('module-01.html','01_foundations_extended_narrated.mp4','01_foundations_extended_en.vtt'),
- ('module-02.html','02_gate_access_extended_narrated.mp4','02_gate_access_extended_en.vtt')
+ ('module-02.html','02_gate_access_extended_narrated.mp4','02_gate_access_extended_en.vtt'),
+ ('module-03.html','03_pedestrian_safety_extended_narrated.mp4','03_pedestrian_safety_extended_en.vtt')
 ]:
  html=(root/page).read_text(encoding='utf-8')
  for needle in [vid,cap,'const options=[','const bank=[','score>=4','/']:
@@ -20,5 +21,6 @@ for page,vid,cap in [
  assert 238<=duration<=242,(vid,duration)
  print(f'PASS {page}: video {duration:.2f}s, captions, bilingual learning and quiz')
 assert 'module-02.html' in (root/'module-01.html').read_text(encoding='utf-8')
-assert len(list(root.glob('*_narrated.mp4')))==9,'Expected seven short videos and two extended modules'
+assert 'module-03.html' in (root/'module-02.html').read_text(encoding='utf-8')
+assert len(list(root.glob('*_narrated.mp4')))==10,'Expected seven short videos and three extended modules'
 print('PASS: offline Traffic pilot review bundle')
