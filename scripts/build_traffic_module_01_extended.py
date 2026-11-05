@@ -52,7 +52,7 @@ async def main():
   for i,(title,ar,en,speech) in enumerate(SCENES):
    pic=tmp/f'{i:02d}.png';slide(i,title,ar,en).save(pic)
    voice=tmp/f'{i:02d}.mp3'
-   await edge_tts.Communicate(speech,'ar-EG-ShakirNeural',rate='+18%').save(str(voice))
+   await edge_tts.Communicate(speech,'ar-SA-HamedNeural',rate='+12%').save(str(voice))
    duration=probe(voice)
    if not (0.5<duration<=19.5):raise RuntimeError(f'Scene {i+1} speech duration {duration:.2f}s exceeds 20s slot')
    part=tmp/f'part{i:02d}.mp4'
