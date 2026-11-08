@@ -16,6 +16,8 @@ on:
       - scripts/validate_traffic_review_bundle.py
       - scripts/build_traffic_module_03_extended.py
       - review/traffic-module-03-enhanced.html
+      - scripts/build_traffic_module_04_extended.py
+      - review/traffic-module-04-enhanced.html
   workflow_dispatch:
 
 permissions:
@@ -50,6 +52,8 @@ jobs:
         run: python scripts/build_traffic_module_02_extended.py
       - name: Build pedestrian safety four-minute narrated module
         run: python scripts/build_traffic_module_03_extended.py
+      - name: Build parking and emergency access four-minute narrated module
+        run: python scripts/build_traffic_module_04_extended.py
       - name: Confirm audio track and duration
         run: |
           test -s frontend/assets/traffic-videos/00_course_introduction_narrated.mp4
@@ -62,6 +66,8 @@ jobs:
           cp review/traffic-module-01-enhanced.html /tmp/si-traffic-review/module-01.html
           cp review/traffic-module-02-enhanced.html /tmp/si-traffic-review/module-02.html
           cp review/traffic-module-03-enhanced.html /tmp/si-traffic-review/module-03.html
+          cp review/traffic-module-04-enhanced.html /tmp/si-traffic-review/module-04.html
+          cp frontend/assets/traffic-videos/04_parking_emergency_extended_en.vtt /tmp/si-traffic-review/
           cp frontend/assets/traffic-videos/03_pedestrian_safety_extended_en.vtt /tmp/si-traffic-review/
           cp frontend/assets/traffic-videos/02_gate_access_extended_en.vtt /tmp/si-traffic-review/
           cp frontend/assets/traffic-videos/01_foundations_extended_en.vtt /tmp/si-traffic-review/
@@ -70,9 +76,11 @@ jobs:
           test -s /tmp/si-traffic-review/module-01.html
           test -s /tmp/si-traffic-review/module-02.html
           test -s /tmp/si-traffic-review/module-03.html
+          test -s /tmp/si-traffic-review/module-04.html
+          test -s /tmp/si-traffic-review/04_parking_emergency_extended_narrated.mp4
           test -s /tmp/si-traffic-review/03_pedestrian_safety_extended_narrated.mp4
           test -s /tmp/si-traffic-review/02_gate_access_extended_narrated.mp4
-          test "$(find /tmp/si-traffic-review -name '*_narrated.mp4' | wc -l)" -eq 10
+          test "$(find /tmp/si-traffic-review -name '*_narrated.mp4' | wc -l)" -eq 11
       - name: Validate bilingual interactive modules and review assets
         run: python scripts/validate_traffic_review_bundle.py
       - name: Upload review-only video
