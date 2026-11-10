@@ -17,6 +17,7 @@ on:
       - scripts/validate_traffic_ai_video_assets.py
       - scripts/build_traffic_ai_signal_narration.py
       - review/traffic-ai-audio-review.html
+      - scripts/validate_traffic_ai_audio_review.py
       - review/traffic-ai-video-production-brief.md
       - 'review/traffic-ai-captions/**'
       - scripts/build_traffic_module_03_extended.py
@@ -113,6 +114,8 @@ jobs:
         run: python scripts/validate_traffic_review_bundle.py
       - name: Validate AI production brief and six English subtitle drafts
         run: python scripts/validate_traffic_ai_video_assets.py
+      - name: Validate Arabic audio player and six narration scripts
+        run: python scripts/validate_traffic_ai_audio_review.py
       - name: Upload review-only video
         uses: actions/upload-artifact@v4
         with:
