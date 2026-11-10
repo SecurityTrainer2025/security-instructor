@@ -7,7 +7,8 @@ for page,vid,cap in [
  ('module-01.html','01_foundations_extended_narrated.mp4','01_foundations_extended_en.vtt'),
  ('module-02.html','02_gate_access_extended_narrated.mp4','02_gate_access_extended_en.vtt'),
  ('module-03.html','03_pedestrian_safety_extended_narrated.mp4','03_pedestrian_safety_extended_en.vtt'),
- ('module-04.html','04_parking_emergency_extended_narrated.mp4','04_parking_emergency_extended_en.vtt')
+ ('module-04.html','04_parking_emergency_extended_narrated.mp4','04_parking_emergency_extended_en.vtt'),
+ ('module-05.html','05_hand_signals_extended_narrated.mp4','05_hand_signals_extended_en.vtt')
 ]:
  html=(root/page).read_text(encoding='utf-8')
  for needle in [vid,cap,'const options=[','const bank=[','score>=4','/']:
@@ -24,5 +25,6 @@ for page,vid,cap in [
 assert 'module-02.html' in (root/'module-01.html').read_text(encoding='utf-8')
 assert 'module-03.html' in (root/'module-02.html').read_text(encoding='utf-8')
 assert 'module-04.html' in (root/'module-03.html').read_text(encoding='utf-8')
-assert len(list(root.glob('*_narrated.mp4')))==11,'Expected seven short videos and four extended modules'
+assert 'module-05.html' in (root/'module-04.html').read_text(encoding='utf-8')
+assert len(list(root.glob('*_narrated.mp4')))==12,'Expected seven short videos and five extended modules'
 print('PASS: offline Traffic pilot review bundle')
