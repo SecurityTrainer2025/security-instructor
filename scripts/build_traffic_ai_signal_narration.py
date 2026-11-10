@@ -35,8 +35,8 @@ async def main():
              "-af", "volumedetect", "-f", "null", "-"],
             capture_output=True, text=True, check=True
         )
-        mean = re.search(r"mean_volume:\\s*(-?[\\d.]+) dB", analysis.stderr)
-        peak = re.search(r"max_volume:\\s*(-?[\\d.]+) dB", analysis.stderr)
+        mean = re.search(r"mean_volume: *(-?[0-9.]+) dB", analysis.stderr)
+        peak = re.search(r"max_volume: *(-?[0-9.]+) dB", analysis.stderr)
         if not mean or not peak:
             raise RuntimeError(f"Could not inspect audio levels: {key}")
         mean_db, peak_db = float(mean.group(1)), float(peak.group(1))
