@@ -35,3 +35,22 @@ The available GitHub Actions workflow can build schematic narrated previews but 
 - Confirm face identity policy, hand motion and safety with user.
 - Produce other five; synchronize voice and captions using actual audio duration.
 - Integrate in review branch, run media QA and training review, then request explicit production release approval.
+
+## Approved editorial approach — 10 Nov 2026
+User delegated choice of the most suitable production method. Default: keep the original unaltered instructor photo in the introduction, and use a separate realistic consenting demonstrator for hand movements if facial fidelity cannot be preserved. No implication that the demonstrator is the instructor. First proof-of-concept remains **05-stop**. This delegation does **not** override the production-release gate or authorize purchasing subscriptions.
+
+### First video storyboard — 05-stop (target 60 seconds)
+- 00:00–00:06 — SI title card and original instructor photograph (unaltered pixels), identify as course instructor; no synthetic talking face.
+- 00:06–00:16 — wide establishing shot, trained demonstrator wearing reflective vest at controlled checkpoint, safe position and eye contact.
+- 00:16–00:30 — full-body front view: cross arms above head as shown in Figure 76, hold clearly; never cut off hands.
+- 00:30–00:40 — side view and driver's POV of the same signal, vehicle stops in controlled simulation.
+- 00:40–00:50 — close-up replay of the correct gesture and safe positioning; no mirrored shots.
+- 00:50–01:00 — short safety reminder: verify actual vehicle stop and halt operation if visual contact is lost.
+
+### Generation prompt (single realistic demonstrator, NOT the course instructor)
+Photorealistic safety training footage at a private industrial security checkpoint. A consenting adult traffic marshal demonstrator wearing navy security training clothes and a high-visibility vest stands to the side, outside the vehicle's swept path. Full body always visible, both arms and hands unobstructed. Demonstrate the **normal stop hand signal exactly as shown in the provided Security Operations Level 3 Figure 76: cross both arms overhead and hold**, without other gestures. One stationary camera wide shot; then a separate driver's point of view. A vehicle stops slowly in a controlled environment. Anatomically correct hands and elbows, realistic movement, no extra fingers, no camera mirroring, no police insignia, no invented SI emblem, no spoken words or on-screen captions. Generate separate short takes to be edited with approved Arabic narration. If gesture differs from reference, reject the clip.
+
+### Explicit stop conditions
+- If the provider cannot reproduce Figure 76 precisely, switch to a qualified filmed demonstrator rather than repeatedly accepting misleading AI gestures.
+- Do not claim a video exists unless a real MP4 has been generated and visually inspected.
+- Do not change main branch, existing five courses, course certificates, or live platform without explicit release approval.
