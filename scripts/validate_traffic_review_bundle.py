@@ -41,21 +41,22 @@ print('PASS: offline Traffic pilot review bundle')
 
 # Quiz integrity and genuine answer-order randomization checks (review-only).
 import re
+import tempfile
 for page in ['interactive.html'] + [f'module-0{i}.html' for i in range(1,6)]:
  html=(root/page).read_text(encoding='utf-8')
- assert 'Math.random()' in html, f'{page}: choice order must vary between attempts'
- assert 'seed*19' not in html and 'seed*37' not in html, f'{page}: deterministic shuffle remains'
- assert 'value===\'0\'' in html or "value==='0'" in html, f'{page}: answer keys missing'
+ assert 'Math.random()' in html, f'{page}: random choice order missing'
+ assert 'seed*19' not in html and 'seed*37' not in html, f'{page}: fixed choice order remains'
+ assert "value==='0'" in html, f'{page}: answer keys missing'
  assert 'score>=4' in html, f'{page}: 80% pass gate missing'
- scripts=re.findall(r'<script(?:\\s[^>]*)?>(.*?)</script>',html,flags=re.S|re.I)
- assert scripts, f'{page}: no inline script'
+ scripts=re.findall(r'<script[^>]*>(.*?)</script>', html, flags=re.S|re.I)
+ assert scripts, f'{page}: missing inline script'
  for script in scripts:
-  with __import__('tempfile').NamedTemporaryFile(mode='w',suffix='.js',encoding='utf-8') as tmp:
+  with tempfile.NamedTemporaryFile(mode='w',suffix='.js',encoding='utf-8') as tmp:
    tmp.write(script); tmp.flush()
    result=subprocess.run(['node','--check',tmp.name],capture_output=True,text=True)
    assert result.returncode==0, f'{page}: invalid JavaScript: {result.stderr}'
 pilot=(root/'interactive.html').read_text(encoding='utf-8')
-assert len(re.findall(r"\\{title:'",pilot))==7, 'Seven pilot lessons required'
-assert len(re.findall(r"summary:'",pilot))==7, 'Seven lesson summaries required'
-assert len(re.findall(r"\\['ما|\\['كيف|\\['أين|\\['أي|\\['عند|\\['ماذا|\\['لمن|\\['ما|\\['إذا|\\['من|\\['عند",pilot))>=30, 'Pilot questions appear incomplete'
-print('PASS: seven-lesson pilot structure, quiz gates, randomized answer choices and JS syntax')
+assert pilot.count("{title:'")==7, 'Seven pilot lessons required'
+assert pilot.count("summary:'")==7, 'Seven lesson summaries required'
+assert pilot.count("['")>=35, 'Pilot question bank appears incomplete'
+print('PASS: 7-lesson structure, 80-percent gate, randomized answer choices and JS syntax')
