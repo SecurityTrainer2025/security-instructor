@@ -20,6 +20,7 @@ on:
       - review/traffic-module-04-enhanced.html
       - scripts/build_traffic_module_05_extended.py
       - review/traffic-module-05-enhanced.html
+      - review/traffic-module-05-hand-signals-demo.html
   workflow_dispatch:
 
 permissions:
@@ -72,6 +73,7 @@ jobs:
           cp review/traffic-module-03-enhanced.html /tmp/si-traffic-review/module-03.html
           cp review/traffic-module-04-enhanced.html /tmp/si-traffic-review/module-04.html
           cp review/traffic-module-05-enhanced.html /tmp/si-traffic-review/module-05.html
+          cp review/traffic-module-05-hand-signals-demo.html /tmp/si-traffic-review/traffic-module-05-hand-signals-demo.html
           cp frontend/assets/traffic-videos/05_hand_signals_extended_en.vtt /tmp/si-traffic-review/
           cp frontend/assets/traffic-videos/04_parking_emergency_extended_en.vtt /tmp/si-traffic-review/
           cp frontend/assets/traffic-videos/03_pedestrian_safety_extended_en.vtt /tmp/si-traffic-review/
@@ -84,6 +86,7 @@ jobs:
           test -s /tmp/si-traffic-review/module-03.html
           test -s /tmp/si-traffic-review/module-04.html
           test -s /tmp/si-traffic-review/module-05.html
+          test -s /tmp/si-traffic-review/traffic-module-05-hand-signals-demo.html
           test -s /tmp/si-traffic-review/05_hand_signals_extended_narrated.mp4
           test -s /tmp/si-traffic-review/04_parking_emergency_extended_narrated.mp4
           test -s /tmp/si-traffic-review/03_pedestrian_safety_extended_narrated.mp4
