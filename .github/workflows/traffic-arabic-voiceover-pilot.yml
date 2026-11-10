@@ -14,6 +14,9 @@ on:
       - scripts/build_traffic_module_02_extended.py
       - review/traffic-module-02-enhanced.html
       - scripts/validate_traffic_review_bundle.py
+      - scripts/validate_traffic_ai_video_assets.py
+      - review/traffic-ai-video-production-brief.md
+      - 'review/traffic-ai-captions/**'
       - scripts/build_traffic_module_03_extended.py
       - review/traffic-module-03-enhanced.html
       - scripts/build_traffic_module_04_extended.py
@@ -94,6 +97,8 @@ jobs:
           test "$(find /tmp/si-traffic-review -name '*_narrated.mp4' | wc -l)" -eq 12
       - name: Validate bilingual interactive modules and review assets
         run: python scripts/validate_traffic_review_bundle.py
+      - name: Validate AI production brief and six English subtitle drafts
+        run: python scripts/validate_traffic_ai_video_assets.py
       - name: Upload review-only video
         uses: actions/upload-artifact@v4
         with:
