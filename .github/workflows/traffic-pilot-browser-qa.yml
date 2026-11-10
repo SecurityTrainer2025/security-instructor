@@ -1,0 +1,40 @@
+name: Traffic pilot real-browser QA (review only)
+
+on:
+  push:
+    branches:
+      - pilot/traffic-arabic-voiceover
+    paths:
+      - '.github/workflows/traffic-pilot-browser-qa.yml'
+      - 'scripts/traffic-browser.spec.cjs'
+      - 'review/traffic-interactive-pilot.html'
+      - 'review/traffic-module-0*-enhanced.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-traffic-review:
+    name: Desktop and mobile Chromium trainee journey
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test dependency
+        run: npm install --no-save --no-package-lock @playwright/test@1.58.2
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Exercise seven lessons and five module assessments in Chromium
+        run: npx playwright test scripts/traffic-browser.spec.cjs --reporter=line --workers=2
+      - name: Upload browser test evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traffic-browser-failure-evidence
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
