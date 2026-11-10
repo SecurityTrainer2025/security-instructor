@@ -2,6 +2,7 @@
 """Generate six Arabic audio review tracks for hand signals, without publishing."""
 import asyncio
 import subprocess
+import re
 from pathlib import Path
 import edge_tts
 
@@ -28,7 +29,20 @@ async def main():
         duration = float(p.stdout.strip())
         if not (8 < duration < 120):
             raise RuntimeError(f"Unusual narration length: {key}: {duration}")
-        print(f"PASS: {key} Arabic neural voice draft, {duration:.1f}s")
+        # File size and duration alone do not prove that speech is audible.
+        analysis = subprocess.run(
+            ["ffmpeg", "-hide_banner", "-nostats", "-i", str(target),
+             "-af", "volumedetect", "-f", "null", "-"],
+            capture_output=True, text=True, check=True
+        )
+        mean = re.search(r"mean_volume:\\s*(-?[\\d.]+) dB", analysis.stderr)
+        peak = re.search(r"max_volume:\\s*(-?[\\d.]+) dB", analysis.stderr)
+        if not mean or not peak:
+            raise RuntimeError(f"Could not inspect audio levels: {key}")
+        mean_db, peak_db = float(mean.group(1)), float(peak.group(1))
+        if mean_db < -45 or peak_db < -30:
+            raise RuntimeError(f"Audio appears too quiet: {key}, mean={mean_db} dB, peak={peak_db} dB")
+        print(f"PASS: {key} Arabic neural voice draft, {duration:.1f}s, mean={mean_db:.1f} dB, peak={peak_db:.1f} dB")
     assert len(list(OUT.glob("*.ar.mp3"))) == 6
 
 if __name__ == "__main__":
