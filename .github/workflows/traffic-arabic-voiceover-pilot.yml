@@ -16,6 +16,7 @@ on:
       - scripts/validate_traffic_review_bundle.py
       - scripts/validate_traffic_ai_video_assets.py
       - scripts/build_traffic_ai_signal_narration.py
+      - review/traffic-ai-audio-review.html
       - review/traffic-ai-video-production-brief.md
       - 'review/traffic-ai-captions/**'
       - scripts/build_traffic_module_03_extended.py
@@ -85,6 +86,7 @@ jobs:
           cp review/traffic-ai-audio/*.ar.mp3 /tmp/si-traffic-review/ai-audio/
           cp review/traffic-ai-captions/*.en.vtt /tmp/si-traffic-review/ai-video-captions/
           cp review/traffic-ai-video-production-brief.md /tmp/si-traffic-review/ai-video-production-brief.md
+          cp review/traffic-ai-audio-review.html /tmp/si-traffic-review/ai-audio-review.html
           cp frontend/assets/traffic-videos/05_hand_signals_extended_en.vtt /tmp/si-traffic-review/
           cp frontend/assets/traffic-videos/04_parking_emergency_extended_en.vtt /tmp/si-traffic-review/
           cp frontend/assets/traffic-videos/03_pedestrian_safety_extended_en.vtt /tmp/si-traffic-review/
@@ -101,6 +103,7 @@ jobs:
           test "$(find /tmp/si-traffic-review/ai-video-captions -name '*.en.vtt' | wc -l)" -eq 6
           test "$(find /tmp/si-traffic-review/ai-audio -name '*.ar.mp3' | wc -l)" -eq 6
           test -s /tmp/si-traffic-review/ai-video-production-brief.md
+          test -s /tmp/si-traffic-review/ai-audio-review.html
           test -s /tmp/si-traffic-review/05_hand_signals_extended_narrated.mp4
           test -s /tmp/si-traffic-review/04_parking_emergency_extended_narrated.mp4
           test -s /tmp/si-traffic-review/03_pedestrian_safety_extended_narrated.mp4
