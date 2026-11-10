@@ -26,5 +26,12 @@ assert 'module-02.html' in (root/'module-01.html').read_text(encoding='utf-8')
 assert 'module-03.html' in (root/'module-02.html').read_text(encoding='utf-8')
 assert 'module-04.html' in (root/'module-03.html').read_text(encoding='utf-8')
 assert 'module-05.html' in (root/'module-04.html').read_text(encoding='utf-8')
+hand_demo=root/'traffic-module-05-hand-signals-demo.html'
+assert hand_demo.is_file() and hand_demo.stat().st_size>0
+assert 'traffic-module-05-hand-signals-demo.html' in (root/'module-05.html').read_text(encoding='utf-8')
+demo=hand_demo.read_text(encoding='utf-8')
+for signal in ['forward','back','turn','leave','stop','emergency']:
+ assert signal in demo, f'Missing practical signal: {signal}'
+assert 'const poses=' in demo and 'phase=' in demo, 'Missing distinct motion sequences'
 assert len(list(root.glob('*_narrated.mp4')))==12,'Expected seven short videos and five extended modules'
 print('PASS: offline Traffic pilot review bundle')
