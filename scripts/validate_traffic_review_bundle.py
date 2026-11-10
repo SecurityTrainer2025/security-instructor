@@ -33,5 +33,7 @@ demo=hand_demo.read_text(encoding='utf-8')
 for signal in ['forward','back','turn','leave','stop','emergency']:
  assert signal in demo, f'Missing practical signal: {signal}'
 assert 'const poses=' in demo and 'phase=' in demo, 'Missing distinct motion sequences'
+assert 'const drills=' in demo and 'showDrill()' in demo, 'Missing bilingual signal recognition practice'
+assert 'id="practiceChoices"' in demo and 'id="practiceFeedback"' in demo, 'Missing accessible practice controls'
 assert len(list(root.glob('*_narrated.mp4')))==12,'Expected seven short videos and five extended modules'
 print('PASS: offline Traffic pilot review bundle')
