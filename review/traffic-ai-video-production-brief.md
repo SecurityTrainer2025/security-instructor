@@ -32,3 +32,11 @@ Create a realistic instructional video at a private facility checkpoint. A quali
 - External site generation: **not performed** (no authenticated browser access to There's An AI For That in this conversation).
 - Audio, video, captions, quality review: pending.
 - Production release: blocked pending QA and explicit approval.
+
+## Stable asset IDs (match audio, VTT, and QA)
+- `01-forward` — Figure 71, proceed slowly forward
+- `02-reverse` — Figure 72, reverse
+- `03-turn` — Figures 73–74, turn left/right
+- `04-exit` — Figure 75, clear to leave
+- `05-stop` — Figure 76, normal stop
+- `06-emergency` — Figure 77, emergency stop
