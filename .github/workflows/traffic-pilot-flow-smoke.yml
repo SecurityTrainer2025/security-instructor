@@ -1,0 +1,30 @@
+name: Traffic pilot trainee journey smoke test (review only)
+
+on:
+  push:
+    branches:
+      - pilot/traffic-arabic-voiceover
+    paths:
+      - '.github/workflows/traffic-pilot-flow-smoke.yml'
+      - 'scripts/test_traffic_pilot_flow.cjs'
+      - 'review/traffic-interactive-pilot.html'
+      - 'review/traffic-module-0*-enhanced.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-trainee-flow:
+    name: Seven lessons and five module quiz flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static JavaScript syntax check
+        run: node --check scripts/test_traffic_pilot_flow.cjs
+      - name: Exercise trainee flow in isolated mock DOM
+        run: node scripts/test_traffic_pilot_flow.cjs
