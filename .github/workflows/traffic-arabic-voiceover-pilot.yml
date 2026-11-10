@@ -15,6 +15,7 @@ on:
       - review/traffic-module-02-enhanced.html
       - scripts/validate_traffic_review_bundle.py
       - scripts/validate_traffic_media_tracks.py
+      - scripts/traffic-media-browser.spec.cjs
       - scripts/test_traffic_pilot_flow.cjs
       - scripts/validate_traffic_ai_video_assets.py
       - scripts/build_traffic_ai_signal_narration.py
@@ -36,8 +37,8 @@ permissions:
 
 jobs:
   generate-narration:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - name: Checkout pilot branch
         uses: actions/checkout@v4
@@ -122,6 +123,35 @@ jobs:
         run: python scripts/validate_traffic_ai_video_assets.py
       - name: Validate Arabic audio player and six narration scripts
         run: python scripts/validate_traffic_ai_audio_review.py
+      - name: Install browser media QA dependencies
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Browser-check videos and English captions in review bundle
+        run: |
+          python -m http.server 8765 --bind 127.0.0.1 --directory /tmp/si-traffic-review >/tmp/traffic-review-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" || true' EXIT
+          python - <<'PY'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  urllib.request.urlopen('http://127.0.0.1:8765/index.html', timeout=2)
+                  break
+              except Exception:
+                  time.sleep(0.5)
+          else:
+              raise SystemExit('Review-only localhost media server failed')
+          PY
+          npx playwright test scripts/traffic-media-browser.spec.cjs --reporter=line --workers=2
+      - name: Upload browser media QA evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traffic-media-browser-failure
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload review-only video
         uses: actions/upload-artifact@v4
         with:
