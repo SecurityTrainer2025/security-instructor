@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SI | مراجعة الفيديوهات البشرية لإشارات المرور</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;background:#081725;color:#eef4fa;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0}header{padding:22px max(16px,calc((100vw - 1050px)/2));background:#102a43;border-bottom:4px solid #c8a96b}
+h1{color:#e7c681;margin:0;font-size:1.55rem}h2{font-size:1.15rem;color:#e7c681}p{line-height:1.75}main{max-width:1050px;margin:auto;padding:16px}
+.note{background:#223b4c;padding:15px;border-right:4px solid #c8a96b;border-radius:9px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,295px),1fr));gap:16px}
+article{background:#102a43;border:1px solid #4d677b;border-radius:14px;padding:15px;min-width:0}
+video{width:100%;aspect-ratio:16/9;background:#020910;border-radius:9px}
+audio{width:100%;margin:8px 0}input[type=file]{display:block;width:100%;margin:8px 0;padding:10px;border:1px dashed #879daf;border-radius:6px}
+label{display:block;line-height:1.65;margin:10px 0}label:has(input[type=checkbox]){padding-inline-start:4px}
+input{accent-color:#c8a96b}
+button{background:#c8a96b;color:#081725;border:0;border-radius:8px;padding:11px 15px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+small,.muted{color:#c6d5df}code{color:#e3d2a9;overflow-wrap:anywhere}
+button.secondary{background:#29485e;color:#fff;border:1px solid #7692a4}
+.controls{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0}
+.checks{border-top:1px solid #577083;margin-top:12px}
+.status{min-height:2rem;font-weight:bold}
+.pass{color:#9adeb4}.blocked{color:#f3c79f}
+#summary{font-weight:bold}a{color:#e7c681}
+</style>
+</head>
+<body>
+<header><h1>SECURITY INSTRUCTOR | SI</h1><p>مراجعة الإشارات البشرية الواقعية / Real Human Hand-Signal Review</p></header>
+<main>
+<div class="note">
+<p><strong>هذه أداة مراجعة محلية فقط وليست أداة توليد فيديو.</strong> اختر MP4 مسجلاً أو مولداً لكل إشارة لمراجعته على جهازك، ولن يُرفع الملف إلى أي خادم. التسجيل الصوتي العربي اختياري للمقارنة. لا تعني النتيجة الآلية موافقة مدرب مؤهل أو السماح بالنشر.</p>
+<p class="muted">Use footage of a consenting adult. Compare motions with Security Operations Level 3 figures 71–77 AND the site's approved traffic plan. If gestures are inaccurate, mark the clip rejected. No certificate, trainee data or live deployment.</p>
+</div>
+<p id="summary" role="status" aria-live="polite"></p>
+<div id="cards" class="grid"></div>
+<div class="controls">
+<button id="export" type="button">تنزيل تقرير المراجعة / Export review</button>
+<button id="reset" type="button" class="secondary">مسح نتائج المراجعة / Reset</button>
+</div>
+<p class="muted">يتم حفظ الملاحظات النصية وخانات الفحص محليًا في هذه الصفحة أثناء فتحها فقط، ولا يتم حفظ الفيديوهات. The video files are never uploaded or stored by this tool.</p>
+</main>
+<script>
+'use strict';
+const signals=[
+{id:'01-forward',ar:'التقدم ببطء',en:'Slow forward',fig:'71',required:'Direction and both palms visible; movement toward head/chest.'},
+{id:'02-reverse',ar:'الرجوع للخلف',en:'Reverse',fig:'72',required:'Correct palm direction; demonstrator stays outside reversing path.'},
+{id:'03-turn',ar:'الانعطاف يسارًا ويمينًا',en:'Turn left and right',fig:'73–74',required:'Show BOTH directions correctly; never mirror the footage by accident.'},
+{id:'04-exit',ar:'السماح بالمغادرة',en:'Clear to leave',fig:'75',required:'Driver attention phase, then extend both arms toward designated exit.'},
+{id:'05-stop',ar:'التوقف العادي',en:'Normal stop',fig:'76',required:'Both forearms form an unmistakable X overhead, then hold.'},
+{id:'06-emergency',ar:'التوقف الطارئ',en:'Emergency stop',fig:'77',required:'Clasp hands overhead, then arms down/out, distinct from normal stop.'}
+];
+const marks=[
+['correct','الحركة مطابقة للشكل المرجعي وإجراءات الموقع / Exact gesture and site plan'],
+['hands','الذراعان واليدان ظاهرتان طوال الإشارة / Both arms/hands visible'],
+['safe','موضع آمن بعيد عن مسار المركبة / Safe position outside path'],
+['human','مدرب بشري واقعي وحركة طبيعية / Realistic consenting human demonstration'],
+['reviewed','مراجعة مدرب مؤهل موثقة / Qualified trainer has independently reviewed']
+];
+const state={};
+const nodes={};
+const cards=document.getElementById('cards');
+for(const s of signals){
+ const article=document.createElement('article');
+ const title=document.createElement('h2');
+ title.textContent=s.ar+' / '+s.en+' — Fig. '+s.fig;
+ const line=document.createElement('p');
+ line.className='muted';line.textContent=s.required;
+ const pickerLabel=document.createElement('label');
+ pickerLabel.textContent='اختر فيديو MP4 للمراجعة / Choose local MP4';
+ const picker=document.createElement('input');
+ picker.type='file';picker.accept='video/mp4,.mp4';picker.setAttribute('aria-label','MP4 '+s.en);
+ pickerLabel.append(picker);
+ const video=document.createElement('video');
+ video.controls=true;video.preload='metadata';video.playsInline=true;
+ const audioLabel=document.createElement('p');
+ audioLabel.className='muted';audioLabel.textContent='التعليق العربي الأصلي / Original Arabic narration';
+ const audio=document.createElement('audio');
+ audio.controls=true;audio.preload='none';audio.src='ai-audio/'+s.id+'.ar.mp3';
+ const checks=document.createElement('div');checks.className='checks';
+ const inputs={};
+ for(const [key,txt] of marks){
+  const label=document.createElement('label'),box=document.createElement('input');
+  box.type='checkbox';box.setAttribute('aria-label',txt);
+  label.append(box,document.createTextNode(' '+txt));
+  checks.append(label);inputs[key]=box;
+ }
+ const comments=document.createElement('textarea');
+ comments.rows=3;comments.style.cssText='width:100%;background:#081725;color:white;border:1px solid #8096a7;padding:9px;border-radius:6px';
+ comments.placeholder='ملاحظات المراجع / Reviewer notes';
+ comments.setAttribute('aria-label','Reviewer notes '+s.en);
+ const status=document.createElement('p');status.className='status blocked';status.setAttribute('aria-live','polite');
+ const player={picker,video,inputs,comments,status,loaded:false,url:null,filename:''};
+ nodes[s.id]=player;
+ picker.addEventListener('change',()=>{
+  if(player.url) URL.revokeObjectURL(player.url);
+  player.url=null;player.loaded=false;player.filename='';
+  video.removeAttribute('src');video.load();
+  const file=picker.files&&picker.files[0];
+  if(file&&(/\.mp4$/i.test(file.name)||file.type==='video/mp4')){
+    player.url=URL.createObjectURL(file);player.filename=file.name;video.src=player.url;video.load();
+  }
+  update(s.id);
+ });
+ video.addEventListener('loadedmetadata',()=>{player.loaded=Number.isFinite(video.duration)&&video.duration>1&&video.videoWidth>=320;update(s.id);});
+ video.addEventListener('error',()=>{player.loaded=false;update(s.id);});
+ for(const box of Object.values(inputs))box.addEventListener('change',()=>update(s.id));
+ comments.addEventListener('input',()=>update(s.id));
+ article.append(title,line,pickerLabel,video,audioLabel,audio,checks,comments,status);
+ cards.append(article);
+ state[s.id]={};
+ update(s.id);
+}
+function update(id){
+ const x=nodes[id],all=Object.values(x.inputs).every(input=>input.checked);
+ const approved=Boolean(x.loaded&&all);
+ state[id]={id,filename:x.filename||'',videoLoaded:x.loaded,checks:Object.fromEntries(Object.entries(x.inputs).map(([k,v])=>[k,v.checked])),notes:x.comments.value||'',eligibleForHumanSignoff:approved,qualifiedTrainerNameNotRecorded:true};
+ x.status.className='status '+(approved?'pass':'blocked');
+ x.status.textContent=approved?'جاهز لرفع التقرير إلى مدرب الاعتماد / Ready for independent trainer sign-off':'غير معتمد: فيديو صالح + خمس نقاط تحقق مطلوبة / BLOCKED: valid footage and five checks required';
+ const count=signals.filter(s=>state[s.id]&&state[s.id].eligibleForHumanSignoff).length;
+ document.getElementById('summary').textContent='مؤهل للمراجعة النهائية: '+count+' / 6 — لا يعتمد النشر تلقائيًا / Never automatically published';
+}
+document.getElementById('export').addEventListener('click',()=>{
+ const report={course:'SI Site Traffic Control',reviewOnly:true,releaseApproved:false,reviewedAt:new Date().toISOString(),records:signals.map(s=>({...state[s.id],signal:s.en,referenceFigure:s.fig}))};
+ const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='SI_Traffic_Real_Video_Review.json';document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+});
+document.getElementById('reset').addEventListener('click',()=>{
+ for(const s of signals){
+  const x=nodes[s.id];
+  if(x.url)URL.revokeObjectURL(x.url);
+  x.url=null;x.loaded=false;x.filename='';x.picker.value='';
+  x.video.removeAttribute('src');x.video.load();
+  for(const box of Object.values(x.inputs))box.checked=false;
+  x.comments.value='';update(s.id);
+ }
+});
+window.addEventListener('pagehide',()=>{for(const x of Object.values(nodes))if(x.url)URL.revokeObjectURL(x.url);});
+</script>
+</body>
+</html>
