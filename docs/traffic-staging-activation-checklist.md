@@ -57,6 +57,15 @@
 - No POST, registration, email, database modification, certificate issue, or production deployment was executed.
 - Access to Render application-management actions is not currently exposed via the available account tools, even though Render was connected; confirm the actual staging service and deployment configuration through an available management interface before any rollout.
 
+## Live Render staging readiness — 12 November 2026 (follow-up)
+- Render service `si-avs-staging-test` is a **separate service** from production `security-instructor`. Its private runtime log reports the connected MongoDB database name as `security_instructor_staging`. This proves the connected database **name**; the actual production MongoDB database name and connection details were not independently compared, so do not claim complete credential/cluster isolation.
+- The QA-tested self-study routes were selectively deployed to staging branch `feat/self-study-traffic-course` (commit `9ca44d4baeb91206c329f3f4590be8e03e4a143f`), without modifying `main`.
+- Dedicated staging environment keys were set with `SI_DEPLOYMENT_ENV=staging`, `SI_TRAFFIC_STAGING_DB_NAME=security_instructor_staging`, `TRAFFIC_PILOT_ENABLED=false`, `TRAFFIC_CERTIFICATES_ENABLED=false`. These safeguards are **OFF by default**, and UI config still has empty staging API.
+- Render deploy `dep-dbqt435g1s2s73bc49qg` is `live`.
+- [GitHub read-only run #43241446516](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43241446516) **passed**: backend health **HTTP 200**, Traffic catalog **HTTP 404** (correctly hidden), Traffic registration and learner HTML **HTTP 200**, and disabled configuration **HTTP 200**.
+- The learner page now displays a clearly labeled safe preview rather than the confusing 'Access unavailable' message.
+- **No real trainee registration, email, QR or certificate test has been completed.** Do not enable enrollment or launch the course until real staged end-to-end and qualified hand-signal safety review are complete.
+
 ## Existing risks kept blocked
 - The staging branch modifies `backend/self-study-routes.js`; do not squash/merge into production until full staging regression and deployment isolation have been verified.
 - Do not assume the existing Fire Safety certificate flow automatically supports the new course code or QR.
