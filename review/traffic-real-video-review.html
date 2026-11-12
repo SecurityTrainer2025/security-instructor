@@ -29,7 +29,7 @@ button.secondary{background:#29485e;color:#fff;border:1px solid #7692a4}
 <header><h1>SECURITY INSTRUCTOR | SI</h1><p>مراجعة الإشارات البشرية الواقعية / Real Human Hand-Signal Review</p></header>
 <main>
 <div class="note">
-<p><strong>هذه أداة مراجعة محلية فقط وليست أداة توليد فيديو.</strong> اختر MP4 مسجلاً أو مولداً لكل إشارة لمراجعته على جهازك، ولن يُرفع الملف إلى أي خادم. التسجيل الصوتي العربي اختياري للمقارنة. لا تعني النتيجة الآلية موافقة مدرب مؤهل أو السماح بالنشر.</p>
+<p><strong>هذه أداة مراجعة محلية فقط وليست أداة توليد فيديو.</strong> اختر MP4 مسجلاً أو مولداً لكل إشارة لمراجعته على جهازك، ولن يُرفع الملف إلى أي خادم. للمقارنة بالتعليق الصوتي العربي يمكنك اختيار ملف MP3 من جهازك؛ لن يُرفع أي ملف إلى الخادم. لا تعني النتيجة الآلية موافقة مدرب مؤهل أو السماح بالنشر.</p>
 <p class="muted">Use footage of a consenting adult. Compare motions with Security Operations Level 3 figures 71–77 AND the site's approved traffic plan. If gestures are inaccurate, mark the clip rejected. No certificate, trainee data or live deployment.</p>
 </div>
 <p id="summary" role="status" aria-live="polite"></p>
@@ -74,9 +74,12 @@ for(const s of signals){
  const video=document.createElement('video');
  video.controls=true;video.preload='metadata';video.playsInline=true;
  const audioLabel=document.createElement('p');
- audioLabel.className='muted';audioLabel.textContent='التعليق العربي الأصلي / Original Arabic narration';
+ audioLabel.className='muted';audioLabel.textContent='اختياري: اختر الصوت العربي MP3 من جهازك / Optional: choose local Arabic MP3';
+ const audioPicker=document.createElement('input');
+ audioPicker.type='file';audioPicker.accept='audio/mpeg,.mp3';
+ audioPicker.setAttribute('aria-label','Arabic MP3 '+s.en);
  const audio=document.createElement('audio');
- audio.controls=true;audio.preload='none';audio.src='ai-audio/'+s.id+'.ar.mp3';
+ audio.controls=true;audio.preload='none';
  const checks=document.createElement('div');checks.className='checks';
  const inputs={};
  for(const [key,txt] of marks){
@@ -90,7 +93,7 @@ for(const s of signals){
  comments.placeholder='ملاحظات المراجع / Reviewer notes';
  comments.setAttribute('aria-label','Reviewer notes '+s.en);
  const status=document.createElement('p');status.className='status blocked';status.setAttribute('aria-live','polite');
- const player={picker,video,inputs,comments,status,loaded:false,url:null,filename:''};
+ const player={picker,video,audioPicker,audio,audioUrl:null,inputs,comments,status,loaded:false,url:null,filename:''};
  nodes[s.id]=player;
  picker.addEventListener('change',()=>{
   if(player.url) URL.revokeObjectURL(player.url);
@@ -102,11 +105,21 @@ for(const s of signals){
   }
   update(s.id);
  });
+ audioPicker.addEventListener('change',()=>{
+  if(player.audioUrl) URL.revokeObjectURL(player.audioUrl);
+  player.audioUrl=null;
+  audio.removeAttribute('src');audio.load();
+  const file=audioPicker.files&&audioPicker.files[0];
+  if(file&&(/\.mp3$/i.test(file.name)||file.type==='audio/mpeg')){
+   player.audioUrl=URL.createObjectURL(file);
+   audio.src=player.audioUrl;audio.load();
+  }
+ });
  video.addEventListener('loadedmetadata',()=>{player.loaded=Number.isFinite(video.duration)&&video.duration>1&&video.videoWidth>=320;update(s.id);});
  video.addEventListener('error',()=>{player.loaded=false;update(s.id);});
  for(const box of Object.values(inputs))box.addEventListener('change',()=>update(s.id));
  comments.addEventListener('input',()=>update(s.id));
- article.append(title,line,pickerLabel,video,audioLabel,audio,checks,comments,status);
+ article.append(title,line,pickerLabel,video,audioLabel,audioPicker,audio,checks,comments,status);
  cards.append(article);
  state[s.id]={};
  update(s.id);
@@ -131,13 +144,20 @@ document.getElementById('reset').addEventListener('click',()=>{
  for(const s of signals){
   const x=nodes[s.id];
   if(x.url)URL.revokeObjectURL(x.url);
+  if(x.audioUrl)URL.revokeObjectURL(x.audioUrl);
+  x.audioUrl=null;x.audioPicker.value='';x.audio.removeAttribute('src');x.audio.load();
   x.url=null;x.loaded=false;x.filename='';x.picker.value='';
   x.video.removeAttribute('src');x.video.load();
   for(const box of Object.values(x.inputs))box.checked=false;
   x.comments.value='';update(s.id);
  }
 });
-window.addEventListener('pagehide',()=>{for(const x of Object.values(nodes))if(x.url)URL.revokeObjectURL(x.url);});
+window.addEventListener('pagehide',()=>{
+ for(const x of Object.values(nodes)){
+  if(x.url)URL.revokeObjectURL(x.url);
+  if(x.audioUrl)URL.revokeObjectURL(x.audioUrl);
+ }
+});
 </script>
 </body>
 </html>
