@@ -8,6 +8,9 @@ targets=[
   ("frontend_learner","https://si-staging-ui.onrender.com/traffic-self-study.html"),
   ("frontend_registration","https://si-staging-ui.onrender.com/traffic-self-study-register.html"),
   ("frontend_config","https://si-staging-ui.onrender.com/traffic-staging-config.js"),
+  ("frontend_certificate","https://si-staging-ui.onrender.com/traffic-certificate.html"),
+  ("frontend_verification","https://si-staging-ui.onrender.com/traffic-verify.html"),
+  ("unknown_traffic_certificate","https://si-avs-staging-test.onrender.com/api/verify/traffic-staging-certificate?id=SI-CERT-2026-NOTEXIST12345"),
 ]
 allowed={"si-avs-staging-test.onrender.com","si-staging-ui.onrender.com"}
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -32,10 +35,17 @@ for name,url in targets:
             result["expected_traffic_page"]="Traffic Control Self-Study" in body and "STAGING_READY" in body
         if result["reachable"] and name=="frontend_registration":
             result["expected_traffic_page"]="Traffic Control Self-Study Registration" in body and "STAGING_READY" in body
+        if result["reachable"] and name=="frontend_certificate":
+            result["expected_traffic_page"]="Traffic Staging Certificate" in body and "traffic-staging-certificate" in body
+        if result["reachable"] and name=="frontend_verification":
+            result["expected_traffic_page"]="Traffic Certificate Verification" in body and "traffic-staging-certificate" in body
         result["detail"]="Response and preview safety guard inspected; does not certify staging MongoDB separation or QR."
     except urllib.error.HTTPError as e:
         result["http_status"]=e.code
-        if name=="backend_catalog" and e.code==404:
+        if name=="unknown_traffic_certificate" and e.code==404:
+            result["unknown_rejected_as_expected"]=True
+            result["detail"]="Nonexistent Traffic staging certificate rejected without creation."
+        elif name=="backend_catalog" and e.code==404:
             result["disabled_as_expected"]=True
             result["detail"]="Traffic course is correctly hidden while rollout flag is OFF."
         else:
@@ -51,6 +61,7 @@ print("REPORT "+str(p))
 by_name={r["target"]:r for r in results}
 assert by_name["backend_health"]["http_status"]==200, "Staging backend health failed"
 assert by_name["backend_catalog"].get("disabled_as_expected") is True, "Traffic course must remain hidden until approved"
-assert all(by_name[n].get("expected_traffic_page") is True for n in ("frontend_learner","frontend_registration")), "Traffic HTML mismatch"
+assert all(by_name[n].get("expected_traffic_page") is True for n in ("frontend_learner","frontend_registration","frontend_certificate","frontend_verification")), "Traffic HTML mismatch"
+assert by_name["unknown_traffic_certificate"].get("unknown_rejected_as_expected") is True, "Unknown Traffic certificate must 404"
 assert by_name["frontend_config"].get("registration_safely_disabled") is True, "Frontend registration must remain off"
-print("PASS: staging backend healthy, Traffic catalog hidden, review pages live, registration disabled, no writes")
+print("PASS: staging backend healthy, Traffic catalog hidden, preview and certificate pages live, unknown certificate rejected, registration disabled, no writes")
