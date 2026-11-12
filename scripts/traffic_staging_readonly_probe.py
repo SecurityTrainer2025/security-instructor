@@ -5,6 +5,8 @@ from urllib.parse import urlsplit
 targets=[
   ("backend_catalog","https://si-avs-staging-test.onrender.com/api/self-study/courses/traffic-management-vehicle-control"),
   ("frontend_learner","https://si-staging-ui.onrender.com/traffic-self-study.html"),
+  ("frontend_registration","https://si-staging-ui.onrender.com/traffic-self-study-register.html"),
+  ("frontend_config","https://si-staging-ui.onrender.com/traffic-staging-config.js"),
 ]
 allowed={"si-avs-staging-test.onrender.com","si-staging-ui.onrender.com"}
 class NoRedirect(urllib.request.HTTPRedirectHandler):
