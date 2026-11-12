@@ -24,7 +24,7 @@ const collections={
     updateOne:async(query,change)=>{touched.push(['selfstudyaccess',change]);Object.assign(access,change.$set||{});return{modifiedCount:1}}
   },
   enrollments:{
-    updateOne:async()=>{throw Error('Unexpected certificate/enrollment mutation during negative assessment QA')}
+    updateOne:async(query,change)=>{touched.push(['enrollments',change]);return{modifiedCount:1}}
   }
 };
 const mockedMongoose={connection:{collection:name=>{
@@ -133,8 +133,32 @@ async function run(){
   assert.equal(resp.data.attemptsRemaining,0);
   resp=await call('POST','/api/self-study/final-assessment',{body:{answers:TRAFFIC_FINAL_ASSESSMENT.map(q=>choose(q,true))}});
   assert.equal(resp.code,403,'Traffic final retake limit must stop third attempt');
+  // Simulate a new Traffic learner who has mastered every screen and passes 21/30.
+  // The mocked certificate module proves the ID is retained without issuing a real certificate.
+  access={...access,progress:{...access.progress,finalAttempts:0,finalPassed:false,finalScores:[],certificateId:null}};
+  let issued=[];
+  Module._load=function(request,parent,isMain){
+    if(request==='./training-certificate-routes.js')return{issueForEnrollment:async enrollmentId=>{
+      issued.push(enrollmentId);
+      return {certificateId:'SI-TRAFFIC-MOCK-CERT-1'};
+    }};
+    return originalLoad.call(this,request,parent,isMain);
+  };
+  try{
+    resp=await call('POST','/api/self-study/final-assessment',{
+      body:{answers:TRAFFIC_FINAL_ASSESSMENT.map((q,i)=>choose(q,i<21))}
+    });
+  }finally{Module._load=originalLoad}
+  assert.equal(resp.code,200);
+  assert.equal(resp.data.score,70);
+  assert.equal(resp.data.passed,true);
+  assert.equal(resp.data.certificateId,'SI-TRAFFIC-MOCK-CERT-1');
+  assert.deepEqual(issued,['ENR-TRAFFIC-TEST']);
+  assert.equal(access.progress.certificateId,'SI-TRAFFIC-MOCK-CERT-1','Traffic certificate must persist in progress after issuing');
+  resp=await call('GET','/api/self-study/me');
+  assert.equal(resp.data.certificateId,'SI-TRAFFIC-MOCK-CERT-1');
   const trafficProgress=access.progress;
-  // Regression: unchanged legacy Fire Safety still exposes 70 screens and three final attempts.
+  // Regression: unchanged legacy Fire Safety still exposes 67 screens and three final attempts.
   access={...access,courseSlug:FIRE_SLUG,progress:{...trafficProgress,screenScores:{},finalAttempts:0,finalScores:[],finalPassed:false}};
   resp=await call('GET','/api/self-study/me');
   assert.equal(resp.code,200);
@@ -142,7 +166,7 @@ async function run(){
   assert.equal(resp.data.attemptsRemaining,3,'Fire Safety must retain 3 attempts');
   resp=await call('GET','/api/self-study/screens/:screenId',{params:{screenId:trafficFirst.id}});
   assert.equal(resp.code,404,'Fire learner must not see Traffic screen');
-  assert.ok(touched.every(item=>item[0]==='selfstudyaccess'),'Unexpected database mutation');
-  console.log('PASS: Fire 67 screens; Traffic 10; user isolation; 80% gating; 30-question exam; Traffic 2 attempts; Fire 3 attempts; no real DB/email/certificate writes');
+  assert.equal(touched.filter(item=>item[0]==='enrollments').length,1,'Only the mocked passing learner enrollment may be updated');
+  console.log('PASS: Fire 67 screens; Traffic 10; user isolation; 80% gating; 30-question exam; Traffic 2 attempts; Fire 3 attempts; mock 70% certificate persistence; no live DB/email/certificate writes');
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
