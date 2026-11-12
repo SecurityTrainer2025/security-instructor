@@ -75,11 +75,32 @@ function showResult(html){const r=document.getElementById('result');r.innerHTML=
 async function showCompletion(){
  try{
   me=await api('/api/self-study/me');renderModules();
+  if(!me.feedbackSubmitted){await showTrafficFeedback();return}
   if(me.finalPassed){showFinalResult({passed:true,score:me.finalBestScore,certificateId:me.certificateId});return}
   const d=await api('/api/self-study/final-assessment');
   document.getElementById('content').innerHTML='<div class="kicker">LEARNING PHASE COMPLETE</div><h1>Final Assessment</h1><div class="body">You have completed the required learning screens. The final assessment has 30 questions. Pass mark: 70%. You have up to 2 total attempts (1 retake).</div><div class="body ar">لقد أكملت شاشات التعلم المطلوبة. يتكون الاختبار النهائي من 30 سؤالًا. درجة النجاح: 70٪. لديك محاولتان إجمالًا (محاولة أساسية وإعادة واحدة).</div><div class="notice" style="background:#132a3d;border-color:#627386;color:#DDE5EB">Attempts remaining: <strong>'+d.attemptsRemaining+'</strong> / المحاولات المتبقية: <strong>'+d.attemptsRemaining+'</strong></div><div class="actions"><button class="btn" id="startFinal">Start Final Assessment / بدء الاختبار النهائي</button></div><div id="result" class="result"></div>';
   document.getElementById('startFinal').onclick=()=>renderFinalAssessment(d);
  }catch(e){document.getElementById('content').innerHTML='<div class="kicker">FINAL ASSESSMENT</div><h1>Unavailable</h1><div class="body">'+esc(e.message)+'</div>'}
+}
+async function showTrafficFeedback(){
+ try{
+  const data=await api('/api/self-study/traffic-feedback');
+  if(data.submitted){me=await api('/api/self-study/me');return showCompletion()}
+  const options=[1,2,3,4,5];
+  let html='<div class="kicker">COURSE FEEDBACK / تقييم الدورة</div><h1>Course Feedback / التغذية الراجعة</h1><p class="body">Please answer ten short questions before the final assessment. Rate each statement 1–5. / يرجى الإجابة عن عشرة أسئلة قبل الاختبار النهائي. اختر درجة من 1 إلى 5.</p><section class="quiz">';
+  for(const q of data.questions){
+   html+='<div class="q"><strong>'+q.id+'. '+esc(q.en)+'</strong><div class="ar">'+esc(q.ar)+'</div><div class="actions" style="flex-wrap:wrap;justify-content:flex-start">'+options.map(n=>'<label class="opt"><input type="radio" name="feedback'+q.id+'" value="'+n+'"> '+n+'</label>').join('')+'</div></div>';
+  }
+  html+='</section><div class="actions"><button class="btn" id="submitTrafficFeedback">Submit Feedback / إرسال التقييم</button></div><div id="result" class="result"></div>';
+  document.getElementById('content').innerHTML=html;
+  document.getElementById('submitTrafficFeedback').onclick=async()=>{
+   const answers=data.questions.map(q=>document.querySelector('input[name="feedback'+q.id+'"]:checked')?.value).map(v=>v?Number(v):null);
+   if(answers.some(v=>v===null)){showResult('Please rate all ten statements. / يرجى الإجابة عن الأسئلة العشرة.');return}
+   const btn=document.getElementById('submitTrafficFeedback');btn.disabled=true;
+   try{await api('/api/self-study/traffic-feedback',{method:'POST',body:JSON.stringify({answers})});me=await api('/api/self-study/me');showCompletion()}
+   catch(err){showResult(esc(err.message));btn.disabled=false}
+  };
+ }catch(err){document.getElementById('content').innerHTML='<h1>Feedback unavailable / تعذر عرض التقييم</h1><div class="body">'+esc(err.message)+'</div>'}
 }
 function renderFinalAssessment(d){
  const qs=d.questions||[];let html='<div class="kicker">FINAL ASSESSMENT • 30 QUESTIONS</div><h1>Traffic Management & Vehicle Control</h1><div class="body">Answer all 30 questions. Pass mark: 70%.</div><div class="body ar">أجب عن جميع الأسئلة الثلاثين. درجة النجاح: 70٪.</div><section class="quiz">';
