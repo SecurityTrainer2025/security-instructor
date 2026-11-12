@@ -25,10 +25,13 @@ const touched=[];
 const collections={
   selfstudyaccess:{
     findOne:async query=>query.sessionTokenHash===hash&&query.status==='active'?access:null,
-    updateOne:async(query,change)=>{touched.push(['selfstudyaccess',change]);Object.assign(access,change.$set||{});return{modifiedCount:1}}
+    updateOne:async(query,change)=>{touched.push(['selfstudyaccess',change]);for(const [key,value] of Object.entries(change.$set||{})){if(key.startsWith('progress.')){access.progress[key.slice(9)]=value}else access[key]=value}return{modifiedCount:1}}
   },
   enrollments:{
     updateOne:async(query,change)=>{touched.push(['enrollments',change]);return{modifiedCount:1}}
+  },
+  selfstudytrafficfeedback:{
+    updateOne:async(query,change)=>{touched.push(['selfstudytrafficfeedback',change]);return{upsertedCount:1}}
   }
 };
 const mockedMongoose={connection:{db:{databaseName:'si_traffic_staging'},collection:name=>{
@@ -149,6 +152,17 @@ async function run(){
   assert.equal(resp.data.score,100);assert.equal(resp.data.passed,true);
   resp=await call('GET','/api/self-study/screens/:screenId',{params:{screenId:trafficSecond.id}});
   assert.equal(resp.code,200,'>=80% must unlock next screen');
+  resp=await call('GET','/api/self-study/final-assessment');
+  assert.equal(resp.code,403,'Feedback must be required before any Traffic final questions');
+  access.progress.screenScores=Object.fromEntries(TRAFFIC_SCREENS.map(s=>[s.id,{score:80,questions:5,correct:4}]));
+  resp=await call('GET','/api/self-study/traffic-feedback');
+  assert.equal(resp.code,200);
+  assert.equal(resp.data.questions.length,10);
+  resp=await call('POST','/api/self-study/traffic-feedback',{body:{answers:[5,5,5]}});
+  assert.equal(resp.code,400,'Must answer ten feedback questions');
+  resp=await call('POST','/api/self-study/traffic-feedback',{body:{answers:Array(10).fill(5)}});
+  assert.equal(resp.code,200);
+  assert.ok(access.progress.feedbackSubmittedAt);
   resp=await call('GET','/api/self-study/final-assessment');
   assert.equal(resp.data.total,30);
   assert.equal(resp.data.attemptsRemaining,2);
