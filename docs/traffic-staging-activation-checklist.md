@@ -94,6 +94,13 @@
 - Deployed backend staging-only commit `50a65496cc4a6b234ed7ebca500a8bab523372e1` and frontend staging-only commit `ae3d7afffd2ec0cab012227872fcd074e7868ead`; both associated Render deploys confirmed **live**. Production `main` was not changed.
 - All checks above are against mocks, controlled feature flags and live staging health; **no real email, certificate, QR scanner validation or trainee records have been processed**. Certificate and registration toggles remain OFF.
 
+## Database separation audit — 12 November 2026, current evidence
+- **Confirmed from Render service inventory:** Production service `security-instructor` uses Render environment `evm-dagis0h5efls73apngs0`, branch `main`; Traffic test service `si-avs-staging-test` and Traffic UI use a different Render environment `evm-dba992vbtjjs73e9pmcg`, branch `feat/self-study-traffic-course`. Production and Traffic staging are therefore different Render services/environments.
+- **Confirmed from Traffic staging runtime:** MongoDB reports connected database name `security_instructor_staging`. Runtime and API rollout guard require the named staging database. These checks do not disclose credentials or modify records.
+- **NOT YET CONFIRMED:** Production's connected MongoDB database name or whether the two services reuse the same cluster or underlying credentials. Production logs report only `MongoDB connected`. Distinct Render environments do **not** by themselves prove distinct MongoDB databases or credentials.
+- **Next evidence source:** connect the MongoDB Atlas integration and inspect project/cluster/database metadata **read-only**, or verify both Render services' connection settings through an authorized secure interface without exposing secrets in chat. Compare database names and connection targets, not raw connection strings.
+- **Release decision:** no real test-trainee registration or email, and no certificate flag activation until production-versus-staging database isolation is verified. Keep `TRAFFIC_PILOT_ENABLED=false`, `TRAFFIC_CERTIFICATES_ENABLED=false` and empty frontend staging API.
+
 ## Existing risks kept blocked
 - The staging branch modifies `backend/self-study-routes.js`; do not squash/merge into production until full staging regression and deployment isolation have been verified.
 - Do not assume the existing Fire Safety certificate flow automatically supports the new course code or QR.
