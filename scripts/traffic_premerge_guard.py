@@ -23,6 +23,7 @@ shared_paths = {
     "frontend/fire-safety-self-study-register.html",
     "frontend/fire-safety-self-study.html",
 }
+new_runtime_paths = {"backend/self-study-traffic-config.js"}
 legacy_modified = sorted(set(changed) & shared_paths)
 certificates_modified = sorted(
     p for p in changed
@@ -39,6 +40,8 @@ unexpected_non_traffic = sorted(
         or p == ".github/workflows/build-traffic-preview-videos.yml"
         or p == "docs/SI_TRAINING_VOICE_AND_BILINGUAL_STANDARD.md"
         or p in shared_paths
+        or p in new_runtime_paths
+        or p == "scripts/traffic_premerge_guard.py"
     )
 )
 mandatory = [
@@ -65,6 +68,7 @@ report = {
     "base": base, "head": head,
     "changed_file_count": len(changed),
     "legacy_shared_paths_modified": legacy_modified,
+    "new_traffic_runtime_files": sorted(set(changed) & new_runtime_paths),
     "certificate_paths_modified": certificates_modified,
     "unexpected_non_traffic_paths": unexpected_non_traffic,
     "missing_mandatory_review_files": missing,
