@@ -266,6 +266,40 @@ const orderedFinalFor=(slug,accessId,attemptIndex)=>{
   return questions.map((q,i)=>({q,i,key:sha(String(accessId)+'|traffic-final|'+String(attemptIndex)+'|'+q.q)}))
     .sort((a,b)=>a.key.localeCompare(b.key)||a.i-b.i).map(x=>x.q);
 };
+// Independent ten-question satisfaction survey for the Traffic pilot only.
+const TRAFFIC_FEEDBACK_QUESTIONS=[
+ ['The training objectives were clear.','كانت الأهداف التدريبية واضحة.'],
+ ['The training content was accurate and useful.','كان المحتوى التدريبي دقيقًا ومفيدًا.'],
+ ['The Arabic explanations were understandable.','كانت الشروحات العربية مفهومة.'],
+ ['The English explanations were understandable.','كانت الشروحات الإنجليزية مفهومة.'],
+ ['The practical examples matched site conditions.','ارتبطت الأمثلة العملية بظروف الموقع.'],
+ ['The traffic hazards were explained clearly.','تم شرح مخاطر حركة المرور بوضوح.'],
+ ['The hand-signal safety guidance was clear.','كانت إرشادات سلامة إشارات اليد واضحة.'],
+ ['The knowledge checks helped me learn.','ساعدت أسئلة المراجعة في التعلم.'],
+ ['The website was easy to use.','كانت المنصة سهلة الاستخدام.'],
+ ['I would recommend this training to a colleague.','أوصي زميلًا بهذه الدورة التدريبية.']
+].map(([en,ar],i)=>({id:i+1,en,ar}));
+const feedbackRequired=slug=>slug===TRAFFIC_SLUG;
+const trafficFeedbackHandler=async(req,res)=>{
+ try{
+  if(req.selfStudy.courseSlug!==TRAFFIC_SLUG)return res.status(404).json({message:'Traffic feedback only'});
+  const p=req.selfStudy.progress||baseProgress();
+  const completed=TRAFFIC_SCREENS.every(q=>Number((p.screenScores||{})[q.id]?.score||0)>=80);
+  if(!completed)return res.status(403).json({message:'Complete all Traffic learning screens first.'});
+  if(req.method==='GET')return res.json({ok:true,questions:TRAFFIC_FEEDBACK_QUESTIONS,submitted:!!p.feedbackSubmittedAt,scale:'1=Very dissatisfied, 5=Very satisfied'});
+  if(p.feedbackSubmittedAt)return res.status(409).json({message:'Feedback was already submitted.'});
+  const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
+  if(answers.length!==10||answers.some(v=>!Number.isInteger(v)||v<1||v>5))return res.status(400).json({message:'Answer all 10 feedback questions using the 1–5 scale.'});
+  const collection=mongoose.connection.collection('selfstudytrafficfeedback');
+  const now=new Date();
+  await collection.updateOne({enrollmentId:req.selfStudy.enrollmentId,courseSlug:TRAFFIC_SLUG},
+   {$setOnInsert:{enrollmentId:req.selfStudy.enrollmentId,courseSlug:TRAFFIC_SLUG,answers,submittedAt:now}},
+   {upsert:true});
+  await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},
+   {$set:{'progress.feedbackSubmittedAt':now,updatedAt:now}});
+  return res.json({ok:true,submitted:true});
+ }catch(err){console.error('Traffic feedback error',err);res.status(500).json({message:'Unable to save feedback'});}
+};
 const maxFinalAttempts=slug=>slug===TRAFFIC_SLUG?2:3;
 // Explicitly opt-in on a dedicated staging deployment; Traffic is OFF everywhere else.
 // All three variables must be configured on the staging server, never on SI production.
@@ -479,7 +513,7 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=screensFor(row.courseSlug).filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,maxFinalAttempts(row.courseSlug)-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,certificateId:p.certificateId||null});
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,maxFinalAttempts(row.courseSlug)-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,feedbackSubmitted:!!p.feedbackSubmittedAt,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
@@ -543,6 +577,7 @@ const finalHandler=async(req,res)=>{
     const assessed=screensFor(req.selfStudy.courseSlug).filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
     const mastered=assessed.length>0&&assessed.every(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
     if(!mastered)return res.status(403).json({message:'Complete all required learning screens with at least 80% before taking the final assessment.'});
+    if(feedbackRequired(req.selfStudy.courseSlug)&&!p.feedbackSubmittedAt)return res.status(403).json({message:'Complete the 10-question Traffic feedback before the final exam. / أكمل تقييم الدورة قبل الاختبار النهائي.'});
     const attempts=Number(p.finalAttempts||0);
     if(p.finalPassed)return res.status(409).json({message:'The final assessment has already been passed. / تم اجتياز الاختبار النهائي بالفعل.'});
     if(attempts>=maxFinalAttempts(req.selfStudy.courseSlug))return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
@@ -597,6 +632,7 @@ const certificateRetryHandler=async(req,res)=>{
 const finalQuestionsHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
+    if(feedbackRequired(req.selfStudy.courseSlug)&&!p.feedbackSubmittedAt)return res.status(403).json({message:'Complete the 10-question Traffic feedback before the final exam. / أكمل تقييم الدورة قبل الاختبار النهائي.'});
     const attempts=Number(p.finalAttempts||0);
     const questions=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts).map((q,i)=>{
       const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
@@ -629,6 +665,8 @@ function register(app){
   app.post('/api/self-study/session/exchange',exchangeHandler);
   app.get('/api/self-study/me',sessionHandler,meHandler);
   app.post('/api/self-study/progress',sessionHandler,progressHandler);
+  app.get('/api/self-study/traffic-feedback',sessionHandler,trafficFeedbackHandler);
+  app.post('/api/self-study/traffic-feedback',sessionHandler,trafficFeedbackHandler);
   app.get('/api/self-study/final-assessment',sessionHandler,finalQuestionsHandler);
   app.post('/api/self-study/certificate',sessionHandler,certificateRetryHandler);
   app.post('/api/self-study/final-assessment',sessionHandler,finalHandler);
