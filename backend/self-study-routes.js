@@ -442,7 +442,7 @@ const registerHandler=async(req,res)=>{
       await access.insertOne(row);
     }else{
       row=await normalizeAccessExpiry(row,accessNow);
-      if(!row.accessExpiresAt||new Date(row.accessExpiresAt)<=accessNow){
+      if(row.accessExpiresAt && new Date(row.accessExpiresAt)<=accessNow){
         return res.status(410).json({message:'The 5-day self-study access window has ended and cannot be restarted from registration. / انتهت نافذة الوصول للدراسة الذاتية البالغة 5 أيام ولا يمكن إعادة فتحها من خلال التسجيل.'});
       }
     }
