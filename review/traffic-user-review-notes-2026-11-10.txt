@@ -1,0 +1,13 @@
+SI Traffic Signals — user-reviewed notes (10 November 2026)
+Source: user-uploaded SI_Traffic_Review_Notes.txt
+
+01-forward: audio YES, captions YES, other review YES; issue: still animated illustrations; voice clear.
+02-reverse: audio YES, captions YES, other review YES; issue: still animated illustrations; voice clear.
+03-turn: audio YES, captions YES, other review YES; issue: still animated illustrations; voice clear.
+04-exit: audio YES, captions YES, other review YES; issue: still animated illustrations; voice clear.
+05-stop: audio YES, captions YES, other review YES; issue: still animated illustrations; voice clear.
+06-emergency: audio YES, captions YES, other review YES; issue: still animated illustrations; voice clear.
+
+User's exact repeated note for all six: مازال يستخدم  رسوم متحركه الصوت واضح وكل شئ اخر تمام
+
+RELEASE STATUS: BLOCKED. All six require accurate live-action or comparable realistic human performance, assessed against reference figures 71-77 by a qualified trainer before production. Do not treat YES checks as sign-off on video realism. Do not deploy or change existing five courses.
