@@ -86,6 +86,14 @@
 - Read-only [run #43247140122](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43247140122) confirmed both staging certificate pages **HTTP 200**, unknown certificate **HTTP 404**, catalog still **HTTP 404** (disabled), backend health **HTTP 200**, and registration config disabled.
 - **Still required for public launch:** staging end-to-end test with an actual disposable certificate and QR scan, explicit certificate signoff, production/staging database connection separation audit, and approval of six human-motion hand-signal videos. Do not enable either flag before those gates pass.
 
+## Learner certificate retry gating — 12 November 2026
+- The Traffic-only `/api/self-study/me` response now includes `certificateEnabled` computed from the staged server certificate feature flag and independent staging checks.
+- The Traffic learner page no longer automatically POSTs `/api/self-study/certificate` after a passing score when `certificateEnabled=false`; it clearly states that the passing score is saved and Traffic certificate issuance awaits approval.
+- When issuance is eventually approved, successful Traffic results link only to `traffic-certificate.html` and `traffic-verify.html`, never to the main SI certificate routes.
+- Mocked Chromium **14/14 tests passed** on desktop and mobile, including both staged QR pages, rejection of legacy certificate records, and the blocked post-pass issuance case: [run #43248772067](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43248772067).
+- Deployed backend staging-only commit `50a65496cc4a6b234ed7ebca500a8bab523372e1` and frontend staging-only commit `ae3d7afffd2ec0cab012227872fcd074e7868ead`; both associated Render deploys confirmed **live**. Production `main` was not changed.
+- All checks above are against mocks, controlled feature flags and live staging health; **no real email, certificate, QR scanner validation or trainee records have been processed**. Certificate and registration toggles remain OFF.
+
 ## Existing risks kept blocked
 - The staging branch modifies `backend/self-study-routes.js`; do not squash/merge into production until full staging regression and deployment isolation have been verified.
 - Do not assume the existing Fire Safety certificate flow automatically supports the new course code or QR.
