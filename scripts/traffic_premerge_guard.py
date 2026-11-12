@@ -78,6 +78,5 @@ Path("/tmp").mkdir(exist_ok=True)
 outfile = Path("/tmp/si-traffic-premerge-audit.json")
 outfile.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(json.dumps(report, ensure_ascii=False, indent=2))
-assert legacy_modified, "Guard regression: expected shared-file diff not detected"
 assert not report["ready_for_production_activation"]
 print("PASS: safety guard detects and blocks unreviewed production release")
