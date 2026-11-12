@@ -1,0 +1,34 @@
+name: SI Traffic release isolation audit (no deploy)
+
+on:
+  push:
+    branches:
+      - pilot/traffic-arabic-voiceover
+    paths:
+      - '.github/workflows/traffic-release-isolation-audit.yml'
+      - 'scripts/traffic_premerge_guard.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  traffic-merge-safety:
+    name: Protect five existing courses and certificates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch main for accurate merge-base comparison
+        run: git fetch origin main
+      - name: Audit Traffic pilot changes and release blockers
+        run: python3 scripts/traffic_premerge_guard.py
+      - name: Upload read-only premerge report
+        uses: actions/upload-artifact@v4
+        with:
+          name: si-traffic-premerge-readonly-audit
+          path: /tmp/si-traffic-premerge-audit.json
+          retention-days: 14
+          if-no-files-found: error
