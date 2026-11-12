@@ -93,6 +93,47 @@ for(const device of devices){
     expect(calls.some(c=>c.p==='/api/self-study/final-assessment')).toBe(true);
     expect(calls.every(c=>c.p.startsWith('/api/self-study/'))).toBe(true);
   });
+  test('Traffic-only staging certificate and QR render safely on desktop/mobile',async({page})=>{
+    const id='SI-CERT-2026-ABCD123456';
+    const valid={valid:true,certificateId:id,courseId:'CRS-TRAFFIC-001',recipientNameEn:'Mock Trainee',recipientNameAr:'متدرب تجريبي',courseNameEn:'Traffic Management & Vehicle Control',courseNameAr:'إدارة حركة المرور',issuedAt:'2026-11-12T00:00:00Z'};
+    const calls=[];
+    await page.route(STAGING+'/**',route=>{
+      const p=new URL(route.request().url()).pathname;
+      calls.push(p);
+      if(p==='/api/verify/traffic-staging-certificate')
+        return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(valid)});
+      if(p.includes('/qr'))return route.fulfill({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"/></svg>'});
+      return route.fulfill({status:404,contentType:'application/json',body:'{}'});
+    });
+    await page.goto(SITE+'traffic-certificate.html?id='+id);
+    await expect(page.locator('#certificate')).toBeVisible();
+    await expect(page.locator('#recipient')).toContainText('Mock Trainee');
+    await expect(page.locator('#qr')).toBeVisible();
+    await expect(page.locator('#verifyLink')).toHaveAttribute('href',/traffic-verify\.html/);
+    expect(calls).toContain('/api/verify/traffic-staging-certificate');
+    expect(calls.some(p=>p.endsWith('/qr'))).toBe(true);
+    await page.goto(SITE+'traffic-verify.html?id='+id);
+    await expect(page.locator('#status')).toContainText('VALID TRAFFIC STAGING CERTIFICATE');
+    await expect(page.locator('#certId')).toHaveText(id);
+  });
+  test('rejects legacy certificate and invalid QR on both staging verification pages',async({page})=>{
+    const id='SI-CERT-2026-ABCD123456';
+    const calls=[];
+    await page.route(STAGING+'/**',route=>{
+      calls.push(route.request().url());
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({valid:true,certificateId:id,courseId:'CRS-FIRE-001',recipientNameEn:'Legacy Trainee'})});
+    });
+    await page.goto(SITE+'traffic-verify.html?id='+id);
+    await expect(page.locator('#status')).toContainText('Unverified Traffic certificate');
+    await expect(page.locator('#details')).toBeHidden();
+    await page.goto(SITE+'traffic-certificate.html?id='+id);
+    await expect(page.locator('#certificate')).toBeHidden();
+    await expect(page.locator('#error')).toContainText('Certificate cannot be verified');
+    await page.goto(SITE+'traffic-verify.html?id=INVALID');
+    await expect(page.locator('#status')).toContainText('Invalid certificate identifier');
+    expect(calls.length).toBe(2,'Invalid IDs should not contact any backend');
+    expect(calls.every(u=>u.includes('si-avs-staging-test.onrender.com'))).toBe(true);
+  });
   test('mock Traffic learning session stays separate from Fire Safety credentials',async({page})=>{
     const requests=[];
     await page.route('**/traffic-staging-config.js',async route=>route.fulfill({status:200,contentType:'application/javascript',body:"window.SI_TRAFFIC_STAGING_API='"+STAGING+"';"}));
