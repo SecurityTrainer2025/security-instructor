@@ -280,6 +280,8 @@ const trafficPilotEnabled=()=>{
     /^https:\/\/si-staging-ui\.onrender\.com\/traffic-self-study\.html$/i.test((process.env.TRAFFIC_STAGING_FRONTEND_URL||'').trim());
 };
 const trafficPilotAvailable=slug=>slug!==TRAFFIC_SLUG||trafficPilotEnabled();
+// Keep Traffic certificates disabled until separate staging certificate + QR verification passes.
+const trafficCertificateEnabled=()=>trafficPilotEnabled()&&process.env.TRAFFIC_CERTIFICATES_ENABLED==='true';
 const screenFor=(slug,id)=>screensFor(slug).find(x=>x.id===id)||null;
 const moduleFor=id=>String(id).split('s')[0];
 
@@ -557,11 +559,15 @@ const finalHandler=async(req,res)=>{
     if(finalPassed){
       const enrollments=mongoose.connection.collection('enrollments');
       await enrollments.updateOne({enrollmentId:req.selfStudy.enrollmentId,selfStudy:true},{$set:{status:'completed',score:score,completedAt:new Date(),updatedAt:new Date()}});
-      try{
-        const {issueForEnrollment}=require('./training-certificate-routes.js');
-        const cert=await issueForEnrollment(req.selfStudy.enrollmentId);
-        certificateId=cert?.certificateId||null;
-      }catch(certErr){console.error('Self-study certificate issuance failed',certErr)}
+      // Fire Safety keeps its existing certificate issuance behavior unchanged.
+      // Traffic remains blocked until independent staging QR/certificate approval.
+      if(req.selfStudy.courseSlug!==TRAFFIC_SLUG||trafficCertificateEnabled()){
+        try{
+          const {issueForEnrollment}=require('./training-certificate-routes.js');
+          const cert=await issueForEnrollment(req.selfStudy.enrollmentId);
+          certificateId=cert?.certificateId||null;
+        }catch(certErr){console.error('Self-study certificate issuance failed',certErr)}
+      }
     }
     // Traffic-only: retain the issued certificate identifier in the self-study progress.
     // Leave legacy Fire Safety certificate persistence exactly as before.
@@ -578,6 +584,7 @@ const certificateRetryHandler=async(req,res)=>{
     const enrollments=mongoose.connection.collection('enrollments');
     const enrollment=await enrollments.findOne({enrollmentId:req.selfStudy.enrollmentId,selfStudy:true});
     if(!enrollment||enrollment.status!=='completed')return res.status(409).json({message:'Completed self-study enrollment not found.'});
+    if(req.selfStudy.courseSlug===TRAFFIC_SLUG&&!trafficCertificateEnabled())return res.status(503).json({message:'Traffic certificate verification is pending safety approval. / شهادة المرور قيد الاعتماد.'});
     const {issueForEnrollment}=require('./training-certificate-routes.js');
     const cert=await issueForEnrollment(req.selfStudy.enrollmentId);
     if(!cert)return res.status(503).json({message:'Certificate is not available yet. Please try again later.'});
