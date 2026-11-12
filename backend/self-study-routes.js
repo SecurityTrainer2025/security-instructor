@@ -259,6 +259,13 @@ const FIRE_SCREEN_LIST=Object.values(FIRE_SCREENS).flat();
 const screensFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_SCREENS:(slug===FIRE_SLUG?FIRE_SCREEN_LIST:[]);
 const finalFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_FINAL_ASSESSMENT:(slug===FIRE_SLUG?FINAL_FIRE_ASSESSMENT:[]);
 const maxFinalAttempts=slug=>slug===TRAFFIC_SLUG?2:3;
+// Explicitly opt-in on a dedicated staging deployment; Traffic is OFF everywhere else.
+// All three variables must be configured on the staging server, never on SI production.
+const trafficPilotEnabled=()=>
+  process.env.SI_DEPLOYMENT_ENV==='staging' &&
+  process.env.TRAFFIC_PILOT_ENABLED==='true' &&
+  /^https:\/\/si-staging-ui\.onrender\.com\/traffic-self-study\.html$/i.test((process.env.TRAFFIC_STAGING_FRONTEND_URL||'').trim());
+const trafficPilotAvailable=slug=>slug!==TRAFFIC_SLUG||trafficPilotEnabled();
 const screenFor=(slug,id)=>screensFor(slug).find(x=>x.id===id)||null;
 const moduleFor=id=>String(id).split('s')[0];
 
@@ -341,7 +348,7 @@ async function findSession(req){
 const normalizeAccessExpiry=async(row,now)=>{if(!row||!row.accessStartsAt||!row.accessExpiresAt)return row;const currentExpiry=new Date(row.accessExpiresAt);if(currentExpiry<=now)return row;const policyExpiry=new Date(new Date(row.accessStartsAt).getTime()+ACCESS_HOURS*3600000);if(Math.abs(currentExpiry.getTime()-policyExpiry.getTime())>1000){await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:policyExpiry,updatedAt:now}});return {...row,accessExpiresAt:policyExpiry};}return row;};
 
 const sessionHandler=async(req,res,next)=>{
-  try{req.selfStudy=await findSession(req);if(!req.selfStudy)return res.status(401).json({message:'Self-study access required'});req.selfStudy=await normalizeAccessExpiry(req.selfStudy,new Date());if(new Date(req.selfStudy.accessExpiresAt)<=new Date())return res.status(401).json({message:'Self-study access has expired. / انتهت مدة الوصول للدراسة الذاتية.'});next();}
+  try{req.selfStudy=await findSession(req);if(req.selfStudy&&!trafficPilotAvailable(req.selfStudy.courseSlug))return res.status(403).json({message:'Traffic staging course is disabled'});if(!req.selfStudy)return res.status(401).json({message:'Self-study access required'});req.selfStudy=await normalizeAccessExpiry(req.selfStudy,new Date());if(new Date(req.selfStudy.accessExpiresAt)<=new Date())return res.status(401).json({message:'Self-study access has expired. / انتهت مدة الوصول للدراسة الذاتية.'});next();}
   catch(e){console.error('Self-study session error',e);res.status(500).json({message:'Unable to validate self-study access'});}
 };
 
@@ -350,6 +357,7 @@ const registerHandler=async(req,res)=>{
     const registrationNow=new Date();
     const b=req.body||{};
     const slug=clean(b.courseSlug,80)||FIRE_SLUG;
+    if(!trafficPilotAvailable(slug))return res.status(403).json({message:'Traffic staging course is disabled / دورة المرور التجريبية غير مفعلة'});
     const course=COURSE_META[slug];
     if(!course)return res.status(400).json({message:'Self-study course not available'});
     const ar=clean(b.arabicName,180).replace(/\s+/g,' ').split(' ').filter(Boolean);
@@ -413,6 +421,7 @@ const requestAccessHandler=async(req,res)=>{
     const courseSlug=requestedSlug&&COURSE_META[requestedSlug]?.code===enroll.courseId
       ? requestedSlug:Object.keys(COURSE_META).find(slug=>COURSE_META[slug].code===enroll.courseId);
     if(!courseSlug)return res.json(generic);
+    if(!trafficPilotAvailable(courseSlug))return res.json(generic);
     const course=COURSE_META[courseSlug];
     let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug});
     if(!row)return res.json(generic);
@@ -430,6 +439,7 @@ const exchangeHandler=async(req,res)=>{
     const c=mongoose.connection.collection('selfstudyaccess');
     const now=new Date(),tokenHash=sha(token);
     const row=await c.findOne({magicTokenHash:tokenHash,status:'active'});
+    if(row&&!trafficPilotAvailable(row.courseSlug))return res.status(403).json({message:'Traffic staging course is disabled'});
     if(!row||!row.magicTokenExpiresAt||new Date(row.magicTokenExpiresAt)<=now||row.magicUsedAt)return res.status(401).json({message:'Access link is invalid, expired, or already used. If you already activated the course, return to the course page; otherwise request a new access email.'});
     if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=now)return res.status(410).json({message:'The 5-day self-study access window has ended.'});
     // The email link is consumed atomically once. The returned session is saved by the browser,
@@ -589,8 +599,8 @@ const studyHeartbeatHandler=async(req,res)=>{
 };
 function register(app){
   app.post('/api/self-study/heartbeat',sessionHandler,studyHeartbeatHandler);
-  app.get('/api/self-study/courses/:slug',(req,res)=>{const c=COURSE_META[clean(req.params.slug,80)];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:screensFor(clean(req.params.slug,80)).length});});
-  app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c)return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:screensFor(slug).map((s,i)=>({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
+  app.get('/api/self-study/courses/:slug',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c||!trafficPilotAvailable(slug))return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:screensFor(clean(req.params.slug,80)).length});});
+  app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c||!trafficPilotAvailable(slug))return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:screensFor(slug).map((s,i)=>({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
   app.get('/api/self-study/screens/:screenId',sessionHandler,screenHandler);
   app.post('/api/self-study/screens/:screenId/assessment',sessionHandler,screenAssessmentHandler);
   app.post('/api/self-study/register',registerHandler);
