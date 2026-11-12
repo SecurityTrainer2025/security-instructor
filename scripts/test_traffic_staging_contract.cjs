@@ -84,6 +84,11 @@ function questionOrder(q,accessId){
   }
   return order;
 }
+function orderedTrafficBank(attemptIndex){
+  return TRAFFIC_FINAL_ASSESSMENT.map((q,i)=>({
+    q,i,key:crypto.createHash('sha256').update(access.accessId+'|traffic-final|'+attemptIndex+'|'+q.q).digest('hex')
+  })).sort((a,b)=>a.key.localeCompare(b.key)||a.i-b.i).map(x=>x.q);
+}
 function choose(q,correct){
   const answer=questionOrder(q,access.accessId).indexOf(q.correct);
   return correct?answer:(answer+1)%4;
@@ -147,17 +152,20 @@ async function run(){
   resp=await call('GET','/api/self-study/final-assessment');
   assert.equal(resp.data.total,30);
   assert.equal(resp.data.attemptsRemaining,2);
+  const firstOrder=resp.data.questions.map(q=>q.q);
+  assert.deepEqual(firstOrder,orderedTrafficBank(0).map(q=>q.q),'Traffic question order must match server deterministic shuffle');
+  assert.notDeepEqual(firstOrder,TRAFFIC_FINAL_ASSESSMENT.map(q=>q.q),'Traffic questions must be randomized');
   resp=await call('POST','/api/self-study/final-assessment',{body:{answers:Array(30).fill(0)}});
   assert.equal(resp.code,403,'Final exam must be locked until all 10 Traffic screens mastered');
   access.progress.screenScores=Object.fromEntries(TRAFFIC_SCREENS.map(s=>[s.id,{score:80,questions:5,correct:4}]));
-  resp=await call('POST','/api/self-study/final-assessment',{body:{answers:TRAFFIC_FINAL_ASSESSMENT.map(q=>choose(q,false))}});
+  resp=await call('POST','/api/self-study/final-assessment',{body:{answers:orderedTrafficBank(0).map(q=>choose(q,false))}});
   assert.equal(resp.code,200);
   assert.equal(resp.data.passed,false);
   assert.equal(resp.data.attemptsRemaining,1);
-  resp=await call('POST','/api/self-study/final-assessment',{body:{answers:TRAFFIC_FINAL_ASSESSMENT.map(q=>choose(q,false))}});
+  resp=await call('POST','/api/self-study/final-assessment',{body:{answers:orderedTrafficBank(1).map(q=>choose(q,false))}});
   assert.equal(resp.code,200);
   assert.equal(resp.data.attemptsRemaining,0);
-  resp=await call('POST','/api/self-study/final-assessment',{body:{answers:TRAFFIC_FINAL_ASSESSMENT.map(q=>choose(q,true))}});
+  resp=await call('POST','/api/self-study/final-assessment',{body:{answers:orderedTrafficBank(2).map(q=>choose(q,true))}});
   assert.equal(resp.code,403,'Traffic final retake limit must stop third attempt');
   // Simulate a new Traffic learner who has mastered every screen and passes 21/30.
   // The mocked certificate module proves the ID is retained without issuing a real certificate.
@@ -172,7 +180,7 @@ async function run(){
   };
   try{
     resp=await call('POST','/api/self-study/final-assessment',{
-      body:{answers:TRAFFIC_FINAL_ASSESSMENT.map((q,i)=>choose(q,i<21))}
+      body:{answers:orderedTrafficBank(0).map((q,i)=>choose(q,i<21))}
     });
   }finally{Module._load=originalLoad}
   assert.equal(resp.code,200);
