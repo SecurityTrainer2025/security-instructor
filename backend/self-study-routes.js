@@ -258,6 +258,14 @@ m4:[
 const FIRE_SCREEN_LIST=Object.values(FIRE_SCREENS).flat();
 const screensFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_SCREENS:(slug===FIRE_SLUG?FIRE_SCREEN_LIST:[]);
 const finalFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_FINAL_ASSESSMENT:(slug===FIRE_SLUG?FINAL_FIRE_ASSESSMENT:[]);
+// Only the new Traffic course randomizes final question order, deterministically
+// for each learner + attempt. Do not alter the existing Fire Safety question order.
+const orderedFinalFor=(slug,accessId,attemptIndex)=>{
+  const questions=finalFor(slug);
+  if(slug!==TRAFFIC_SLUG)return questions;
+  return questions.map((q,i)=>({q,i,key:sha(String(accessId)+'|traffic-final|'+String(attemptIndex)+'|'+q.q)}))
+    .sort((a,b)=>a.key.localeCompare(b.key)||a.i-b.i).map(x=>x.q);
+};
 const maxFinalAttempts=slug=>slug===TRAFFIC_SLUG?2:3;
 // Explicitly opt-in on a dedicated staging deployment; Traffic is OFF everywhere else.
 // All three variables must be configured on the staging server, never on SI production.
@@ -537,7 +545,7 @@ const finalHandler=async(req,res)=>{
     if(p.finalPassed)return res.status(409).json({message:'The final assessment has already been passed. / تم اجتياز الاختبار النهائي بالفعل.'});
     if(attempts>=maxFinalAttempts(req.selfStudy.courseSlug))return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
-    const finalBank=finalFor(req.selfStudy.courseSlug);
+    const finalBank=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts);
     if(answers.length!==finalBank.length)return res.status(400).json({message:'Please answer all 30 questions.'});
     const correct=finalBank.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/finalBank.length*100);
@@ -583,7 +591,7 @@ const finalQuestionsHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
     const attempts=Number(p.finalAttempts||0);
-    const questions=finalFor(req.selfStudy.courseSlug).map((q,i)=>{
+    const questions=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts).map((q,i)=>{
       const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
       return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
     });
