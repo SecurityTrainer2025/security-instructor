@@ -50,6 +50,47 @@ for(const device of devices){
     expect(calls[0].body.courseSlug).toBe('traffic-management-vehicle-control');
     expect(calls[0].url).toBe(STAGING+'/api/self-study/register');
   });
+  test('mock bilingual ten-question feedback requires all answers before final exam',async({page})=>{
+    const calls=[];
+    let submitted=false;
+    await page.route('**/traffic-staging-config.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:"window.SI_TRAFFIC_STAGING_API='"+STAGING+"';"}));
+    await page.route(STAGING+'/**',async route=>{
+      const req=route.request();
+      const p=new URL(req.url()).pathname;
+      calls.push({p,method:req.method(),body:req.postData()});
+      let data={ok:true},status=200;
+      if(p==='/api/self-study/me')data={ok:true,course:{code:'CRS-TRAFFIC-001'},accessExpiresAt:'2099-01-01T00:00:00Z',progress:{completedScreens:[],screenScores:{},modules:{}},activeStudySeconds:0,activeStudyLimitSeconds:86400,finalPassed:false,feedbackSubmitted:submitted,learningMastered:true};
+      else if(p==='/api/self-study/courses/traffic-management-vehicle-control/screens')data={ok:true,screens:[]};
+      else if(p==='/api/self-study/traffic-feedback' && req.method()==='GET')
+        data={ok:true,submitted,questions:Array.from({length:10},(_,i)=>({id:i+1,en:'Feedback statement '+(i+1),ar:'سؤال التقييم '+(i+1)}))};
+      else if(p==='/api/self-study/traffic-feedback' && req.method()==='POST'){
+        const answers=req.postDataJSON().answers;
+        if(answers.length!==10||answers.some(a=>a<1||a>5)){status=400;data={message:'Invalid feedback'}}
+        else{data={ok:true,submitted:true};submitted=true}
+      }else if(p==='/api/self-study/final-assessment')
+        data={ok:true,total:30,attemptsRemaining:2,questions:[]};
+      else if(p==='/api/self-study/heartbeat')data={ok:true,activeStudySeconds:0,activeStudyLimitSeconds:86400};
+      else {status=404;data={message:'Unexpected mock endpoint '+p}}
+      await route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
+    });
+    await page.goto(SITE+'traffic-self-study.html');
+    await page.evaluate(()=>localStorage.setItem('siTrafficStagingSelfStudySession','traffic-feedback-mock'));
+    await page.reload();
+    await page.evaluate(()=>showTrafficFeedback());
+    await expect(page.locator('#content')).toContainText('التغذية الراجعة');
+    await expect(page.locator('.q')).toHaveCount(10);
+    await page.locator('#submitTrafficFeedback').click();
+    await expect(page.locator('#result')).toContainText('الأسئلة العشرة');
+    expect(calls.filter(c=>c.p.endsWith('traffic-feedback')&&c.method==='POST')).toHaveLength(0);
+    for(let i=1;i<=10;i++)await page.locator('input[name="feedback'+i+'"][value="5"]').check();
+    await page.locator('#submitTrafficFeedback').click();
+    await expect(page.locator('#content')).toContainText('Final Assessment');
+    const posted=calls.filter(c=>c.p.endsWith('traffic-feedback')&&c.method==='POST');
+    expect(posted).toHaveLength(1);
+    expect(JSON.parse(posted[0].body).answers).toEqual(Array(10).fill(5));
+    expect(calls.some(c=>c.p==='/api/self-study/final-assessment')).toBe(true);
+    expect(calls.every(c=>c.p.startsWith('/api/self-study/'))).toBe(true);
+  });
   test('mock Traffic learning session stays separate from Fire Safety credentials',async({page})=>{
     const requests=[];
     await page.route('**/traffic-staging-config.js',async route=>route.fulfill({status:200,contentType:'application/javascript',body:"window.SI_TRAFFIC_STAGING_API='"+STAGING+"';"}));
