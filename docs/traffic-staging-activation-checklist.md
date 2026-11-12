@@ -13,8 +13,10 @@
   - `SI_DEPLOYMENT_ENV=staging`
   - `TRAFFIC_PILOT_ENABLED=true`
   - `TRAFFIC_STAGING_FRONTEND_URL=https://si-staging-ui.onrender.com/traffic-self-study.html`
+  - `SI_TRAFFIC_STAGING_DB_NAME=<actual dedicated database name containing staging>`; must exactly match the connected MongoDB database name, never the production database.
 - Rejected on production when `SI_DEPLOYMENT_ENV` is not `staging`, even if `TRAFFIC_PILOT_ENABLED=true`.
 - No learner-facing Traffic video is returned while the six hand-signals remain unapproved.
+- **New 12 November 2026 automated checks:** fully mocked registration, outbound Brevo email payload and Traffic link, one-time token exchange, 120-hour access beginning at activation, correct session isolation, recovering access without extending the original window, and rejection when the connected MongoDB is not the dedicated staging database. GitHub Actions run #43235607916 passed. This does **not** certify live Brevo deliverability or real database connection.
 - No merge or deploy to the public site or production backend; no changes to the five existing course frontend files or certificate templates.
 
 ## Next required verification (not yet complete)
