@@ -99,6 +99,11 @@ async function run(){
   assert.equal(gated.code,403);
   assert.equal(touched.length,0);
   process.env.TRAFFIC_PILOT_ENABLED='true';
+  // Even a mistaken flag on production cannot activate Traffic.
+  process.env.SI_DEPLOYMENT_ENV='production';
+  gated=await call('GET','/api/self-study/courses/:slug',{params:{slug:TRAFFIC_SLUG}});
+  assert.equal(gated.code,404,'Traffic must never be available with production environment identity');
+  process.env.SI_DEPLOYMENT_ENV='staging';
   assert.equal(TRAFFIC_META.finalRetakes,2);
   assert.equal(TRAFFIC_SCREENS.length,10);
   assert.equal(TRAFFIC_FINAL_ASSESSMENT.length,30);
@@ -122,6 +127,7 @@ async function run(){
   resp=await call('GET','/api/self-study/screens/:screenId',{params:{screenId:trafficFirst.id}});
   assert.equal(resp.code,200);
   assert.equal(resp.data.questions.length,5);
+  assert.equal(resp.data.videoUrl,'','No unapproved Traffic video may be served from staging');
   const firstAnswers=trafficFirst.questions.map((q,i)=>choose(q,i<3));
   resp=await call('POST','/api/self-study/screens/:screenId/assessment',{params:{screenId:trafficFirst.id},body:{answers:firstAnswers}});
   assert.equal(resp.code,200);
