@@ -4,4 +4,4 @@
  * approved staging service and explicitly set SI_TRAFFIC_STAGING_API below.
  * Never point this file at the production SI backend.
  */
-window.SI_TRAFFIC_STAGING_API = '';
+window.SI_TRAFFIC_STAGING_API = 'https://si-avs-staging-test.onrender.com';
