@@ -9,6 +9,7 @@ const path=require('node:path');
 const {TRAFFIC_SLUG,TRAFFIC_META,TRAFFIC_SCREENS,TRAFFIC_FINAL_ASSESSMENT}=require('../backend/self-study-traffic-config.js');
 const FIRE_SLUG='fire-safety-emergency-response';
 process.env.SI_DEPLOYMENT_ENV='staging';
+process.env.SI_TRAFFIC_STAGING_DB_NAME='si_traffic_staging';
 process.env.TRAFFIC_PILOT_ENABLED='true';
 process.env.TRAFFIC_STAGING_FRONTEND_URL='https://si-staging-ui.onrender.com/traffic-self-study.html';
 const token='isolated-test-token';
@@ -30,7 +31,7 @@ const collections={
     updateOne:async(query,change)=>{touched.push(['enrollments',change]);return{modifiedCount:1}}
   }
 };
-const mockedMongoose={connection:{collection:name=>{
+const mockedMongoose={connection:{db:{databaseName:'si_traffic_staging'},collection:name=>{
   if(!collections[name])throw Error('Unexpected DB collection '+name);
   return collections[name];
 }}};
@@ -104,6 +105,11 @@ async function run(){
   gated=await call('GET','/api/self-study/courses/:slug',{params:{slug:TRAFFIC_SLUG}});
   assert.equal(gated.code,404,'Traffic must never be available with production environment identity');
   process.env.SI_DEPLOYMENT_ENV='staging';
+  // Simulate an accidental connection to the production DB: the pilot must remain OFF.
+  mockedMongoose.connection.db.databaseName='si_prod';
+  gated=await call('GET','/api/self-study/courses/:slug',{params:{slug:TRAFFIC_SLUG}});
+  assert.equal(gated.code,404,'Traffic staging must not be accessible against a different DB');
+  mockedMongoose.connection.db.databaseName='si_traffic_staging';
   assert.equal(TRAFFIC_META.finalRetakes,2);
   assert.equal(TRAFFIC_SCREENS.length,10);
   assert.equal(TRAFFIC_FINAL_ASSESSMENT.length,30);
