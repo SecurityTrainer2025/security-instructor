@@ -60,7 +60,8 @@ for(const device of devices){
       calls.push({p,method:req.method(),body:req.postData()});
       let data={ok:true},status=200;
       if(p==='/api/self-study/me')data={ok:true,course:{code:'CRS-TRAFFIC-001'},accessExpiresAt:'2099-01-01T00:00:00Z',progress:{completedScreens:[],screenScores:{},modules:{}},activeStudySeconds:0,activeStudyLimitSeconds:86400,finalPassed:false,feedbackSubmitted:submitted,learningMastered:true};
-      else if(p==='/api/self-study/courses/traffic-management-vehicle-control/screens')data={ok:true,screens:[]};
+      else if(p==='/api/self-study/courses/traffic-management-vehicle-control/screens')data={ok:true,screens:[{id:'tm1s1',moduleId:'tm1',order:1,titleEn:'Traffic introduction',titleAr:'مقدمة المرور'}]};
+      else if(p==='/api/self-study/screens/tm1s1')data={id:'tm1s1',titleEn:'Traffic introduction',titleAr:'مقدمة المرور',bodyEn:'Demo',bodyAr:'تجريبي',questions:[]};
       else if(p==='/api/self-study/traffic-feedback' && req.method()==='GET')
         data={ok:true,submitted,questions:Array.from({length:10},(_,i)=>({id:i+1,en:'Feedback statement '+(i+1),ar:'سؤال التقييم '+(i+1)}))};
       else if(p==='/api/self-study/traffic-feedback' && req.method()==='POST'){
@@ -76,6 +77,7 @@ for(const device of devices){
     await page.goto(SITE+'traffic-self-study.html');
     await page.evaluate(()=>localStorage.setItem('siTrafficStagingSelfStudySession','traffic-feedback-mock'));
     await page.reload();
+    await expect(page.locator('#content')).toContainText('Traffic introduction');
     await page.evaluate(()=>showTrafficFeedback());
     await expect(page.locator('#content')).toContainText('التغذية الراجعة');
     await expect(page.locator('.q')).toHaveCount(10);
