@@ -1,0 +1,25 @@
+name: SI Traffic read-only staging reachability audit
+on:
+  push:
+    branches: [staging/traffic-isolated-course-20261112]
+    paths:
+      - '.github/workflows/traffic-staging-reachability.yml'
+      - 'scripts/traffic_staging_readonly_probe.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe only allowlisted staging URLs via safe GET
+        run: python3 scripts/traffic_staging_readonly_probe.py
+      - name: Retain actual results for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: si-traffic-staging-readonly-audit
+          path: /tmp/si-traffic-staging-availability.json
+          retention-days: 14
+          if-no-files-found: error
