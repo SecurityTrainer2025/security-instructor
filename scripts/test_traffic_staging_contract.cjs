@@ -62,7 +62,7 @@ async function call(method,name,{params={},body={}}={}){
     status(n){code=n;return this},
     json(obj){data=obj;done=true;return this}
   };
-  const req={headers:{authorization:'Bearer '+token},params,body};
+  const req={method,headers:{authorization:'Bearer '+token},params,body};
   for(const fn of functions){
     if(done)break;
     let nextCalled=false;
@@ -169,6 +169,7 @@ async function run(){
   const firstOrder=resp.data.questions.map(q=>q.q);
   assert.deepEqual(firstOrder,orderedTrafficBank(0).map(q=>q.q),'Traffic question order must match server deterministic shuffle');
   assert.notDeepEqual(firstOrder,TRAFFIC_FINAL_ASSESSMENT.map(q=>q.q),'Traffic questions must be randomized');
+  delete access.progress.screenScores[TRAFFIC_SCREENS[9].id];
   resp=await call('POST','/api/self-study/final-assessment',{body:{answers:Array(30).fill(0)}});
   assert.equal(resp.code,403,'Final exam must be locked until all 10 Traffic screens mastered');
   access.progress.screenScores=Object.fromEntries(TRAFFIC_SCREENS.map(s=>[s.id,{score:80,questions:5,correct:4}]));
