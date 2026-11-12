@@ -36,6 +36,12 @@ async function loadCourse(){
  index=Number(sessionStorage.getItem('siTrafficStagingSelfStudyIndex')||0);index=Math.min(Math.max(index,0),screens.length-1);renderModules();renderScreen();
 }
 async function boot(){
+ if(!STAGING_READY){
+   document.getElementById('modules').innerHTML='<div class="module">Pilot review only / معاينة تجريبية فقط</div>';
+   document.getElementById('summary').textContent='Learning progress is available after secure staging activation. / يظهر تقدم التعلم بعد التفعيل التجريبي الآمن.';
+   document.getElementById('content').innerHTML='<div class="kicker">SI TRAFFIC CONTROL • STAGING PREVIEW</div><h1>Course preview / معاينة دورة المرور</h1><div class="ar" style="color:#C8A96B;font-size:22px">صفحة الدراسة جاهزة للمراجعة</div><div class="body">Registration and login are temporarily disabled while we verify that the test database is separate from the production platform. / التسجيل والدخول متوقفان مؤقتًا لحين التحقق من استقلال قاعدة بيانات الاختبار عن المنصة الرئيسية.</div><div class="notice" style="background:#132a3d;border-color:#C8A96B;color:#DDE5EB">No action is required. Existing SI courses and certificates remain unchanged. / لا يلزمك إجراء أي خطوة. تظل الدورات والشهادات القديمة دون تغيير.</div>';
+   return;
+ }
  try{
   requireStaging();
   if(!session){
