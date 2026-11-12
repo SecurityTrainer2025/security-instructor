@@ -458,28 +458,37 @@ const registerHandler=async(req,res)=>{
 };
 
 const requestAccessHandler=async(req,res)=>{
+  const generic={ok:true,message:'If the details match an active self-study registration, an access email has been sent. / إذا تطابقت البيانات مع تسجيل نشط للدراسة الذاتية، فسيتم إرسال رسالة الدخول.'};
+  // Staging-only diagnosis: reason codes, no email, IDs, access tokens or credentials in logs.
+  const diagnose=(reason)=>{if(process.env.SI_DEPLOYMENT_ENV==='staging')console.info('SI Traffic access recovery:',reason);};
   try{
     const email=clean(req.body?.email,180).toLowerCase();
     const enrollmentId=clean(req.body?.enrollmentId,100);
-    const generic={ok:true,message:'If the details match an active self-study registration, an access email has been sent. / إذا تطابقت البيانات مع تسجيل نشط للدراسة الذاتية، فسيتم إرسال رسالة الدخول.'};
-    if(!validEmail(email)||!enrollmentId)return res.json(generic);
-    const enroll=await mongoose.connection.collection('enrollments').findOne({enrollmentId,selfStudy:true});
-    if(!enroll)return res.json(generic);
-    const trainee=await mongoose.connection.collection('trainees').findOne({traineeId:enroll.traineeId,email});
-    if(!trainee)return res.json(generic);
     const requestedSlug=clean(req.body?.courseSlug,80);
+    if(!validEmail(email)||!enrollmentId){diagnose('invalid_input');return res.json(generic);}
+    const enroll=await mongoose.connection.collection('enrollments').findOne({enrollmentId,selfStudy:true});
+    if(!enroll){diagnose('enrollment_not_found');return res.json(generic);}
+    const trainee=await mongoose.connection.collection('trainees').findOne({traineeId:enroll.traineeId,email});
+    if(!trainee){diagnose('email_mismatch');return res.json(generic);}
     const courseSlug=requestedSlug&&COURSE_META[requestedSlug]?.code===enroll.courseId
       ? requestedSlug:Object.keys(COURSE_META).find(slug=>COURSE_META[slug].code===enroll.courseId);
-    if(!courseSlug)return res.json(generic);
-    if(!trafficPilotAvailable(courseSlug))return res.json(generic);
+    if(!courseSlug){diagnose('course_not_found');return res.json(generic);}
+    if(!trafficPilotAvailable(courseSlug)){diagnose('course_disabled');return res.json(generic);}
     const course=COURSE_META[courseSlug];
-    let row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug});
-    if(!row)return res.json(generic);
-    if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date())return res.json(generic);    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
+    const row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug});
+    if(!row){diagnose('access_record_not_found');return res.json(generic);}
+    if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date()){diagnose('access_expired');return res.json(generic);}
+    const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
+    const mail=await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,expiresAt:row.accessExpiresAt});
+    if(!mail.sent){diagnose('provider_not_configured');return res.json(generic);}
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:expires,magicUsedAt:null,updatedAt:new Date()}});
-    await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,expiresAt:row.accessExpiresAt});
-    res.json(generic);
-  }catch(e){console.error('Self-study access request error',e);res.json({ok:true,message:'If the details match an active self-study registration, an access email has been sent. / إذا تطابقت البيانات مع تسجيل نشط للدراسة الذاتية، فسيتم إرسال رسالة الدخول.'});}
+    diagnose('provider_accepted');
+    return res.json(generic);
+  }catch(e){
+    diagnose('provider_or_database_error');
+    console.error('Self-study access request failed (details redacted):',e?.name||'Error');
+    return res.json(generic);
+  }
 };
 
 const exchangeHandler=async(req,res)=>{
