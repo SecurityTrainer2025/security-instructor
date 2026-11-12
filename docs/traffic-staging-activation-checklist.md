@@ -75,6 +75,17 @@
 - Confirmed Render staging deploys `dep-dbqt7qfavr4c73fvs300` (backend) and `dep-dbqt80tbedkc73c4c0rg` (frontend) were **live** for the feedback changes. The staging registration connection remains empty and Traffic activation remains OFF.
 - **Not yet tested:** real staging database writes through a full learner journey, live transactional email deliverability, issued certificate and QR scanning, independent validation of hand-signal realism, or publication to learners.
 
+## Traffic certificate and QR safety isolation — 12 November 2026
+- A dedicated staging certificate document page was created: `frontend/traffic-certificate.html`, designed for A4 landscape printing. A dedicated verifier was created at `frontend/traffic-verify.html`; these do **not** use the production SI certificate template or production verification page.
+- Staging server `backend/training-certificate-routes.js` now uses Traffic-specific staging certificate/verification links for `CRS-TRAFFIC-001`, while legacy course links remain unchanged.
+- Added `GET /api/verify/traffic-staging-certificate?id=...` that returns only Traffic staging certificate records, requires the named staging MongoDB and refuses malformed, missing or other-course certificate identifiers.
+- Certificate **issuance remains OFF** by default: `TRAFFIC_PILOT_ENABLED=false` and `TRAFFIC_CERTIFICATES_ENABLED=false`. No real certificates were generated.
+- Browser QA with mocked API passed **12 desktop/mobile tests** in [run #43246406987](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43246406987), including a valid mock QR, invalid-ID rejection and refusal to treat a Fire course certificate as a Traffic certificate.
+- Server contract tests with mocked certificate lookup and QR generation passed [run #43246753466](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43246753466). No external email, database write or genuine certificate.
+- Selective staging-only deploys: backend commit `1cb9900bde62c8f22808b7ef8a1775f8d3ab4de9`; static frontend commit `939a3dd7ec8d84d8dd7fe971f8f9775a34434f47`; Render deploys finished **live**.
+- Read-only [run #43247140122](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43247140122) confirmed both staging certificate pages **HTTP 200**, unknown certificate **HTTP 404**, catalog still **HTTP 404** (disabled), backend health **HTTP 200**, and registration config disabled.
+- **Still required for public launch:** staging end-to-end test with an actual disposable certificate and QR scan, explicit certificate signoff, production/staging database connection separation audit, and approval of six human-motion hand-signal videos. Do not enable either flag before those gates pass.
+
 ## Existing risks kept blocked
 - The staging branch modifies `backend/self-study-routes.js`; do not squash/merge into production until full staging regression and deployment isolation have been verified.
 - Do not assume the existing Fire Safety certificate flow automatically supports the new course code or QR.
