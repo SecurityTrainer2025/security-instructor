@@ -475,7 +475,7 @@ const screenHandler=async(req,res)=>{
 };
 const screenAssessmentHandler=async(req,res)=>{
   try{
-    const s=screenById.get(clean(req.params.screenId,100));
+    const s=screenFor(req.selfStudy.courseSlug,clean(req.params.screenId,100));
     if(!s)return res.status(404).json({message:'Learning screen not found'});
     const p0=req.selfStudy.progress||baseProgress();
     const courseScreens=screensFor(req.selfStudy.courseSlug);
