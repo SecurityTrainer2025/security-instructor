@@ -287,7 +287,32 @@ install('get','/api/training-certificates/:certificateId',async(req,res)=>{try{c
 install('get','/api/training-certificates/:certificateId/qr',async(req,res)=>{try{const c=await Certificate.findOne({certificateId:clean(req.params.certificateId,100)}).lean();if(!c)return res.status(404).end();const png=await QRCode.toBuffer(verifyLink(c.certificateId,c.courseId),{width:180,margin:1,color:{dark:'#0B1F33',light:'#FFFFFF'}});res.type('png').send(png)}catch(err){res.status(500).end()}});
 install('get','/api/verify/training-certificate',async(req,res)=>{try{const c=await Certificate.findOne({certificateId:clean(req.query?.id,100)}).lean();if(!c)return res.status(404).json({valid:false,message:'Certificate not found'});const t=await Trainee.findOne({traineeId:c.traineeId}).lean();res.json({valid:c.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:c.certificateId,traineeId:c.traineeId,recipientNameEn:c.recipientNameEn,recipientNameAr:c.recipientNameAr,courseNameEn:c.courseNameEn,courseNameAr:c.courseNameAr,idType:c.idType||t?.idType||'',idNumber:c.idNumber||t?.idNumber||'',issuedAt:c.issuedAt,status:c.verificationStatus})}catch(err){res.status(500).json({valid:false,message:'Unable to verify certificate'})}});
 install('get','/api/admin/training-certificates',async(req,res)=>{if(!(await adminAuth(req)))return res.status(401).json({message:'Admin authentication required'});try{const rows=await Certificate.find({}).sort({issuedAt:-1}).limit(20000).lean();res.json({summary:{certificates:rows.length},certificates:rows})}catch(err){res.status(500).json({message:'Unable to load training certificates'})}});
+// Read-only staging verifier: never accepts Fire or other SI legacy certificates.
+const trafficVerifyEnabled=()=>{
+ const expected=String(process.env.SI_TRAFFIC_STAGING_DB_NAME||'').trim();
+ return process.env.SI_DEPLOYMENT_ENV==='staging'&&
+  expected.length>0&&/staging/i.test(expected)&&expected===String(mongoose.connection.db?.databaseName||'');
+};
 function registerTrainingCertificateDirectRoutes(app){
+  app.get('/api/verify/traffic-staging-certificate',async(req,res)=>{
+    try{
+      if(!trafficVerifyEnabled())return res.status(404).json({valid:false,message:'Staging verification unavailable'});
+      const certificateId=clean(req.query?.id,100);
+      if(!/^SI-CERT-[A-Za-z0-9-]{6,90}$/.test(certificateId))return res.status(400).json({valid:false,message:'Invalid certificate ID'});
+      const cert=await Certificate.findOne({certificateId,courseId:TRAFFIC_CERT_CODE}).lean();
+      if(!cert)return res.status(404).json({valid:false,message:'Traffic staging certificate not found'});
+      return res.set('Cache-Control','no-store').json({
+        valid:cert.verificationStatus==='valid',
+        certificateId:cert.certificateId,courseId:TRAFFIC_CERT_CODE,
+        recipientNameEn:cert.recipientNameEn||'',
+        recipientNameAr:cert.recipientNameAr||'',
+        courseNameEn:cert.courseNameEn||'',
+        courseNameAr:cert.courseNameAr||'',
+        issuedAt:cert.issuedAt||null,
+        status:cert.verificationStatus||'unknown'
+      });
+    }catch(e){console.error('Staging Traffic certificate verification failed',e);return res.status(500).json({valid:false,message:'Staging verification error'});}
+  });
   app.get('/api/training-certificates/:certificateId',async(req,res)=>{
     try{
       const certificateId=clean(req.params.certificateId,100);
