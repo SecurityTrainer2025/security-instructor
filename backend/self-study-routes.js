@@ -261,10 +261,16 @@ const finalFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_FINAL_ASSESSMENT:(slug===FIRE_S
 const maxFinalAttempts=slug=>slug===TRAFFIC_SLUG?2:3;
 // Explicitly opt-in on a dedicated staging deployment; Traffic is OFF everywhere else.
 // All three variables must be configured on the staging server, never on SI production.
-const trafficPilotEnabled=()=>
-  process.env.SI_DEPLOYMENT_ENV==='staging' &&
-  process.env.TRAFFIC_PILOT_ENABLED==='true' &&
-  /^https:\/\/si-staging-ui\.onrender\.com\/traffic-self-study\.html$/i.test((process.env.TRAFFIC_STAGING_FRONTEND_URL||'').trim());
+const trafficPilotEnabled=()=>{
+  // A flag alone cannot guarantee DB isolation: enforce a dedicated, named staging DB.
+  const expectedDb=String(process.env.SI_TRAFFIC_STAGING_DB_NAME||'').trim();
+  const connectedDb=String(mongoose.connection.db?.databaseName||'').trim();
+  return process.env.SI_DEPLOYMENT_ENV==='staging' &&
+    process.env.TRAFFIC_PILOT_ENABLED==='true' &&
+    expectedDb.length>0 && /staging/i.test(expectedDb) &&
+    expectedDb===connectedDb &&
+    /^https:\/\/si-staging-ui\.onrender\.com\/traffic-self-study\.html$/i.test((process.env.TRAFFIC_STAGING_FRONTEND_URL||'').trim());
+};
 const trafficPilotAvailable=slug=>slug!==TRAFFIC_SLUG||trafficPilotEnabled();
 const screenFor=(slug,id)=>screensFor(slug).find(x=>x.id===id)||null;
 const moduleFor=id=>String(id).split('s')[0];
