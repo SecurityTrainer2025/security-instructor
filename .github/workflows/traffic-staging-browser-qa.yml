@@ -6,6 +6,8 @@ on:
       - '.github/workflows/traffic-staging-browser-qa.yml'
       - 'scripts/traffic-staging-browser.spec.cjs'
       - 'frontend/traffic-self-study.html'
+      - 'frontend/traffic-certificate.html'
+      - 'frontend/traffic-verify.html'
       - 'frontend/traffic-self-study-register.html'
       - 'frontend/traffic-staging-config.js'
   workflow_dispatch:
@@ -27,7 +29,7 @@ jobs:
           node --check scripts/traffic-staging-browser.spec.cjs
           python3 - <<'PY'
           import re, subprocess, tempfile, pathlib
-          for name in ('traffic-self-study.html','traffic-self-study-register.html'):
+          for name in ('traffic-self-study.html','traffic-self-study-register.html','traffic-certificate.html','traffic-verify.html'):
               text=(pathlib.Path('frontend')/name).read_text()
               scripts=re.findall(r'<script[^>]*>(.*?)</script>',text,re.I|re.S)
               scripts=[s for s in scripts if s.strip()]
@@ -37,7 +39,8 @@ jobs:
                       f.write(s);f.flush()
                       subprocess.run(['node','--check',f.name],check=True)
               assert 'security-instructor.onrender.com' not in text,name
-              assert 'STAGING_READY' in text,name
+              if 'self-study' in name: assert 'STAGING_READY' in text,name
+              else: assert 'si-avs-staging-test.onrender.com' in text,name
               print('PASS: staging-only page',name)
           PY
       - name: Install isolated Chromium test runner
