@@ -3,6 +3,7 @@
 import json, pathlib, datetime, urllib.request, urllib.error
 from urllib.parse import urlsplit
 targets=[
+  ("backend_health","https://si-avs-staging-test.onrender.com/health"),
   ("backend_catalog","https://si-avs-staging-test.onrender.com/api/self-study/courses/traffic-management-vehicle-control"),
   ("frontend_learner","https://si-staging-ui.onrender.com/traffic-self-study.html"),
   ("frontend_registration","https://si-staging-ui.onrender.com/traffic-self-study-register.html"),
@@ -34,7 +35,11 @@ for name,url in targets:
         result["detail"]="Response and preview safety guard inspected; does not certify staging MongoDB separation or QR."
     except urllib.error.HTTPError as e:
         result["http_status"]=e.code
-        result["detail"]="Non-200 response or redirect; manual review needed."
+        if name=="backend_catalog" and e.code==404:
+            result["disabled_as_expected"]=True
+            result["detail"]="Traffic course is correctly hidden while rollout flag is OFF."
+        else:
+            result["detail"]="Non-200 response or redirect; manual review needed."
     except Exception as e:
         result["detail"]="Connection could not be verified: "+type(e).__name__
     print(f"{name}: {result['http_status']} reachable={result['reachable']}",flush=True)
@@ -43,3 +48,9 @@ report={"checked_at_utc":datetime.datetime.now(datetime.timezone.utc).isoformat(
 p=pathlib.Path("/tmp/si-traffic-staging-availability.json")
 p.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
 print("REPORT "+str(p))
+by_name={r["target"]:r for r in results}
+assert by_name["backend_health"]["http_status"]==200, "Staging backend health failed"
+assert by_name["backend_catalog"].get("disabled_as_expected") is True, "Traffic course must remain hidden until approved"
+assert all(by_name[n].get("expected_traffic_page") is True for n in ("frontend_learner","frontend_registration")), "Traffic HTML mismatch"
+assert by_name["frontend_config"].get("registration_safely_disabled") is True, "Frontend registration must remain off"
+print("PASS: staging backend healthy, Traffic catalog hidden, review pages live, registration disabled, no writes")
