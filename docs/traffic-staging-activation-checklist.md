@@ -66,6 +66,15 @@
 - The learner page now displays a clearly labeled safe preview rather than the confusing 'Access unavailable' message.
 - **No real trainee registration, email, QR or certificate test has been completed.** Do not enable enrollment or launch the course until real staged end-to-end and qualified hand-signal safety review are complete.
 
+## Ten-question Traffic course feedback gate — 12 November 2026
+- Added a dedicated **Traffic-only, bilingual ten-item course feedback questionnaire** (1–5 rating for each), available after completing the ten learning screens at >=80% each.
+- Traffic final questions and final submission are blocked at the backend until feedback is submitted. Fire Safety's existing assessment and certificate flows are not changed.
+- Feedback is held in the staging-only `selfstudytrafficfeedback` collection and `progress.feedbackSubmittedAt` on the student's Traffic access record.
+- GitHub server contract and mocked route tests **passed**: [run #43242516790](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43242516790). Validation includes rejecting fewer than ten responses, accepting all ten, and checking the final-exam gate.
+- Desktop/mobile Chromium browser tests **passed** after correcting mock fixture data: [run #43243183501](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43243183501). Eight tests passed with mocked API calls and no live trainee data.
+- Confirmed Render staging deploys `dep-dbqt7qfavr4c73fvs300` (backend) and `dep-dbqt80tbedkc73c4c0rg` (frontend) were **live** for the feedback changes. The staging registration connection remains empty and Traffic activation remains OFF.
+- **Not yet tested:** real staging database writes through a full learner journey, live transactional email deliverability, issued certificate and QR scanning, independent validation of hand-signal realism, or publication to learners.
+
 ## Existing risks kept blocked
 - The staging branch modifies `backend/self-study-routes.js`; do not squash/merge into production until full staging regression and deployment isolation have been verified.
 - Do not assume the existing Fire Safety certificate flow automatically supports the new course code or QR.
