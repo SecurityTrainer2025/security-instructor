@@ -8,6 +8,9 @@ const path=require('node:path');
 
 const {TRAFFIC_SLUG,TRAFFIC_META,TRAFFIC_SCREENS,TRAFFIC_FINAL_ASSESSMENT}=require('../backend/self-study-traffic-config.js');
 const FIRE_SLUG='fire-safety-emergency-response';
+process.env.SI_DEPLOYMENT_ENV='staging';
+process.env.TRAFFIC_PILOT_ENABLED='true';
+process.env.TRAFFIC_STAGING_FRONTEND_URL='https://si-staging-ui.onrender.com/traffic-self-study.html';
 const token='isolated-test-token';
 const hash=crypto.createHash('sha256').update(token).digest('hex');
 const future=new Date(Date.now()+86400000);
@@ -85,6 +88,17 @@ function choose(q,correct){
   return correct?answer:(answer+1)%4;
 }
 async function run(){
+  // Feature must be unavailable without explicit staging-only environment flags,
+  // including its public catalog endpoint and registration, before any database work.
+  process.env.TRAFFIC_PILOT_ENABLED='false';
+  let gated=await call('GET','/api/self-study/courses/:slug',{params:{slug:TRAFFIC_SLUG}});
+  assert.equal(gated.code,404);
+  gated=await call('POST','/api/self-study/register',{body:{courseSlug:TRAFFIC_SLUG}});
+  assert.equal(gated.code,403);
+  gated=await call('GET','/api/self-study/me');
+  assert.equal(gated.code,403);
+  assert.equal(touched.length,0);
+  process.env.TRAFFIC_PILOT_ENABLED='true';
   assert.equal(TRAFFIC_META.finalRetakes,2);
   assert.equal(TRAFFIC_SCREENS.length,10);
   assert.equal(TRAFFIC_FINAL_ASSESSMENT.length,30);
@@ -167,6 +181,6 @@ async function run(){
   resp=await call('GET','/api/self-study/screens/:screenId',{params:{screenId:trafficFirst.id}});
   assert.equal(resp.code,404,'Fire learner must not see Traffic screen');
   assert.equal(touched.filter(item=>item[0]==='enrollments').length,1,'Only the mocked passing learner enrollment may be updated');
-  console.log('PASS: Fire 67 screens; Traffic 10; user isolation; 80% gating; 30-question exam; Traffic 2 attempts; Fire 3 attempts; mock 70% certificate persistence; no live DB/email/certificate writes');
+  console.log('PASS: default-disabled Traffic stage gate; Fire 67 screens; Traffic 10; user isolation; 80% gating; 30-question exam; Traffic 2 attempts; Fire 3 attempts; mock 70% certificate persistence; no live DB/email/certificate writes');
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
