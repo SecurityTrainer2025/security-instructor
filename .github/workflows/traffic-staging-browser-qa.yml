@@ -1,0 +1,58 @@
+name: SI Traffic staging desktop and mobile browser QA (mock only)
+on:
+  push:
+    branches: [staging/traffic-isolated-course-20261112]
+    paths:
+      - '.github/workflows/traffic-staging-browser-qa.yml'
+      - 'scripts/traffic-staging-browser.spec.cjs'
+      - 'frontend/traffic-self-study.html'
+      - 'frontend/traffic-self-study-register.html'
+      - 'frontend/traffic-staging-config.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  traffic-staging-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate embedded browser scripts
+        run: |
+          node --check scripts/traffic-staging-browser.spec.cjs
+          python3 - <<'PY'
+          import re, subprocess, tempfile, pathlib
+          for name in ('traffic-self-study.html','traffic-self-study-register.html'):
+              text=(pathlib.Path('frontend')/name).read_text()
+              scripts=re.findall(r'<script[^>]*>(.*?)</script>',text,re.I|re.S)
+              scripts=[s for s in scripts if s.strip()]
+              assert scripts,name
+              for s in scripts:
+                  with tempfile.NamedTemporaryFile(suffix='.js',mode='w') as f:
+                      f.write(s);f.flush()
+                      subprocess.run(['node','--check',f.name],check=True)
+              assert 'security-instructor.onrender.com' not in text,name
+              assert 'STAGING_READY' in text,name
+              print('PASS: staging-only page',name)
+          PY
+      - name: Install isolated Chromium test runner
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Verify desktop and mobile staging UI, and mock-only API calls
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/traffic-browser-server.log 2>&1 &
+          npx playwright test scripts/traffic-staging-browser.spec.cjs --reporter=line --workers=2
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: si-traffic-staging-browser-failure
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
