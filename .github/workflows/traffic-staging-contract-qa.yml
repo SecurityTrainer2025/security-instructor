@@ -1,0 +1,39 @@
+name: SI Traffic isolated registration and assessment QA (no deploy)
+
+on:
+  push:
+    branches:
+      - staging/traffic-isolated-course-20261112
+    paths:
+      - '.github/workflows/traffic-staging-contract-qa.yml'
+      - 'scripts/test_traffic_staging_contract.cjs'
+      - 'backend/self-study-routes.js'
+      - 'backend/self-study-traffic-config.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate staged server JavaScript and isolated course content
+        run: |
+          node --check backend/self-study-routes.js
+          node --check backend/self-study-traffic-config.js
+          node --check scripts/test_traffic_staging_contract.cjs
+      - name: Mock-test Traffic registration and grade gates while preserving Fire Safety
+        run: node scripts/test_traffic_staging_contract.cjs
+      - name: Verify production backend and legacy frontend are unchanged in this branch
+        run: |
+          git fetch origin main --depth=1
+          for path in backend/package.json frontend/config.js frontend/course-details.html frontend/fire-safety-self-study-register.html frontend/fire-safety-self-study.html; do
+            git diff --quiet origin/main HEAD -- "$path" || { echo "Shared legacy file modified: $path"; exit 1; }
+          done
+          echo "PASS: no shared frontend or package edits"
