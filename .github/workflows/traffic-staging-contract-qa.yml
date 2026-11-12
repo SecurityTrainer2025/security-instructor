@@ -7,6 +7,8 @@ on:
     paths:
       - '.github/workflows/traffic-staging-contract-qa.yml'
       - 'scripts/test_traffic_staging_contract.cjs'
+      - 'scripts/test_traffic_certificate_contract.cjs'
+      - 'backend/training-certificate-routes.js'
       - 'scripts/test_traffic_staging_registration_email.cjs'
       - 'backend/self-study-routes.js'
       - 'backend/self-study-traffic-config.js'
@@ -29,10 +31,13 @@ jobs:
           node --check backend/self-study-routes.js
           node --check backend/self-study-traffic-config.js
           node --check scripts/test_traffic_staging_contract.cjs
+          node --check backend/training-certificate-routes.js
+          node --check scripts/test_traffic_certificate_contract.cjs
           node --check scripts/test_traffic_staging_registration_email.cjs
       - name: Mock-test Traffic registration and grade gates while preserving Fire Safety
         run: |
           node scripts/test_traffic_staging_contract.cjs
+          node scripts/test_traffic_certificate_contract.cjs
           node scripts/test_traffic_staging_registration_email.cjs
       - name: Verify production backend and legacy frontend are unchanged in this branch
         run: |
