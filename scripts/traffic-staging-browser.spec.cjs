@@ -93,6 +93,27 @@ for(const device of devices){
     expect(calls.some(c=>c.p==='/api/self-study/final-assessment')).toBe(true);
     expect(calls.every(c=>c.p.startsWith('/api/self-study/'))).toBe(true);
   });
+  test('passed Traffic result does not request certificate while staging issuance is disabled',async({page})=>{
+    const calls=[];
+    await page.route('**/traffic-staging-config.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:"window.SI_TRAFFIC_STAGING_API='"+STAGING+"';"}));
+    await page.route(STAGING+'/**',async route=>{
+      const p=new URL(route.request().url()).pathname;
+      calls.push({p,method:route.request().method()});
+      if(p==='/api/self-study/me')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,course:{code:'CRS-TRAFFIC-001'},accessExpiresAt:'2099-01-01T00:00:00Z',progress:{completedScreens:[],screenScores:{},modules:{}},activeStudySeconds:0,activeStudyLimitSeconds:86400,finalPassed:true,feedbackSubmitted:true,certificateEnabled:false,finalBestScore:85,certificateId:null})});
+      if(p==='/api/self-study/courses/traffic-management-vehicle-control/screens')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,screens:[{id:'tm1s1',moduleId:'tm1',order:1,titleEn:'Traffic introduction',titleAr:'مقدمة المرور'}]})});
+      if(p==='/api/self-study/screens/tm1s1')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({id:'tm1s1',titleEn:'Traffic introduction',titleAr:'مقدمة المرور',bodyEn:'Mock lesson',bodyAr:'درس تجريبي',questions:[]})});
+      if(p==='/api/self-study/heartbeat')return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"activeStudySeconds":0,"activeStudyLimitSeconds":86400}'});
+      return route.fulfill({status:503,contentType:'application/json',body:'{"message":"Blocked mock endpoint"}'});
+    });
+    await page.goto(SITE+'traffic-self-study.html');
+    await page.evaluate(()=>localStorage.setItem('siTrafficStagingSelfStudySession','mock-certificate-gated'));
+    await page.reload();
+    await expect(page.locator('#content')).toContainText('Traffic introduction');
+    await page.evaluate(()=>showFinalResult({passed:true,score:85,certificateId:null}));
+    await expect(page.locator('#content')).toContainText('تم حفظ نتيجتك');
+    expect(calls.filter(c=>c.p==='/api/self-study/certificate')).toHaveLength(0);
+    expect(calls.filter(c=>c.p==='/api/training-certificates')).toHaveLength(0);
+  });
   test('Traffic-only staging certificate and QR render safely on desktop/mobile',async({page})=>{
     const id='SI-CERT-2026-ABCD123456';
     const valid={valid:true,certificateId:id,courseId:'CRS-TRAFFIC-001',recipientNameEn:'Mock Trainee',recipientNameAr:'متدرب تجريبي',courseNameEn:'Traffic Management & Vehicle Control',courseNameAr:'إدارة حركة المرور',issuedAt:'2026-11-12T00:00:00Z'};
