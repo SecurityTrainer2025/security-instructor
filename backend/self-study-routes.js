@@ -539,6 +539,9 @@ const finalHandler=async(req,res)=>{
         certificateId=cert?.certificateId||null;
       }catch(certErr){console.error('Self-study certificate issuance failed',certErr)}
     }
+    // Traffic-only: retain the issued certificate identifier in the self-study progress.
+    // Leave legacy Fire Safety certificate persistence exactly as before.
+    if(req.selfStudy.courseSlug===TRAFFIC_SLUG&&certificateId)updated.certificateId=certificateId;
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:updated,updatedAt:new Date()}});
     res.json({ok:true,score,correct,total:finalBank.length,passed:score>=70||finalPassed,attempt:finalAttempts,attemptsRemaining:Math.max(0,maxFinalAttempts(req.selfStudy.courseSlug)-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
   }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
