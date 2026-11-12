@@ -1,0 +1,55 @@
+name: SI six human-photo signal previews (review only)
+
+on:
+  push:
+    branches:
+      - pilot/traffic-arabic-voiceover
+    paths:
+      - '.github/workflows/traffic-six-photo-previews.yml'
+      - 'scripts/build_traffic_six_photo_previews.py'
+      - 'review/traffic-generated-photo-locators.temporary.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-review-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout isolated pilot branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install free processing dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install 'edge-tts>=6.1,<8' 'pillow>=10,<13'
+      - name: Generate same Arabic narration scripts
+        run: python scripts/build_traffic_ai_signal_narration.py
+      - name: Assemble six review-only photo-keyframe MP4s
+        run: python scripts/build_traffic_six_photo_previews.py
+      - name: Verify six playable videos with audio
+        run: |
+          python - <<'PY'
+          import glob,subprocess,json
+          files=glob.glob('review/traffic-six-photo-preview-output/*-PHOTO-REVIEW-UNAPPROVED.mp4')
+          assert len(files)==6,files
+          for p in files:
+              j=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','stream=codec_type,codec_name:format=duration','-of','json',p]))
+              streams=[s['codec_type'] for s in j['streams']]
+              assert 'video' in streams and 'audio' in streams,(p,streams)
+              assert float(j['format']['duration'])>8,p
+              print('Verified:',p)
+          PY
+      - name: Upload all six still-keyframe review clips
+        uses: actions/upload-artifact@v4
+        with:
+          name: SI-Traffic-Six-Photo-Review-Videos-UNAPPROVED
+          path: review/traffic-six-photo-preview-output/
+          if-no-files-found: error
+          retention-days: 7
