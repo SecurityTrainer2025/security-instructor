@@ -35,6 +35,14 @@
 - A Render plugin connection was confirmed by the user, but Render service list, runtime environment details, deployment controls and staging MongoDB identity have not yet been verified through an available management interface. Do not interpret mock test success as a deployed staging backend.
 - The learner-facing hand-signal media is not approved live human motion, and cannot be activated by code alone.
 
+## Staging connectivity probe — 12 November 2026
+- GitHub Actions [run #43237807938](https://github.com/SecurityTrainer2025/security-instructor/actions/runs/43237807938) **completed** a read-only, allowlisted HTTP GET probe.
+- `si-avs-staging-test.onrender.com/api/self-study/courses/traffic-management-vehicle-control` returned **HTTP 503**; availability not confirmed.
+- `si-staging-ui.onrender.com/traffic-self-study.html` returned **HTTP 404**; learner page is not deployed at this assumed URL.
+- This is a **release blocker**; do not fill in the empty Traffic staging frontend config or set activation flags based on guessed hostnames.
+- No POST, registration, email, database modification, certificate issue, or production deployment was executed.
+- Access to Render application-management actions is not currently exposed via the available account tools, even though Render was connected; confirm the actual staging service and deployment configuration through an available management interface before any rollout.
+
 ## Existing risks kept blocked
 - The staging branch modifies `backend/self-study-routes.js`; do not squash/merge into production until full staging regression and deployment isolation have been verified.
 - Do not assume the existing Fire Safety certificate flow automatically supports the new course code or QR.
