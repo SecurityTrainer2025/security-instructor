@@ -22,8 +22,16 @@ for name,url in targets:
         with opener.open(request,timeout=12) as response:
             result["http_status"]=response.status
             result["reachable"]=response.status==200
-            response.read(256)
-        result["detail"]="Response observed; this does not confirm staging database isolation or certification readiness."
+            body=response.read(120000).decode("utf-8","replace")
+        if result["reachable"] and name=="frontend_config":
+            result["registration_safely_disabled"]=("SI_TRAFFIC_STAGING_API = ''" in body or 'SI_TRAFFIC_STAGING_API = ""' in body)
+            if not result["registration_safely_disabled"]:
+                raise RuntimeError("Staging frontend config unexpectedly enables a backend")
+        if result["reachable"] and name=="frontend_learner":
+            result["expected_traffic_page"]="Traffic Control Self-Study" in body and "STAGING_READY" in body
+        if result["reachable"] and name=="frontend_registration":
+            result["expected_traffic_page"]="Traffic Control Self-Study Registration" in body and "STAGING_READY" in body
+        result["detail"]="Response and preview safety guard inspected; does not certify staging MongoDB separation or QR."
     except urllib.error.HTTPError as e:
         result["http_status"]=e.code
         result["detail"]="Non-200 response or redirect; manual review needed."
