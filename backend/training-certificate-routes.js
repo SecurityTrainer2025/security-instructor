@@ -112,13 +112,29 @@ function certificateTopics(slug,courseTopics=[]){
   return Array.isArray(courseTopics)?courseTopics.slice(0,5):[];
 }
 const PUBLIC_VERIFY='https://securitytrainer2025.github.io/security-instructor/frontend/verify.html';
-const verifyLink=id=>`${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
-const certificateLink=id=>`${FRONTEND}/certificate.html?id=${encodeURIComponent(id)}`;
+const TRAFFIC_CERT_CODE='CRS-TRAFFIC-001';
+const TRAFFIC_VERIFY_URL='https://si-staging-ui.onrender.com/traffic-verify.html';
+const TRAFFIC_CERT_URL='https://si-staging-ui.onrender.com/traffic-certificate.html';
+const trafficCertificateReady=()=>{
+ const expected=String(process.env.SI_TRAFFIC_STAGING_DB_NAME||'').trim();
+ return process.env.SI_DEPLOYMENT_ENV==='staging' &&
+  process.env.TRAFFIC_PILOT_ENABLED==='true' &&
+  process.env.TRAFFIC_CERTIFICATES_ENABLED==='true' &&
+  expected.length>0 && /staging/i.test(expected) &&
+  expected===String(mongoose.connection.db?.databaseName||'');
+};
+const verifyLink=(id,courseId)=>String(courseId)===TRAFFIC_CERT_CODE
+ ? TRAFFIC_VERIFY_URL+'?id='+encodeURIComponent(id)
+ : `${PUBLIC_VERIFY}?type=certificate&id=${encodeURIComponent(id)}`;
+const certificateLink=(id,courseId)=>String(courseId)===TRAFFIC_CERT_CODE
+ ? TRAFFIC_CERT_URL+'?id='+encodeURIComponent(id)
+ : `${FRONTEND}/certificate.html?id=${encodeURIComponent(id)}`;
 const nextId=()=>`SI-CERT-${new Date().getFullYear()}-${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
 async function issueForEnrollment(enrollmentId){
   const e=await Enrollment.findOne({enrollmentId}).lean();
   if(!e)throw new Error('Enrollment not found');
   if(e.status!=='completed')throw new Error('Enrollment must be completed before a certificate can be issued');
+  if(String(e.courseId)===TRAFFIC_CERT_CODE&&!trafficCertificateReady())throw new Error('Traffic certificate issuance is disabled until staging QR review');
   const t=await Trainee.findOne({traineeId:e.traineeId}).lean();
   if(!t)throw new Error('Trainee not found for this enrollment');
   if(!t.email)throw new Error('Trainee email is missing');
@@ -135,10 +151,10 @@ async function issueForEnrollment(enrollmentId){
   const trainerName=course?.trainerName||course?.instructor||e.trainerName||'';
   const signatureName=course?.signatureName||trainerName;
   const trainingId=course?.code||e.courseId||'';
-  const verificationUrl=verifyLink(certificateId);
+  const verificationUrl=verifyLink(certificateId,e.courseId);
   const cert=await Certificate.create({certificateId,traineeId:t.traineeId,enrollmentId,courseId:e.courseId,courseNameEn:e.courseNameEn,courseNameAr:e.courseNameAr,trainingId,durationHours,level,trainingTopics,trainerName,signatureName,recipientNameEn:nameEn,recipientNameAr:nameAr,idType:t.idType||'',idNumber:t.idNumber||'',email:t.email,score:typeof e.score==='number'?e.score:undefined,verificationUrl});
   const subject=`SECURITY INSTRUCTOR | الشهادة | Certificate | ${e.courseNameEn}`;
-  const link=certificateLink(certificateId);
+  const link=certificateLink(certificateId,e.courseId);
   const text=[
     'العربية','',
     `عزيزي/عزيزتي ${nameAr}،`,'',
@@ -268,10 +284,35 @@ install('patch','/api/admin/enrollments/:enrollmentId/status',async(req,res,next
 
 install('post','/api/admin/training-certificates/issue',async(req,res)=>{if(!(await adminAuth(req)))return res.status(401).json({message:'Admin authentication required'});try{const enrollmentId=clean(req.body?.enrollmentId,100);const cert=await issueForEnrollment(enrollmentId);if(!cert)return res.status(400).json({message:'Certificate can only be issued for a completed enrollment with a valid trainee email'});res.status(201).json({ok:true,certificate:cert})}catch(err){console.error(err);res.status(500).json({message:'Unable to issue training certificate'})}});
 install('get','/api/training-certificates/:certificateId',async(req,res)=>{try{const c=await Certificate.findOne({certificateId:clean(req.params.certificateId,100)}).lean();if(!c)return res.status(404).json({message:'Certificate not found'});const t=await Trainee.findOne({traineeId:c.traineeId}).lean();res.json({...c,idType:c.idType||t?.idType||'',idNumber:c.idNumber||t?.idNumber||'',trainingId:c.trainingId||c.courseId||'',durationHours:c.durationHours??(/fire\s+safety|emergency\s+response/i.test(c.courseNameEn||'')?24:''),level:c.level||'',trainingTopics:Array.isArray(c.trainingTopics)?c.trainingTopics:[],trainerName:c.trainerName||'',signatureName:c.signatureName||c.trainerName||''})}catch(err){res.status(500).json({message:'Unable to load certificate'})}});
-install('get','/api/training-certificates/:certificateId/qr',async(req,res)=>{try{const c=await Certificate.findOne({certificateId:clean(req.params.certificateId,100)}).lean();if(!c)return res.status(404).end();const png=await QRCode.toBuffer(verifyLink(c.certificateId),{width:180,margin:1,color:{dark:'#0B1F33',light:'#FFFFFF'}});res.type('png').send(png)}catch(err){res.status(500).end()}});
+install('get','/api/training-certificates/:certificateId/qr',async(req,res)=>{try{const c=await Certificate.findOne({certificateId:clean(req.params.certificateId,100)}).lean();if(!c)return res.status(404).end();const png=await QRCode.toBuffer(verifyLink(c.certificateId,c.courseId),{width:180,margin:1,color:{dark:'#0B1F33',light:'#FFFFFF'}});res.type('png').send(png)}catch(err){res.status(500).end()}});
 install('get','/api/verify/training-certificate',async(req,res)=>{try{const c=await Certificate.findOne({certificateId:clean(req.query?.id,100)}).lean();if(!c)return res.status(404).json({valid:false,message:'Certificate not found'});const t=await Trainee.findOne({traineeId:c.traineeId}).lean();res.json({valid:c.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:c.certificateId,traineeId:c.traineeId,recipientNameEn:c.recipientNameEn,recipientNameAr:c.recipientNameAr,courseNameEn:c.courseNameEn,courseNameAr:c.courseNameAr,idType:c.idType||t?.idType||'',idNumber:c.idNumber||t?.idNumber||'',issuedAt:c.issuedAt,status:c.verificationStatus})}catch(err){res.status(500).json({valid:false,message:'Unable to verify certificate'})}});
 install('get','/api/admin/training-certificates',async(req,res)=>{if(!(await adminAuth(req)))return res.status(401).json({message:'Admin authentication required'});try{const rows=await Certificate.find({}).sort({issuedAt:-1}).limit(20000).lean();res.json({summary:{certificates:rows.length},certificates:rows})}catch(err){res.status(500).json({message:'Unable to load training certificates'})}});
+// Read-only staging verifier: never accepts Fire or other SI legacy certificates.
+const trafficVerifyEnabled=()=>{
+ const expected=String(process.env.SI_TRAFFIC_STAGING_DB_NAME||'').trim();
+ return process.env.SI_DEPLOYMENT_ENV==='staging'&&
+  expected.length>0&&/staging/i.test(expected)&&expected===String(mongoose.connection.db?.databaseName||'');
+};
 function registerTrainingCertificateDirectRoutes(app){
+  app.get('/api/verify/traffic-staging-certificate',async(req,res)=>{
+    try{
+      if(!trafficVerifyEnabled())return res.status(404).json({valid:false,message:'Staging verification unavailable'});
+      const certificateId=clean(req.query?.id,100);
+      if(!/^SI-CERT-[A-Za-z0-9-]{6,90}$/.test(certificateId))return res.status(400).json({valid:false,message:'Invalid certificate ID'});
+      const cert=await Certificate.findOne({certificateId,courseId:TRAFFIC_CERT_CODE}).lean();
+      if(!cert)return res.status(404).json({valid:false,message:'Traffic staging certificate not found'});
+      return res.set('Cache-Control','no-store').json({
+        valid:cert.verificationStatus==='valid',
+        certificateId:cert.certificateId,courseId:TRAFFIC_CERT_CODE,
+        recipientNameEn:cert.recipientNameEn||'',
+        recipientNameAr:cert.recipientNameAr||'',
+        courseNameEn:cert.courseNameEn||'',
+        courseNameAr:cert.courseNameAr||'',
+        issuedAt:cert.issuedAt||null,
+        status:cert.verificationStatus||'unknown'
+      });
+    }catch(e){console.error('Staging Traffic certificate verification failed',e);return res.status(500).json({valid:false,message:'Staging verification error'});}
+  });
   app.get('/api/training-certificates/:certificateId',async(req,res)=>{
     try{
       const certificateId=clean(req.params.certificateId,100);
@@ -294,7 +335,7 @@ function registerTrainingCertificateDirectRoutes(app){
       const certificateId=clean(req.params.certificateId,100);
       const cert=await Certificate.findOne({certificateId}).lean();
       if(!cert)return res.status(404).end();
-      const verificationUrl=verifyLink(certificateId);
+      const verificationUrl=verifyLink(certificateId,cert.courseId);
       const svg=await QRCode.toString(verificationUrl,{type:'svg',width:300,margin:2,errorCorrectionLevel:'H',color:{dark:'#0B1F33',light:'#FFFFFF'}});
       res.set('Cache-Control','no-store').type('image/svg+xml').send(svg);
     }catch(err){console.error('Certificate QR failed',err);res.status(500).json({message:'Unable to generate certificate QR'})}
@@ -306,7 +347,7 @@ function registerTrainingCertificateDirectRoutes(app){
       const cert=await Certificate.findOne({certificateId}).lean();
       if(!cert)return res.status(404).json({valid:false,message:'Certificate not found'});
       const trainee=await Trainee.findOne({traineeId:cert.traineeId}).lean();
-      const rawId=String(cert.idNumber||trainee?.idNumber||''); const maskedId=rawId.length>4?'•'.repeat(Math.max(0,rawId.length-4))+rawId.slice(-4):rawId; res.set('Cache-Control','no-store').json({valid:cert.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:cert.certificateId,recipientNameEn:cert.recipientNameEn,recipientNameAr:cert.recipientNameAr,courseNameEn:cert.courseNameEn,courseNameAr:cert.courseNameAr,idType:cert.idType||trainee?.idType||'',idNumberMasked:maskedId,issuedAt:cert.issuedAt,status:cert.verificationStatus,verificationUrl:verifyLink(certificateId)});
+      const rawId=String(cert.idNumber||trainee?.idNumber||''); const maskedId=rawId.length>4?'•'.repeat(Math.max(0,rawId.length-4))+rawId.slice(-4):rawId; res.set('Cache-Control','no-store').json({valid:cert.verificationStatus==='valid',documentType:'Training Certificate',documentTypeAr:'شهادة إتمام دورة تدريبية',certificateId:cert.certificateId,recipientNameEn:cert.recipientNameEn,recipientNameAr:cert.recipientNameAr,courseNameEn:cert.courseNameEn,courseNameAr:cert.courseNameAr,idType:cert.idType||trainee?.idType||'',idNumberMasked:maskedId,issuedAt:cert.issuedAt,status:cert.verificationStatus,verificationUrl:verifyLink(certificateId,cert.courseId)});
     }catch(err){console.error('Certificate verification failed',err);res.status(500).json({valid:false,message:'Unable to verify certificate'})}
   });
 }

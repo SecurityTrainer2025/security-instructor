@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SI Traffic Staging Certificate | شهادة المرور التجريبية</title>
+<style>:root{--n:#0B1F33;--g:#C8A96B;--paper:#faf9f4}*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#081725;font:16px Arial,Tahoma,sans-serif;color:var(--n)}main{max-width:1100px;margin:22px auto;padding:35px;background:var(--paper);border:8px solid var(--n);outline:3px solid var(--g);min-height:680px}.brand{text-align:center;font-size:24px;font-weight:900;letter-spacing:.11em}.brand span{color:#a88544}h1,h2{text-align:center}h1{font-size:clamp(23px,4vw,37px);margin:46px 0 8px}.ar{direction:rtl;text-align:center;font-size:23px}.rec{text-align:center;font-size:clamp(19px,3vw,30px);font-weight:800;color:#0B1F33}.course{text-align:center;font-weight:800;color:#856526;font-size:20px;line-height:1.8}.details{text-align:center;margin:30px 0}.verify{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;margin:30px auto}.verify img{width:155px;height:155px;object-fit:contain}.verify a{color:#0B1F33;overflow-wrap:anywhere}.alert{text-align:center;padding:18px;border:1px solid #b89b63;color:#822}footer{text-align:center;font-size:13px;color:#65717D;padding:18px 0}button{background:var(--n);color:#fff;padding:12px 22px;border:0;cursor:pointer}@media print{body{background:#fff}main{outline:0;box-shadow:none;margin:0;width:100%;min-height:0;page-break-inside:avoid}button{display:none}@page{size:A4 landscape;margin:8mm}}@media(max-width:600px){main{margin:12px;padding:18px}.brand{font-size:18px}h1{margin-top:26px}}</style></head><body>
+<main><div class="brand">SECURITY <span>INSTRUCTOR</span></div><h1>Certificate of Completion</h1><h2 class="ar">شهادة إتمام دورة المرور</h2>
+<div id="error" class="alert">Checking staging certificate / جارٍ التحقق من الشهادة التجريبية</div>
+<section id="certificate" hidden>
+<p class="details">This certifies successful completion by / تشهد المنصة بإتمام المتدرب</p>
+<div id="recipient" class="rec"></div><div id="nameAr" class="ar"></div>
+<p id="course" class="course"></p><div id="score" class="details"></div>
+<div id="details" class="details"></div>
+<div class="verify"><img id="qr" alt="Traffic staging certificate verification QR" hidden><a id="verifyLink" target="_blank" rel="noopener">Verify certificate / التحقق من الشهادة</a></div>
+<footer>STAGING ONLY / شهادة تجريبية وليست وثيقة صادرة من المنصة الرئيسية</footer>
+<div style="text-align:center"><button onclick="print()">Print / طباعة</button></div>
+</section></main><script>
+(async()=>{
+ const error=document.getElementById('error'),id=new URLSearchParams(location.search).get('id')||'';
+ if(!/^SI-CERT-[A-Za-z0-9-]{6,90}$/.test(id)){error.textContent='Invalid certificate ID / رقم الشهادة غير صالح';return}
+ const base='https://si-avs-staging-test.onrender.com';
+ try{
+  const response=await fetch(base+'/api/verify/traffic-staging-certificate?id='+encodeURIComponent(id),{cache:'no-store'});
+  if(!response.ok)throw Error('Traffic staging certificate not found / الشهادة التجريبية غير موجودة');
+  const d=await response.json();
+  if(!d.valid||d.courseId!=='CRS-TRAFFIC-001'||d.certificateId!==id)throw Error('Certificate cannot be verified / تعذر التحقق من الشهادة');
+  const el=name=>document.getElementById(name);
+  el('recipient').textContent=d.recipientNameEn||d.recipientNameAr||'—';
+  el('nameAr').textContent=d.recipientNameAr||'';
+  el('course').textContent=(d.courseNameEn||'Traffic Management & Vehicle Control')+' / '+(d.courseNameAr||'إدارة حركة المرور والتحكم في المركبات');
+  el('details').textContent='Certificate: '+d.certificateId+'  •  Issued: '+(d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB'):'—');
+  const verify=new URL('traffic-verify.html',location.href);
+  verify.searchParams.set('id',id);
+  el('verifyLink').href=verify.toString();
+  const qr=el('qr');qr.onload=()=>{qr.hidden=false};qr.onerror=()=>{qr.hidden=true};
+  qr.src=base+'/api/training-certificates/'+encodeURIComponent(id)+'/qr';
+  error.hidden=true;el('certificate').hidden=false;
+ }catch(e){error.textContent=e.message}
+})();
+</script></body></html>
