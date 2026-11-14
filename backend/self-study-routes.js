@@ -539,7 +539,7 @@ const screenHandler=async(req,res)=>{
         if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
       }
     }
-    res.json({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:req.selfStudy.courseSlug===TRAFFIC_SLUG?'':s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
+    res.json({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
   }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
 };
 const screenAssessmentHandler=async(req,res)=>{
