@@ -57,7 +57,7 @@ async function boot(){
   document.getElementById('content').innerHTML='<h1>Access unavailable</h1><p>'+esc(e.message)+'</p>';
  }
 }
-function renderModules(){document.getElementById('modules').innerHTML=['tm1','tm2','tm3','tm4','tm5'].map((id,i)=>{const done=(me.progress?.modules?.[id]||0)>=80;return '<div class="module '+(done?'done':'')+'"><b>Module '+(i+1)+'</b><small>'+({tm1:'Traffic Control Fundamentals',tm2:'Gate Duty & Responsibilities',tm3:'Parking & Traffic Calming',tm4:'Hazards & Incident Response',tm5:'Hand Signals & Practice'}[id])+'</small></div>'}).join('');updateSummary()}
+function renderModules(){document.getElementById('modules').innerHTML=['tm1','tm2','tm3','tm4','tm5'].map((id,i)=>{const done=(me.progress?.modules?.[id]||0)>=80;return '<div class="module '+(done?'done':'')+'"><b>Module '+(i+1)+'</b><small>'+({tm1:'Fundamentals & TMP',tm2:'Access Points & Drivers',tm3:'Pedestrians & Parking',tm4:'Safety & Reporting',tm5:'Signals & Practice'}[id])+'</small></div>'}).join('');updateSummary()}
 function updateSummary(){const done=me.progress?.completedScreens?.length||0;const pct=Math.round(done/screens.length*100);document.getElementById('bar').style.width=pct+'%';document.getElementById('summary').innerHTML='<strong>'+pct+'%</strong> complete<br><span style="color:#aebbc6">Cumulative score: '+(me.cumulativeScore||0)+'%</span>'}
 function renderLessonBody(value){
  // Handle both actual line breaks and literal backslash-n text from imported training materials.
@@ -130,7 +130,7 @@ async function showTrafficFeedback(){
  }catch(err){document.getElementById('content').innerHTML='<h1>Feedback unavailable / تعذر عرض التقييم</h1><div class="body">'+esc(err.message)+'</div>'}
 }
 function renderFinalAssessment(d){
- const qs=d.questions||[];let html='<div class="kicker">FINAL ASSESSMENT • 30 QUESTIONS</div><h1>Traffic Management & Vehicle Control</h1><div class="body">Answer all 30 questions. Pass mark: 70%.</div><div class="body ar">أجب عن جميع الأسئلة الثلاثين. درجة النجاح: 70٪.</div><section class="quiz">';
+ const qs=d.questions||[];let html='<div class="kicker">FINAL ASSESSMENT • 30 QUESTIONS</div><h1>Traffic Control — Traffic Marshal / التحكم بحركة المرور</h1><div class="body">Answer all 30 questions. Pass mark: 70%.</div><div class="body ar">أجب عن جميع الأسئلة الثلاثين. درجة النجاح: 70٪.</div><section class="quiz">';
  qs.forEach((x,i)=>{html+='<div class="q"><strong>'+x.number+'. '+esc(x.q)+'</strong>'+x.options.map((o,j)=>'<label class="opt"><input type="radio" name="finalq'+i+'" value="'+j+'"> '+esc(o)+'</label>').join('')+'</div>'});
  html+='</section><div class="actions"><button class="btn secondary" id="backLearning">← Back / رجوع</button><button class="btn" id="submitFinal">Submit Final Assessment / إرسال الاختبار النهائي</button></div><div id="result" class="result"></div>';
  document.getElementById('content').innerHTML=html;
