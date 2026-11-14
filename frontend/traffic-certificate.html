@@ -24,7 +24,7 @@
   const el=name=>document.getElementById(name);
   el('recipient').textContent=d.recipientNameEn||d.recipientNameAr||'—';
   el('nameAr').textContent=d.recipientNameAr||'';
-  el('course').textContent=(d.courseNameEn||'Traffic Management & Vehicle Control')+' / '+(d.courseNameAr||'إدارة حركة المرور والتحكم في المركبات');
+  el('course').textContent=(d.courseNameEn||'Traffic Control — Traffic Marshal')+' / '+(d.courseNameAr||'التحكم بحركة المرور');
   el('details').textContent='Certificate: '+d.certificateId+'  •  Issued: '+(d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB'):'—');
   const verify=new URL('traffic-verify.html',location.href);
   verify.searchParams.set('id',id);
