@@ -6,6 +6,7 @@ on:
     paths:
       - scripts/build_traffic_training_videos.py
       - scripts/build_traffic_intro_pilot.py
+      - scripts/add_traffic_arabic_narration.py
       - .github/workflows/build-traffic-preview-videos.yml
   workflow_dispatch:
 permissions:
@@ -25,16 +26,19 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg fonts-noto-core
-          python -m pip install --disable-pip-version-check pillow
+          python -m pip install --disable-pip-version-check pillow edge-tts
       - name: Render bilingual MP4 videos
         run: |
           python scripts/build_traffic_training_videos.py
           python scripts/build_traffic_intro_pilot.py
-      - name: Verify all videos can be decoded
+      - name: Add original Arabic narration to all seven MP4s
+        run: python scripts/add_traffic_arabic_narration.py
+      - name: Verify all videos can be decoded and carry AAC audio
         run: |
           test "$(find frontend/assets/traffic-videos -maxdepth 1 -name '*.mp4' | wc -l)" -eq 7
           for f in frontend/assets/traffic-videos/*.mp4; do
             ffprobe -v error -show_entries format=duration -of default=nw=1 "$f"
+            test "$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=nw=1:nk=1 "$f")" = "aac"
             ffmpeg -v error -i "$f" -f null - </dev/null
           done
       - name: Commit generated videos to pilot branch
@@ -43,7 +47,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add frontend/assets/traffic-videos/*.mp4
           if ! git diff --cached --quiet; then
-            git commit -m "Publish generated Traffic training MP4 previews [skip ci]"
+            git commit -m "Publish Arabic-narrated Traffic training videos [skip ci]"
             # Preserve concurrent updates to this staging branch without force-pushing.
             git fetch origin feat/self-study-traffic-course
             git rebase origin/feat/self-study-traffic-course
