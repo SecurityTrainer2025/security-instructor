@@ -60,17 +60,35 @@ async function boot(){
 function renderModules(){document.getElementById('modules').innerHTML=['tm1','tm2','tm3','tm4','tm5'].map((id,i)=>{const done=(me.progress?.modules?.[id]||0)>=80;return '<div class="module '+(done?'done':'')+'"><b>Module '+(i+1)+'</b><small>'+({tm1:'Traffic Control Fundamentals',tm2:'Gate Duty & Responsibilities',tm3:'Parking & Traffic Calming',tm4:'Hazards & Incident Response',tm5:'Hand Signals & Practice'}[id])+'</small></div>'}).join('');updateSummary()}
 function updateSummary(){const done=me.progress?.completedScreens?.length||0;const pct=Math.round(done/screens.length*100);document.getElementById('bar').style.width=pct+'%';document.getElementById('summary').innerHTML='<strong>'+pct+'%</strong> complete<br><span style="color:#aebbc6">Cumulative score: '+(me.cumulativeScore||0)+'%</span>'}
 function renderLessonBody(value){
- return String(value??'').split(/\r?\n/).map(line=>{
+ // Handle both actual line breaks and literal backslash-n text from imported training materials.
+ const normalized=String(value??'').replace(/\\n/g,'\n').replace(/\r\n?/g,'\n');
+ const html=normalized.split('\n').map(line=>{
   const t=line.trim();
   if(!t)return '';
   if(t.startsWith('## '))return '<h2 class="lesson-heading">'+esc(t.slice(3))+'</h2>';
   if(t.startsWith('• ')||t.startsWith('- '))return '<p class="lesson-bullet">• '+esc(t.slice(2))+'</p>';
   return '<p class="lesson-paragraph">'+esc(t)+'</p>';
  }).join('');
+ return html;
 }
+const TRAFFIC_VIDEO_ASSETS={
+ tm1s1:'00_course_introduction.mp4',tm1s2:'06_risk_position.mp4',
+ tm2s1:'01_gate_access.mp4',tm2s2:'01_gate_access.mp4',
+ tm3s1:'02_pedestrian_separation.mp4',tm3s2:'03_parking_operations.mp4',
+ tm4s1:'04_incident_response.mp4',tm4s2:'04_incident_response.mp4',
+ tm5s1:'05_hand_signals.mp4',tm5s2:'05_hand_signals.mp4'
+};
+function trafficVideoUrl(screen){
+ const fromApi=String(screen.videoUrl||'').trim();
+ const local=TRAFFIC_VIDEO_ASSETS[screen.id];
+ if(!local)return '';
+ // Staging media is hosted on the staging UI, never from the production API.
+ return fromApi.startsWith('assets/traffic-videos/')?fromApi:'assets/traffic-videos/'+local;
+}
+
 async function renderScreen(){
  const id=screens[index];const d=await api('/api/self-study/screens/'+id);dQuestionCount=d.questions.length;const score=me.progress?.screenScores?.[id];let q='';d.questions.forEach((x,i)=>{q+='<div class="q"><strong>'+(i+1)+'. '+esc(x.q)+'</strong>'+x.options.map((o,j)=>'<label class="opt"><input type="radio" name="q'+i+'" value="'+j+'"> '+esc(o)+'</label>').join('')+'</div>'});
- document.getElementById('content').innerHTML='<div id="screen-anchor" class="kicker" tabindex="-1">LEARNING SCREEN '+(index+1)+' / '+screens.length+(d.slide?' • SOURCE SLIDE '+d.slide:'')+'</div><h1>'+esc(d.titleEn)+'</h1><div class="ar" style="color:#C8A96B;font-size:22px">'+esc(d.titleAr)+'</div><div class="body">'+renderLessonBody(d.bodyEn)+'</div><div class="body ar">'+renderLessonBody(d.bodyAr)+'</div><div class="video">'+(d.videoUrl?'<div style="font-weight:900;margin-bottom:10px">VIDEO / فيديو</div><video controls playsinline preload="metadata" style="width:100%;max-width:900px;border-radius:4px;background:#000"><source src="'+esc(d.videoUrl)+'"><span>Video is not available in this browser.</span></video>':'<div style="font-weight:900">VIDEO / فيديو</div><small>Video is not published for this screen yet. / لم يتم نشر فيديو لهذه الشاشة بعد.</small>')+'</div>'+((d.questions&&d.questions.length)?'<section class="quiz"><h2>Knowledge Check / اختبار المعرفة</h2>'+q+'</section>':'<div class="notice" style="background:#132a3d;border-color:#627386;color:#DDE5EB">Review screen / شاشة مراجعة — read the content and continue.</div>')+'<div class="actions"><button class="btn secondary" id="prev" '+(index===0?'disabled':'')+'>← Previous</button><button class="btn" id="submit">'+((d.questions&&d.questions.length)?'Submit / إرسال':'Continue / متابعة')+'</button></div><div id="result" class="result"></div>';
+ document.getElementById('content').innerHTML='<div id="screen-anchor" class="kicker" tabindex="-1">LEARNING SCREEN '+(index+1)+' / '+screens.length+(d.slide?' • SOURCE SLIDE '+d.slide:'')+'</div><h1>'+esc(d.titleEn)+'</h1><div class="ar" style="color:#C8A96B;font-size:22px">'+esc(d.titleAr)+'</div><div class="body">'+renderLessonBody(d.bodyEn)+'</div><div class="body ar">'+renderLessonBody(d.bodyAr)+'</div><div class="video">'+(trafficVideoUrl(d)?'<div style="font-weight:900;margin-bottom:10px">VIDEO / فيديو</div><video controls playsinline preload="metadata" style="width:100%;max-width:900px;border-radius:4px;background:#000"><source src="'+esc(trafficVideoUrl(d))+'"><span>Video is not available in this browser.</span></video>':'<div style="font-weight:900">VIDEO / فيديو</div><small>Video is not published for this screen yet. / لم يتم نشر فيديو لهذه الشاشة بعد.</small>')+'</div>'+((d.questions&&d.questions.length)?'<section class="quiz"><h2>Knowledge Check / اختبار المعرفة</h2>'+q+'</section>':'<div class="notice" style="background:#132a3d;border-color:#627386;color:#DDE5EB">Review screen / شاشة مراجعة — read the content and continue.</div>')+'<div class="actions"><button class="btn secondary" id="prev" '+(index===0?'disabled':'')+'>← Previous</button><button class="btn" id="submit">'+((d.questions&&d.questions.length)?'Submit / إرسال':'Continue / متابعة')+'</button></div><div id="result" class="result"></div>';
  requestAnimationFrame(()=>{const anchor=document.getElementById('screen-anchor');if(anchor){anchor.focus({preventScroll:true});}const main=document.querySelector('.main-card');window.scrollTo({top:Math.max(0,(main?.getBoundingClientRect().top||0)+window.scrollY-12),behavior:'smooth'});}); document.getElementById('prev').onclick=()=>{if(index>0){index--;sessionStorage.setItem('siTrafficStagingSelfStudyIndex',index);renderScreen()}};
  document.getElementById('submit').onclick=submitScreen;
 }
