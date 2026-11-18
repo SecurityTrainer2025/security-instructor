@@ -30,7 +30,19 @@ jobs:
           test -s traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.en.vtt
           ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=nw=1:nk=1 traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.mp4 | grep '^aac$'
           ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nw=1:nk=1 traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.mp4 | grep '^h264$'
+      - name: Write diagnostic build summary
+        if: always()
+        run: |
+          echo "## SI Traffic Intro / تقرير إنتاج المقدمة" >> "$GITHUB_STEP_SUMMARY"
+          echo "Review-only workflow on staging branch. No production deployment." >> "$GITHUB_STEP_SUMMARY"
+          if [ -s traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.mp4 ]; then
+            echo "✅ MP4 file created. Review original human movement and safety before approving." >> "$GITHUB_STEP_SUMMARY"
+            ls -lh traffic-intro-build/ >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ No MP4 created. Open the failed step logs to see whether download, narration, or ffmpeg failed." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Upload review artifact (NOT site deployment)
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: SI-Traffic-Marshal-REAL-Intro-REVIEW
