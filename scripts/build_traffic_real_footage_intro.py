@@ -24,12 +24,10 @@ SOURCE=[
 VOICE="ar-EG-ShakirNeural"
 NARRATION=(
 "مرحباً بكم في دورة التحكم بحركة المرور من منصة سيكيوريتي إنستركتور. "
-"يتولى منظم حركة المرور، أو ترافك مارشال، المساعدة في توجيه المركبات والمشاة داخل الموقع. "
-"تبدأ المهمة بقراءة خطة المرور، وتحديد المداخل والمخارج ومسارات الطوارئ. "
-"سلامة الأشخاص هي الأولوية دائماً. "
-"يجب التمركز في مكان آمن ومرئي للسائقين، واستخدام الإشارات المعتمدة فقط، "
-"والتنسيق مع فريق البوابة وغرفة التحكم عند وجود ازدحام أو خطر. "
-"تذكر: سلامة الأشخاص أولاً، وخطة الموقع قبل أي اجتهاد."
+"نتعرف على مهام منظم حركة المرور، أو ترافك مارشال، لحماية الأشخاص وتنظيم المركبات داخل الموقع. "
+"تبدأ المهمة بفهم خطة المرور ومسارات المشاة والطوارئ. "
+"اختر مكاناً آمناً ومرئياً، واستخدم الإشارات المعتمدة فقط. "
+"نسّق دائماً مع فريق البوابة. تذكر: سلامة الأشخاص أولاً."
 )
 SUBS=[
 ("00:00:00.000","00:00:06.000","Welcome to Traffic Control training from SECURITY INSTRUCTOR."),
@@ -53,11 +51,21 @@ async def main():
   for i,(description,url,seconds,page) in enumerate(SOURCE):
    raw=wd/f"source_{i}.mp4"
    req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 SI-training-review/1.0"})
-   with urllib.request.urlopen(req,timeout=150) as response,raw.open("wb") as target:
-    while True:
-     buf=response.read(2*1024*1024)
-     if not buf:break
-     target.write(buf)
+   last_error=None
+   for attempt in range(3):
+    try:
+     with urllib.request.urlopen(req,timeout=150) as response,raw.open("wb") as target:
+      while True:
+       buf=response.read(2*1024*1024)
+       if not buf:break
+       target.write(buf)
+     last_error=None
+     break
+    except Exception as error:
+     last_error=error
+     print(f"STOCK FETCH failed on attempt {attempt+1}/3 for {page}: {error}",flush=True)
+     await asyncio.sleep(2*(attempt+1))
+   if last_error is not None:raise RuntimeError(f"Unable to download source after retries: {page}") from last_error
    if raw.stat().st_size<100000:raise RuntimeError(f"Invalid stock footage {i}")
    duration=probe_duration(raw)
    if duration<seconds-0.4:raise RuntimeError(f"Source {i} too short: {duration}s")
