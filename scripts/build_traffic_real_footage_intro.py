@@ -76,7 +76,13 @@ async def main():
   await edge_tts.Communicate(NARRATION,VOICE,rate="+18%").save(str(voice))
   total=probe_duration(joined)
   voice_length=probe_duration(voice)
-  if voice_length>total+0.5:raise RuntimeError(f"Narration too long: {voice_length:.1f} vs {total:.1f}s")
+  if voice_length>total-0.5:
+   speed=voice_length/(total-0.5)
+   if speed>1.70:raise RuntimeError(f"Narration cannot fit naturally: {voice_length:.1f}s in {total:.1f}s.")
+   sped=wd/"fitted_voice.wav"
+   sh("ffmpeg","-y","-loglevel","error","-i",voice,"-af",f"atempo={speed:.4f}",
+      "-ac","2","-ar","48000",sped)
+   voice=sped
   final=OUT/"SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.mp4"
   sh("ffmpeg","-y","-loglevel","error","-i",joined,"-i",voice,
      "-filter_complex","[1:a]apad[a]","-map","0:v:0","-map","[a]",
