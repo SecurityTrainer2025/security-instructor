@@ -9,6 +9,7 @@ import base64
 import json
 import subprocess
 import tempfile
+import time
 import urllib.request
 from pathlib import Path
 import edge_tts
@@ -251,7 +252,8 @@ async def main():
    last_error=None
    for attempt in range(3):
     try:
-     with urllib.request.urlopen(req,timeout=150) as response,raw.open("wb") as target:
+     deadline=time.monotonic()+40
+     with urllib.request.urlopen(req,timeout=15) as response,raw.open("wb") as target:
       while True:
        buf=response.read(2*1024*1024)
        if not buf:break
@@ -290,7 +292,7 @@ async def main():
    voice=wd/f"voice_{index}.mp3"
    for attempt in range(3):
     try:
-     await edge_tts.Communicate(ar,VOICE,rate="+8%").save(str(voice))
+     await asyncio.wait_for(edge_tts.Communicate(ar,VOICE,rate="+8%").save(str(voice)),timeout=22)
      break
     except Exception:
      if attempt==2:raise
