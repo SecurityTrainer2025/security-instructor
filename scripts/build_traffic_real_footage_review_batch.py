@@ -5,6 +5,7 @@ import json
 import re
 import shutil
 import tempfile
+import time
 import urllib.request
 from pathlib import Path
 
@@ -27,13 +28,17 @@ def fetch_stock(item, path, probe_duration):
             "8486788": "https://www.pexels.com/video/pull-out-shot-of-a-flagman-8486788/",
         }[item["fallback"].split("/")[4]]))
     for url, page in candidates:
+        deadline = time.monotonic() + 22
         try:
             request = urllib.request.Request(url, headers={
                 "User-Agent": "Mozilla/5.0",
                 "Referer": page,
             })
-            with urllib.request.urlopen(request, timeout=30) as response, path.open("wb") as output:
-                shutil.copyfileobj(response, output)
+            with urllib.request.urlopen(request, timeout=10) as response, path.open("wb") as output:
+                while chunk := response.read(256 * 1024):
+                    if time.monotonic() > deadline:
+                        raise TimeoutError("Stock download exceeded 22 seconds")
+                    output.write(chunk)
             if probe_duration(path) >= 3:
                 return page
         except Exception as error:
@@ -55,7 +60,7 @@ async def build_lesson(item, out, logo_data, voice, sh, probe_duration, timestam
             mp3 = folder / f"line{index}.mp3"
             for attempt in range(3):
                 try:
-                    await edge_tts.Communicate(ar, voice, rate="+5%").save(str(mp3))
+                    await asyncio.wait_for(edge_tts.Communicate(ar, voice, rate="+5%").save(str(mp3)), timeout=22)
                     break
                 except Exception:
                     if attempt == 2:
@@ -122,12 +127,16 @@ async def build_lesson(item, out, logo_data, voice, sh, probe_duration, timestam
 
 
 async def build_batch(out, logo_data, voice, sh, probe_duration, timestamp):
-    report = []
-    for item in ITEMS:
-        try:
-            result = await build_lesson(item, out, logo_data, voice, sh, probe_duration, timestamp)
-        except Exception as error:
-            result = {"id": item["id"], "status": "NO MP4", "reason": str(error)}
-        report.append(result)
-        print("SI_BATCH_RESULT", json.dumps(result, ensure_ascii=False), flush=True)
+    slots = asyncio.Semaphore(3)
+
+    async def export(item):
+        async with slots:
+            try:
+                result = await build_lesson(item, out, logo_data, voice, sh, probe_duration, timestamp)
+            except Exception as error:
+                result = {"id": item["id"], "status": "NO MP4", "reason": f"{type(error).__name__}: {error}"}
+            print("SI_BATCH_RESULT", json.dumps(result, ensure_ascii=False), flush=True)
+            return result
+
+    report = await asyncio.gather(*(export(item) for item in ITEMS))
     (out / "BATCH_REVIEW_INVENTORY.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
