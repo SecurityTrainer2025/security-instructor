@@ -25,7 +25,7 @@ for(const s of TRAFFIC_SCREENS){
 const previewVideoFiles=[...new Set(TRAFFIC_SCREENS.map(s=>path.basename(s.videoUrl)))];
 assert.equal(previewVideoFiles.length,7,'Expected seven distinct pilot video assets');
 for(const filename of previewVideoFiles) {
-  const captions=path.join(root,'frontend/assets/traffic-videos',filename.replace(/\\.mp4$/i,'.en.vtt'));
+  const captions=path.join(root,'frontend/assets/traffic-videos',filename.replace(/\.mp4$/i,'.en.vtt'));
   assert.ok(fs.existsSync(captions),'Missing English subtitle: '+captions);
   assert.ok(fs.readFileSync(captions,'utf8').startsWith('WEBVTT'),'Invalid subtitle header: '+captions);
 }
