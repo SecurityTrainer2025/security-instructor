@@ -1,5 +1,6 @@
 """Audit recovered review media and exercise the current Traffic player with browser-only fixtures."""
 import base64
+import html
 import json
 import re
 import subprocess
@@ -142,13 +143,39 @@ def browsers(results):
                 }""", timeout=12000)
                 assert not rejected, rejected
                 assert video.evaluate("v => v.textTracks[0].cues.length") == len(results[index]["cues"])
-                qa.append({"id": screen["id"], "profile": label, "playback": "passed", "captions": "loaded"})
+                page.wait_for_function("""() => {
+                    const video = document.querySelector('#content video');
+                    return !video.muted && video.volume > 0 &&
+                        video.webkitAudioDecodedByteCount > 0 &&
+                        video.textTracks[0].activeCues?.length > 0;
+                }""", timeout=12000)
+                qa.append({"id": screen["id"], "profile": label, "playback": "passed",
+                           "captions": "visible during playback", "audio": "decoded, unmuted"})
                 page.close()
             context.close()
         browser.close()
     return qa
 
+def write_file_index(results):
+    rows = []
+    for screen, result in zip(SCREENS, results):
+        file = html.escape(result["file"])
+        subtitle = file.replace(".mp4", ".en.vtt")
+        title = html.escape(screen["titleAr"])
+        rows.append(f'<li><strong>{title}</strong> · {result["seconds"]:.2f} ث '
+                    f'· <a href="{file}" download>MP4</a> · <a href="{subtitle}" download>VTT</a></li>')
+    (MEDIA / "index.html").write_text(
+        '<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        '<title>فيديوهات Traffic Marshal للمراجعة</title>'
+        '<style>body{margin:2rem auto;padding:0 1rem;max-width:54rem;font:1rem/1.8 system-ui;'
+        'background:#0B1F33;color:white}a{color:#ebcc91}li{margin:0.6rem 0}</style>'
+        '<h1>فيديوهات Traffic Marshal للمراجعة</h1><p>عشرة ملفات مراجعة غير معتمدة.</p>'
+        '<ol>' + ''.join(rows) + '</ol></html>', encoding="utf-8")
+
+
 results = [inspect(screen) for screen in SCREENS]
+write_file_index(results)
 print("SI_TECHNICAL_QA", json.dumps(results), flush=True)
 (REPORT / "technical.json").write_text(json.dumps(results, indent=2))
 checks = browsers(results)
