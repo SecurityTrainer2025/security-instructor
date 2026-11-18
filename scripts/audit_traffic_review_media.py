@@ -97,6 +97,11 @@ def browsers(results):
                     request = route.request
                     url = urlparse(request.url)
                     if request.url.startswith(fixture_api + "/"):
+                        cors = {"access-control-allow-origin":"*",
+                                "access-control-allow-methods":"GET, POST, OPTIONS",
+                                "access-control-allow-headers":"authorization, content-type"}
+                        if request.method == "OPTIONS":
+                            return route.fulfill(status=204, headers=cors)
                         payload = {
                             course+"/me": {"course":{"code":"CRS-TRAFFIC-001"},"progress":{},
                                           "certificateEnabled":False},
@@ -108,7 +113,7 @@ def browsers(results):
                             },
                         }.get(url.path)
                         if payload is not None:
-                            return route.fulfill(json=payload,headers={"access-control-allow-origin":"*"})
+                            return route.fulfill(json=payload,headers=cors)
                     elif request.url.startswith(local+"/"):
                         name = url.path.rsplit("/",1)[-1]
                         if name in (expected,expected_vtt):
