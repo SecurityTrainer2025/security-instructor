@@ -1,0 +1,53 @@
+name: Build real-footage Traffic Marshal INTRO (review artifact only)
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/self-study-traffic-course]
+    paths:
+      - scripts/build_traffic_real_footage_intro.py
+      - .github/workflows/build-traffic-real-footage-intro.yml
+permissions:
+  contents: read
+jobs:
+  build-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install free editing tools
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20 update -qq
+            sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20 install -y -qq ffmpeg
+          fi
+          python -m pip install --disable-pip-version-check edge-tts
+      - name: Assemble real licensed moving footage with Arabic voiceover
+        run: python scripts/build_traffic_real_footage_intro.py
+      - name: Verify video and voiceover and file references
+        run: |
+          test -s traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.mp4
+          test -s traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.en.vtt
+          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=nw=1:nk=1 traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.mp4 | grep '^aac$'
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nw=1:nk=1 traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.mp4 | grep '^h264$'
+      - name: Write diagnostic build summary
+        if: always()
+        run: |
+          echo "## SI Traffic Intro / تقرير إنتاج المقدمة" >> "$GITHUB_STEP_SUMMARY"
+          echo "Review-only workflow on staging branch. No production deployment." >> "$GITHUB_STEP_SUMMARY"
+          if [ -s traffic-intro-build/SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.mp4 ]; then
+            echo "✅ MP4 file created. Review original human movement and safety before approving." >> "$GITHUB_STEP_SUMMARY"
+            ls -lh traffic-intro-build/ >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ No MP4 created. Open the failed step logs to see whether download, narration, or ffmpeg failed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload review artifact (NOT site deployment)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SI-Traffic-Marshal-REAL-Intro-REVIEW
+          path: traffic-intro-build/
+          retention-days: 14
+          if-no-files-found: error

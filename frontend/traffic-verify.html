@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SI Traffic Certificate Verification | التحقق من شهادة المرور</title>
+<style>:root{--navy:#0B1F33;--gold:#C8A96B}*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--navy);font:16px Arial,Tahoma,sans-serif;color:white}main{max-width:840px;margin:36px auto;padding:32px;background:#102A43;border:2px solid var(--gold)}h1{color:var(--gold);font-size:clamp(23px,4vw,32px)}.ar{direction:rtl;text-align:right}.status{border:1px solid var(--gold);padding:18px;margin:20px 0}.valid{color:#bbf4ce}.invalid{color:#ffb8b8}.pairs{display:grid;grid-template-columns:200px 1fr;gap:12px;padding:20px;border:1px solid #52667b}.pairs b{color:var(--gold)}.pairs span{overflow-wrap:anywhere}@media(max-width:600px){main{margin:12px;padding:20px}.pairs{display:block}.pairs b{display:block;margin-top:12px}}</style></head>
+<body><main><strong>SECURITY <span style="color:#C8A96B">INSTRUCTOR • SI</span></strong>
+<h1>Traffic Certificate Verification</h1><h2 class="ar">التحقق من شهادة دورة المرور</h2>
+<p class="ar">التحقق من الشهادات التجريبية فقط، ولا يرتبط بسجلات شهادات الدورات الرئيسية.</p>
+<div id="status" class="status" role="status">Checking the staging record / جارٍ فحص سجل الاختبار</div>
+<div id="details" class="pairs" hidden>
+<b>Certificate ID / رقم الشهادة</b><span id="certId"></span>
+<b>Name / الاسم</b><span id="recipient"></span>
+<b>Course / الدورة</b><span id="course"></span>
+<b>Issue date / تاريخ الإصدار</b><span id="date"></span>
+</div>
+<p style="font-size:13px;color:#c2ccd8">STAGING ONLY / اختبار فقط — لا تُستخدم هذه الصفحة للتحقق من شهادات الدورات الأخرى.</p>
+</main><script>
+(async()=>{
+ const status=document.getElementById('status');
+ const id=new URLSearchParams(location.search).get('id')||'';
+ if(!/^SI-CERT-[A-Za-z0-9-]{6,90}$/.test(id)){status.textContent='Invalid certificate identifier / رقم الشهادة غير صالح';status.classList.add('invalid');return}
+ try{
+   const url='https://si-avs-staging-test.onrender.com/api/verify/traffic-staging-certificate?id='+encodeURIComponent(id);
+   const res=await fetch(url,{cache:'no-store'});
+   if(!res.ok)throw Error('No Traffic staging certificate found / لم يتم العثور على شهادة المرور في سجل الاختبار');
+   const d=await res.json();
+   if(d.courseId!=='CRS-TRAFFIC-001'||d.certificateId!==id||d.valid!==true)throw Error('Unverified Traffic certificate / شهادة المرور غير معتمدة');
+   status.textContent='VALID TRAFFIC STAGING CERTIFICATE / شهادة مرور تجريبية صالحة';status.classList.add('valid');
+   document.getElementById('certId').textContent=d.certificateId;
+   document.getElementById('recipient').textContent=d.recipientNameEn||d.recipientNameAr||'—';
+   document.getElementById('course').textContent=d.courseNameEn||d.courseNameAr||'—';
+   document.getElementById('date').textContent=d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB'):'—';
+   document.getElementById('details').hidden=false;
+ }catch(e){status.textContent=e.message;status.classList.add('invalid')}
+})();
+</script></body></html>
