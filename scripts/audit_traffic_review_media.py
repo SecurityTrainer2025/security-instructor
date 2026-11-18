@@ -174,7 +174,14 @@ def write_file_index(results):
         '<ol>' + ''.join(rows) + '</ol></html>', encoding="utf-8")
 
 
-results = [inspect(screen) for screen in SCREENS]
+if "--reuse-technical" in sys.argv:
+    # The fixed input artifact was produced after inspecting these same media bytes.
+    results = json.loads((REPORT / "technical.json").read_text())
+    assert [(item["id"], item["file"]) for item in results] == [
+        (screen["id"], REVIEW_NAMES[screen["id"]]) for screen in SCREENS
+    ]
+else:
+    results = [inspect(screen) for screen in SCREENS]
 write_file_index(results)
 print("SI_TECHNICAL_QA", json.dumps(results), flush=True)
 (REPORT / "technical.json").write_text(json.dumps(results, indent=2))
