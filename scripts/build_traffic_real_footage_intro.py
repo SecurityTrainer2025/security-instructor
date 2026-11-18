@@ -335,6 +335,7 @@ if __name__=="__main__":
  async def run_review_exports():
   from build_traffic_real_footage_review_batch import build_batch
   await main()
+  # Export each lesson as a review artifact; the site lesson URLs stay separate.
   await build_batch(OUT,LOGO_JPEG,VOICE,sh,probe_duration,timestamp)
 
  asyncio.run(run_review_exports())
