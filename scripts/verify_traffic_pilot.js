@@ -22,6 +22,16 @@ for(const s of TRAFFIC_SCREENS){
   }
   assert.ok(s.videoUrl && fs.existsSync(path.join(root, 'frontend', s.videoUrl)), s.id+' video missing: '+s.videoUrl);
 }
+const previewVideoFiles=[...new Set(TRAFFIC_SCREENS.map(s=>path.basename(s.videoUrl)))];
+assert.equal(previewVideoFiles.length,7,'Expected seven distinct pilot video assets');
+for(const filename of previewVideoFiles) {
+  const captions=path.join(root,'frontend/assets/traffic-videos',filename.replace(/\\.mp4$/i,'.en.vtt'));
+  assert.ok(fs.existsSync(captions),'Missing English subtitle: '+captions);
+  assert.ok(fs.readFileSync(captions,'utf8').startsWith('WEBVTT'),'Invalid subtitle header: '+captions);
+}
+const trafficPlayer=fs.readFileSync(path.join(root,'frontend/traffic-self-study.html'),'utf8');
+assert.ok(trafficPlayer.includes('kind="subtitles"'),'Traffic player must offer English subtitles');
+assert.ok(trafficPlayer.includes('window.SI_TRAFFIC_APPROVED_INTRO === true'),'Intro requires explicit staging approval');
 assert.equal(TRAFFIC_FINAL_ASSESSMENT.length, 30);
 const vtt = fs.readFileSync(path.join(root, 'frontend/assets/traffic-videos/00_course_introduction.en.vtt'), 'utf8');
 assert.ok(vtt.startsWith('WEBVTT'));
