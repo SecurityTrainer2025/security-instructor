@@ -13,7 +13,7 @@ jobs:
   review:
     if: github.ref == 'refs/heads/feat/self-study-traffic-course'
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,7 +28,13 @@ jobs:
           test "$(find traffic-review-package -maxdepth 1 -name '*.mp4' | wc -l)" -eq 10
       - name: Prepare media and browser verification
         run: |
-          command -v ffmpeg && command -v ffprobe && command -v google-chrome
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20 update -qq
+            sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20 install -y -qq ffmpeg
+          fi
+          command -v ffmpeg
+          command -v ffprobe
+          command -v google-chrome
           python -m pip install --disable-pip-version-check --timeout 15 --retries 2 edge-tts playwright
       - name: Inspect media and exercise the current player with isolated fixtures
         run: python scripts/audit_traffic_review_media.py traffic-review-package
