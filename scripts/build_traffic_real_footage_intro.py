@@ -69,7 +69,7 @@ async def main():
       "-movflags","+faststart",clip)
    clips.append(clip)
   manifest=wd/"concat.txt"
-  manifest.write_text("".join(f"file '{clip}'\\n" for clip in clips),encoding="utf8")
+  manifest.write_text("".join(f"file '{clip}'\n" for clip in clips),encoding="utf8")
   joined=wd/"joined.mp4"
   sh("ffmpeg","-y","-loglevel","error","-f","concat","-safe","0","-i",manifest,"-c","copy",joined)
   voice=wd/"voice.mp3"
@@ -83,9 +83,9 @@ async def main():
      "-c:v","copy","-c:a","aac","-b:a","160k","-t",f"{total:.3f}",
      "-movflags","+faststart",final)
   vtt=OUT/"SI_Traffic_Marshal_Real_Footage_Intro_REVIEW.en.vtt"
-  vtt.write_text("WEBVTT\\n\\n"+"\\n\\n".join(
-   f"{i+1}\\n{a} --> {b}\\n{line}" for i,(a,b,line) in enumerate(SUBS)
-  )+"\\n",encoding="utf8")
+  vtt.write_text("WEBVTT\n\n"+"\n\n".join(
+   f"{i+1}\n{a} --> {b}\n{line}" for i,(a,b,line) in enumerate(SUBS)
+  )+"\n",encoding="utf8")
   metadata={"status":"REVIEW ONLY - do NOT deploy", "sources":[{"description":s[0],"source_page":s[3],"license":"https://www.pexels.com/license/"} for s in SOURCE],
    "safety":"Real observational footage, not certified instruction. Signals need review by a competent traffic marshal trainer.",
    "logo":"Owner's official SI emblem not embedded yet; insert approved file before release.",
