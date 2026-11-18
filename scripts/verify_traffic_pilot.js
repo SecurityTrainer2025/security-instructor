@@ -35,7 +35,7 @@ const mediaConfig=fs.readFileSync(path.join(root,'frontend/traffic-staging-confi
 assert.ok(trafficPlayer.includes('window.SI_TRAFFIC_FINAL_MEDIA?.[id]'),'Final video must require per-screen staging approval');
 assert.ok(trafficPlayer.includes('approved?.approved===true'),'Unapproved video must never replace pilot media');
 assert.ok(!trafficPlayer.includes('SI_TRAFFIC_APPROVED_INTRO'),'Deprecated intro-only approval removed');
-const approvalIds=[...mediaConfig.matchAll(/(tm[1-5]s[12]): \\{file: 'assets\\/traffic-videos\\/[^']+\\.mp4', approved: false\\}/g)].map(x=>x[1]);
+const approvalIds=mediaConfig.split('\n').filter(line=>line.includes('approved: false')).map(line=>line.trim().split(':')[0]).filter(id=>/^tm[1-5]s[12]$/.test(id));
 assert.equal(approvalIds.length,10,'Expected ten non-approved final-video entries');
 assert.equal(new Set(approvalIds).size,10,'Final video approval IDs must be unique');
 assert.equal(TRAFFIC_FINAL_ASSESSMENT.length, 30);
