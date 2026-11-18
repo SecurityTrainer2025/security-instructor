@@ -330,4 +330,9 @@ async def main():
   sh("ffmpeg","-v","error","-xerror","-i",final,"-f","null","-")
   print("CREATED",final,"duration",total,"captions",len(subs))
 if __name__=="__main__":
- asyncio.run(main())
+ async def run_review_exports():
+  from build_traffic_real_footage_review_batch import build_batch
+  await main()
+  await build_batch(OUT,LOGO_JPEG,VOICE,sh,probe_duration,timestamp)
+
+ asyncio.run(run_review_exports())
