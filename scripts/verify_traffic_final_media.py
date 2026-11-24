@@ -101,10 +101,12 @@ for screen,file in SCREEN_FILES.items():
   if video and (video.get("width"), video.get("height"), video.get("r_frame_rate")) != (1920, 1080, "25/1"):
    errors.append(f"{screen}: requires 1920×1080 at 25 fps")
   if not audio or audio.get("codec_name")!="aac":errors.append(f"{screen}: requires audible AAC track")
-  if not (1 if args.windows_output else 30)<=seconds<=600:errors.append(f"{screen}: unexpected runtime {seconds:.1f} seconds")
+  timing=path.with_suffix(".timing.json")
+  windows_media=args.windows_output or timing.is_file()
+  if not (1 if windows_media else 30)<=seconds<=600:errors.append(f"{screen}: unexpected runtime {seconds:.1f} seconds")
   times=check_captions(path.with_suffix(".en.vtt"), seconds)
-  if args.windows_output:
-   check_windows_timing(path.with_suffix(".timing.json"), times, seconds)
+  if windows_media:
+   check_windows_timing(timing, times, seconds)
   check_audio(path)
   subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-xerror", "-threads", "2",
                   "-i", str(path), "-f", "null", "-"], check=True)

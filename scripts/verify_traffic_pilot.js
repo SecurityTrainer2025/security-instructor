@@ -36,9 +36,18 @@ const mediaConfig=fs.readFileSync(path.join(root,'frontend/traffic-staging-confi
 assert.ok(trafficPlayer.includes('window.SI_TRAFFIC_FINAL_MEDIA?.[id]'),'Final video must require per-screen staging approval');
 assert.ok(trafficPlayer.includes('approved?.approved===true'),'Unapproved video must never replace pilot media');
 assert.ok(!trafficPlayer.includes('SI_TRAFFIC_APPROVED_INTRO'),'Deprecated intro-only approval removed');
-const approvalIds=mediaConfig.split('\n').filter(line=>line.includes('approved: false')).map(line=>line.trim().split(':')[0]).filter(id=>/^tm[1-5]s[12]$/.test(id));
-assert.equal(approvalIds.length,10,'Expected ten non-approved final-video entries');
-assert.equal(new Set(approvalIds).size,10,'Final video approval IDs must be unique');
+const mediaWindow={location:{hostname:'127.0.0.1'}};
+require('node:vm').runInNewContext(mediaConfig,{window:mediaWindow});
+const media=mediaWindow.SI_TRAFFIC_FINAL_MEDIA;
+assert.deepEqual(Object.keys(media).sort(),TRAFFIC_SCREENS.map(s=>s.id).sort());
+assert.equal(new Set(Object.values(media).map(item=>item.file)).size,10);
+for (const [screen,item] of Object.entries(media)) {
+  assert.equal(item.approved,true,screen+' staging asset not enabled');
+  const mp4=path.join(root,'frontend',item.file);
+  for (const file of [mp4,mp4.replace(/\.mp4$/,'.en.vtt'),mp4.replace(/\.mp4$/,'.timing.json')]) {
+    assert.ok(fs.statSync(file).size>0,screen+' missing approved asset: '+file);
+  }
+}
 assert.equal(TRAFFIC_FINAL_ASSESSMENT.length, 30);
 const vtt = fs.readFileSync(path.join(root, 'frontend/assets/traffic-videos/00_course_introduction.en.vtt'), 'utf8');
 assert.ok(vtt.startsWith('WEBVTT'));

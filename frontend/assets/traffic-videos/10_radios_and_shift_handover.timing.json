@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Two marshals in a protected radio handover",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:09.000",
+    "visual": "assets/tm5s2-photo.jpg",
+    "ar": "ابدأ بنداء الجهة المعنية، ثم اذكر موقعك والموقف والطلب. اطلب تأكيد الرسالة عبر القناة المعتمدة.",
+    "en": "Call the intended recipient, then state your location, the situation and your request. Ask for acknowledgement on the approved channel.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:09.080",
+    "actual_scene_end": "00:00:09.680"
+  },
+  {
+    "scene": 2,
+    "description_en": "Confirm the outstanding hazards and emergency lane",
+    "planned_start": "00:00:09.000",
+    "planned_end": "00:00:19.000",
+    "visual": "assets/tm5s2-diagram.jpg",
+    "ar": "عند تسليم الوردية، وضّح حالة الحارات والمخاطر القائمة ومسار الطوارئ. أكّد انتقال المهمة قبل مغادرة موقعك.",
+    "en": "At handover, explain lane conditions, current hazards and the emergency route. Confirm the transfer of responsibility before leaving your post.",
+    "actual_start": "00:00:09.680",
+    "actual_caption_end": "00:00:19.560",
+    "actual_scene_end": "00:00:20.160"
+  }
+]

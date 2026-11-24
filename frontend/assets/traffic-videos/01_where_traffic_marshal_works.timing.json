@@ -1,0 +1,38 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Illustrative marshal at protected industrial gate",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:10.000",
+    "visual": "assets/tm1s1-photo.jpg",
+    "ar": "مرحبًا بكم في دورة إدارة حركة المرور والتحكم في المركبات في الموقع من منصة سيكيوريتي إنستركتور.",
+    "en": "Welcome to Security Instructor’s Traffic Management & Vehicle Control course.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:07.320",
+    "actual_scene_end": "00:00:07.920"
+  },
+  {
+    "scene": 2,
+    "description_en": "Crossing priority and gate coordination",
+    "planned_start": "00:00:10.000",
+    "planned_end": "00:00:23.000",
+    "visual": "assets/tm1s1-diagram.jpg",
+    "ar": "ينظم منظم حركة المرور حركة المركبات والمشاة داخل الموقع وفق الخطة والتفويض. عند ازدحام البوابة، أعطِ الأولوية للمشاة ونسّق مع فريق البوابة.",
+    "en": "A marshal coordinates vehicles and pedestrians within the site plan and their authority. When the gate is busy, prioritise pedestrians and coordinate with the gate team.",
+    "actual_start": "00:00:07.920",
+    "actual_caption_end": "00:00:20.280",
+    "actual_scene_end": "00:00:20.880"
+  },
+  {
+    "scene": 3,
+    "description_en": "Identify safe position and agreed escape route",
+    "planned_start": "00:00:23.000",
+    "planned_end": "00:00:31.000",
+    "visual": "assets/tm1s1-diagram.jpg",
+    "ar": "اختر موضعًا آمنًا يراك فيه السائق، وحدد طريق انسحابك قبل بدء الحركة.",
+    "en": "Choose a safe position where drivers can see you, and identify an escape route before movement starts.",
+    "actual_start": "00:00:20.880",
+    "actual_caption_end": "00:00:27.080",
+    "actual_scene_end": "00:00:27.680"
+  }
+]

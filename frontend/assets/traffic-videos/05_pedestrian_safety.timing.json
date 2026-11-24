@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Marked walkway separated from vehicles",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:09.000",
+    "visual": "assets/tm3s1-photo.jpg",
+    "ar": "حدد الممرات المخصصة للمشاة والمعابر المحمية والمسارات الميسّرة. حافظ على وضوح الرؤية عند المعبر.",
+    "en": "Identify designated walkways, protected crossings and accessible routes. Maintain clear sightlines at crossings.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:08.760",
+    "actual_scene_end": "00:00:09.360"
+  },
+  {
+    "scene": 2,
+    "description_en": "Separate routes and keep sightlines clear",
+    "planned_start": "00:00:09.000",
+    "planned_end": "00:00:21.000",
+    "visual": "assets/tm3s1-diagram.jpg",
+    "ar": "إذا حجبت مركبة المعبر، أمّن الحركة ونسق إزالة العائق قبل إعادة فتحه. تُضبط الحواجز ووسائل التهدئة وفق الخطة المعتمدة.",
+    "en": "If a vehicle blocks the crossing, secure movement and arrange for the obstruction to be removed before reopening it. Follow the approved plan for barriers and traffic calming.",
+    "actual_start": "00:00:09.360",
+    "actual_caption_end": "00:00:19.880",
+    "actual_scene_end": "00:00:20.480"
+  }
+]

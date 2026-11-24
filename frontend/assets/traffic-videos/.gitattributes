@@ -1,0 +1,3 @@
+# Preserve delivered Windows line endings for byte-level verification.
+*.en.vtt -text whitespace=cr-at-eol,-blank-at-eof
+*.timing.json -text whitespace=cr-at-eol,-blank-at-eof
