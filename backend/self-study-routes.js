@@ -279,12 +279,14 @@ const TRAFFIC_FEEDBACK_QUESTIONS=[
  ['The website was easy to use.','كانت المنصة سهلة الاستخدام.'],
  ['I would recommend this training to a colleague.','أوصي زميلًا بهذه الدورة التدريبية.']
 ].map(([en,ar],i)=>({id:i+1,en,ar}));
+const trafficAssessments=TRAFFIC_SCREENS.filter(screen=>screen.assessmentRequired!==false);
+const trafficScores=scores=>trafficAssessments.map(screen=>scores?.[screen.id]).filter(Boolean);
 const feedbackRequired=slug=>slug===TRAFFIC_SLUG;
 const trafficFeedbackHandler=async(req,res)=>{
  try{
   if(req.selfStudy.courseSlug!==TRAFFIC_SLUG)return res.status(404).json({message:'Traffic feedback only'});
   const p=req.selfStudy.progress||baseProgress();
-  const completed=TRAFFIC_SCREENS.every(q=>Number((p.screenScores||{})[q.id]?.score||0)>=80);
+  const completed=trafficAssessments.every(q=>Number((p.screenScores||{})[q.id]?.score||0)>=80);
   if(!completed)return res.status(403).json({message:'Complete all Traffic learning screens first.'});
   if(req.method==='GET')return res.json({ok:true,questions:TRAFFIC_FEEDBACK_QUESTIONS,submitted:!!p.feedbackSubmittedAt,scale:'1=Very dissatisfied, 5=Very satisfied'});
   if(p.feedbackSubmittedAt)return res.status(409).json({message:'Feedback was already submitted.'});
@@ -518,7 +520,9 @@ const exchangeHandler=async(req,res)=>{
 const meHandler=async(req,res)=>{
   const row=req.selfStudy,course=COURSE_META[row.courseSlug];
   const p=row.progress||baseProgress();
-  const q=Number(p.cumulativeQuestions||0),correct=Number(p.cumulativeCorrect||0);
+  const currentScores=row.courseSlug===TRAFFIC_SLUG?trafficScores(p.screenScores):null;
+  const q=currentScores?currentScores.reduce((sum,item)=>sum+Number(item.questions||0),0):Number(p.cumulativeQuestions||0);
+  const correct=currentScores?currentScores.reduce((sum,item)=>sum+Number(item.correct||0),0):Number(p.cumulativeCorrect||0);
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=screensFor(row.courseSlug).filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
@@ -546,6 +550,8 @@ const screenAssessmentHandler=async(req,res)=>{
   try{
     const s=screenFor(req.selfStudy.courseSlug,clean(req.params.screenId,100));
     if(!s)return res.status(404).json({message:'Learning screen not found'});
+    if(req.selfStudy.courseSlug===TRAFFIC_SLUG&&s.assessmentRequired===false)
+      return res.status(400).json({message:'This Traffic lesson has no assessment / لا يوجد تقييم لهذا الدرس'});
     const p0=req.selfStudy.progress||baseProgress();
     const courseScreens=screensFor(req.selfStudy.courseSlug);
     const pos0=courseScreens.findIndex(x=>x.id===s.id);
@@ -567,7 +573,7 @@ const screenAssessmentHandler=async(req,res)=>{
     scores[s.id]={score,questions:s.questions.length,correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
     if(score>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
     modules[moduleFor(s.id)]=Math.max(Number(modules[moduleFor(s.id)]||0),score);
-    const all=Object.values(scores);
+    const all=req.selfStudy.courseSlug===TRAFFIC_SLUG?trafficScores(scores):Object.values(scores);
     p.cumulativeQuestions=all.reduce((n,x)=>n+Number(x.questions||0),0);
     p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.correct||0),0);
     p.screenScores=scores;p.modules=modules;

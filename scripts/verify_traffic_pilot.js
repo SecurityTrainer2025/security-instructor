@@ -15,7 +15,8 @@ assert.equal(new Set(TRAFFIC_SCREENS.map(s=>s.id)).size, 10);
 assert.equal(TRAFFIC_SCREENS[0].videoUrl, 'assets/traffic-videos/00_course_introduction.mp4');
 for(const s of TRAFFIC_SCREENS){
   assert.ok(s.titleAr && s.titleEn && s.bodyAr && s.bodyEn, s.id+' missing bilingual content');
-  assert.equal(s.questions.length, 5, s.id+' must have 5 knowledge questions');
+  assert.equal(s.questions.length, s.id.endsWith('s2') ? 5 : 0, s.id+' invalid assessment count');
+  assert.equal(s.assessmentRequired===false, s.id.endsWith('s1'));
   for(const q of s.questions) {
     assert.equal(q.a.length, 4, s.id+' question options');
     assert.ok(Number.isInteger(q.correct) && q.correct>=0 && q.correct<4, s.id+' answer index');
@@ -50,4 +51,10 @@ for(const source of inlineScripts) new vm.Script(source, {filename:'fire-safety-
 assert.ok(html.includes("courseSlug==='traffic-management-vehicle-control'"),'traffic UI guard missing');
 assert.ok(html.includes('traffic-body-ar')&&html.includes('traffic-body-en'),'language switch missing');
 assert.ok(html.includes('00_course_introduction.en.vtt'),'subtitle track missing');
-console.log('Traffic pilot static QA passed: 10 screens, 50 lesson questions, 30 final questions, videos, subtitles and language switch.');
+const assessmentHtml=fs.readFileSync(path.join(root,'frontend/course-assessment-v2.html'),'utf8');
+const initialBank=assessmentHtml.split('traffic:[')[1].split('],\ncrowd:')[0];
+assert.equal((initialBank.match(/^\['/gm)||[]).length,10,'Traffic initial assessment must have 10 questions');
+const standaloneInitial=fs.readFileSync(path.join(root,'frontend/traffic-initial-assessment.html'),'utf8');
+const legacyBank=standaloneInitial.split('const qs=[')[1].split('];')[0];
+assert.equal((legacyBank.match(/^\['M[1-5]'/gm)||[]).length,10,'The legacy Traffic assessment link must also have 10 questions');
+console.log('Traffic static QA passed: 10 initial questions, five module assessments of five questions, 30 final questions.');

@@ -1,10 +1,12 @@
 /* SECURITY INSTRUCTOR Traffic — isolated staging only.
- * No production fallback, no public activation, no credentials here.
- * To run a connected staging test, deploy the isolated Traffic backend to the
- * approved staging service and explicitly set SI_TRAFFIC_STAGING_API below.
- * Never point this file at the production SI backend.
+ * The dedicated staging UI uses the staging API. A loopback UI uses the local API.
  */
-window.SI_TRAFFIC_STAGING_API = 'https://si-avs-staging-test.onrender.com';
+const trafficHost = window.location.hostname;
+window.SI_TRAFFIC_STAGING_API = trafficHost === 'si-staging-ui.onrender.com'
+  ? 'https://si-avs-staging-test.onrender.com'
+  : ['127.0.0.1', 'localhost'].includes(trafficHost)
+    ? 'http://127.0.0.1:5000'
+    : '';
 
 /* In-place Traffic media approvals, never a new course or deployment target.
  * Keep all false until each final live-motion video passes media QA and
