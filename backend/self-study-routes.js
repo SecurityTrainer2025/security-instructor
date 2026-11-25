@@ -312,7 +312,7 @@ const trafficFeedbackHandler=async(req,res)=>{
   return res.json({ok:true,submitted:true});
  }catch(err){console.error('Traffic feedback error',err);res.status(500).json({message:'Unable to save feedback'});}
 };
-const maxFinalAttempts=slug=>slug===TRAFFIC_SLUG?2:3;
+const maxFinalAttempts=slug=>3;
 // Explicitly opt-in on a dedicated staging deployment; Traffic is OFF everywhere else.
 // All three variables must be configured on the staging server, never on SI production.
 const trafficPilotEnabled=()=>{
