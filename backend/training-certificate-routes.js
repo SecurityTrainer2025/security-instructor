@@ -1,3 +1,4 @@
+const {meta:trafficCourse}=require('./traffic-course-curriculum');
 const {PRODUCTION_FRONTEND,trafficDatabaseMode,trafficCertificatesEnabled}=require('./traffic-deployment');
 const {canSendMailTo}=require('./staging-mail.js');
 const express=require('express');
@@ -307,6 +308,12 @@ const trafficVerifier=mode=>async(req,res)=>{
         courseNameEn:cert.courseNameEn||'',
         courseNameAr:cert.courseNameAr||'',
         issuedAt:cert.issuedAt||null,
+        ...(req.query?.view==='certificate'?{
+          durationHours:trafficCourse.durationHours,
+          passScore:trafficCourse.finalPassScore,
+          score:Number.isFinite(cert.score)?cert.score:null,
+          trainingTopics:trafficCourse.modules.map(({en,ar},index)=>({en,ar,icon:String(index+1)}))
+        }:{}),
         status:cert.verificationStatus||'unknown'
       });
     }catch(error){

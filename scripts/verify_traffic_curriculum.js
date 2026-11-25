@@ -288,6 +288,12 @@ async function run(){
   if(!productionMode)assert.equal((await request(api+'/certificate',{token,body:{}})).certificateId,id);
   const verified=await request('/api/verify/'+verifier+'?id='+id,{releaseCheck:true});
   assert.equal(verified.valid,true);
+  assert.equal(verified.score,undefined);
+  const display=await request('/api/verify/'+verifier+'?id='+id+'&view=certificate',{releaseCheck:true});
+  assert.equal(display.durationHours,24);
+  assert.equal(display.passScore,70);
+  assert.equal(display.score,100);
+  assert.deepEqual(display.trainingTopics.map(({en,ar})=>[en,ar]),curriculum.meta.modules.map(({en,ar})=>[en,ar]));
   if(productionMode){
     await request('/api/verify/traffic-staging-certificate?id='+id,{status:404,releaseCheck:true});
     const legacyTraffic={certificateId:'SI-CERT-QA-LEGACY-TRAFFIC',enrollmentId:'QA-OLD-OFFLINE',
