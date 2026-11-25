@@ -10,8 +10,14 @@ function trafficDatabaseMode(){
   const staging=(process.env.SI_TRAFFIC_STAGING_DB_NAME||'').trim();
   const production=(process.env.SI_TRAFFIC_PRODUCTION_DB_NAME||'').trim();
   if(environment==='staging'&&/staging/i.test(staging)&&connected===staging)return 'staging';
-  if(environment==='production'&&production&&production!==staging&&
-    !/staging|test|development/i.test(production)&&connected===production)return 'production';
+  // The established production MongoDB database is literally named 'test'.
+  // Permit only that exact legacy name (not arbitrary test databases), or a
+  // non-staging/non-development production name. Still require an explicit
+  // production environment, configured DB name and exact live connection match.
+  const safeProductionName=production==='test'||
+    (production!==''&&!/staging|test|development/i.test(production));
+  if(environment==='production'&&safeProductionName&&production!==staging&&
+    connected===production)return 'production';
   return null;
 }
 
