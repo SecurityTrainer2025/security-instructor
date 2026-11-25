@@ -279,7 +279,7 @@ html,body{background:#0B1F33}
 }
 
 /* The original training template with the Traffic certificate fields and spacing. */
-#certificate.traffic-certificate .logo img{display:block;width:18mm;height:18mm;object-fit:contain;border-radius:50%}
+#certificate .logo img{display:block;width:18mm;height:18mm;object-fit:contain;border-radius:50%}
 #certificate.traffic-certificate .traffic-arabic-name{font-family:Tahoma,Arial,sans-serif;font-size:.7em;line-height:1.4;margin:0}
 #certificate.traffic-certificate .topics{max-height:none}
 #certificate.traffic-certificate .topic-grid{grid-auto-flow:row;grid-template-rows:none;grid-auto-rows:minmax(11mm,auto);gap:2mm 4mm;overflow:visible}
@@ -308,7 +308,7 @@ html,body{background:#0B1F33}
  #certificate.traffic-certificate .inner{min-height:calc(min(297mm, 100vw - 32px) * 210 / 297 - 54px)}
 }
 @media screen and (max-width:760px){
- #certificate.traffic-certificate .logo img{width:46px;height:46px}
+ #certificate .logo img{width:46px;height:46px}
  #certificate.traffic-certificate .topic-grid{grid-auto-rows:auto;gap:8px}
  #certificate.traffic-certificate .topic .ar{font-size:8px}
 }
@@ -318,7 +318,7 @@ html,body{background:#0B1F33}
 <main id="certificate" class="wrap">
 <div class="corner tl"></div><div class="corner br"></div><div class="ribbon"></div><div class="sideRibbon"></div><div class="watermark">SI</div><div class="world"></div><div class="shield"></div><div class="shieldText">SECURITY<br>SAFETY<br>AWARENESS<br>PREPAREDNESS</div><div class="sideText">PEOPLE<br>PLACES<br>OPERATIONS<br>SAFER TOMORROW<div class="sideDash"></div></div>
 <div class="inner">
-<header class="top"><div class="brand"><div class="logo">SI</div><div><b>SECURITY INSTRUCTOR</b><small>KNOWLEDGE | SKILLS | SAFER COMMUNITIES</small></div></div><div class="motto">TRAIN TODAY • BUILD A SAFER TOMORROW<br><span dir="rtl">تدرّب اليوم • لمجتمع أكثر أمانًا</span></div></header>
+<header class="top"><div class="brand"><div class="logo"><img src="assets/traffic-practice/si-logo.jpg" alt="SECURITY INSTRUCTOR"></div><div><b>SECURITY INSTRUCTOR</b><small>KNOWLEDGE | SKILLS | SAFER COMMUNITIES</small></div></div><div class="motto">TRAIN TODAY • BUILD A SAFER TOMORROW<br><span dir="rtl">تدرّب اليوم • لمجتمع أكثر أمانًا</span></div></header>
 <section class="heading"><div class="ey">TRAINING CERTIFICATE</div><h1>Certificate of Achievement</h1><h2>شهادة إتمام دورة تدريبية</h2></section>
 <div class="certify">THIS IS TO CERTIFY THAT</div>
 <div id="name" class="name">Loading…</div>
@@ -411,10 +411,6 @@ try{
     const certificate=document.getElementById('certificate');
     certificate.classList.add('traffic-certificate');
     document.title='SI Traffic Certificate — '+d.certificateId;
-    const logo=document.createElement('img');
-    logo.src='assets/traffic-practice/si-logo.jpg';
-    logo.alt='SECURITY INSTRUCTOR official logo';
-    certificate.querySelector('.logo').replaceChildren(logo);
     if(d.recipientNameAr&&d.recipientNameEn){
       const arabicName=document.createElement('p');
       arabicName.className='traffic-arabic-name';

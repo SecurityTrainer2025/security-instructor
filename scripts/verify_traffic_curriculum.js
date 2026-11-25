@@ -334,6 +334,19 @@ async function run(){
 
   assert.deepEqual(await enrollments.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray(),otherCourses);
   assert.deepEqual(await certificateStore.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray(),otherCertificates);
+  for(const previous of otherCertificates){
+    const check=await request('/api/verify/training-certificate?id='+previous.certificateId,{releaseCheck:true});
+    assert.equal(check.valid,true);
+    assert.equal(check.certificateId,previous.certificateId);
+    const details=await request('/api/training-certificates/'+previous.certificateId,{releaseCheck:true});
+    assert.equal(details.certificateId,previous.certificateId);
+    assert.equal(details.courseId,previous.courseId);
+    const image=await fetch(root+'/api/training-certificates/'+previous.certificateId+'/qr',{
+      headers:{'X-Forwarded-For':'192.0.2.10'}
+    });
+    assert.equal(image.status,200);
+    assert.ok((await image.arrayBuffer()).byteLength>100);
+  }
   assert.deepEqual((await request(api+'/me',{token:oldSession})).progress,oldProgress);
   if(legacyEnrollment){
     const {_id,...previous}=await enrollments.findOne({enrollmentId:legacyEnrollment.enrollmentId});
