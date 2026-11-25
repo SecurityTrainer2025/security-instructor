@@ -582,7 +582,7 @@ const screenAssessmentHandler=async(req,res)=>{
       }
     }
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
-    if(answers.length!==s.questions.length||(expandedTraffic(req.selfStudy)&&!validAnswerIndexes(answers)))return res.status(400).json({message:'Please answer all questions'});
+    if(answers.length!==s.questions.length||(timed&&!answers.every(v=>Number.isInteger(v)&&v>=-1&&v<=3)))return res.status(400).json({message:'Please answer all questions'});
     const correct=s.questions.reduce((n,q,i)=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/s.questions.length*100);
     const p={...(req.selfStudy.progress||baseProgress())};
@@ -609,6 +609,32 @@ const screenAssessmentHandler=async(req,res)=>{
 const progressHandler=async(req,res)=>{
   return res.status(410).json({message:'Direct progress updates are disabled. Submit the server-validated learning-screen assessment instead.'});
 };
+// Expanded Traffic only: persistent, server-authoritative exam window.
+const trafficExamWindow=async(req,res)=>{
+ try{
+  const row=req.selfStudy,p=row.progress||baseProgress(),attempt=Number(p.finalAttempts||0);
+  if(!expandedTraffic(row))return res.json({ok:true,timed:false});
+  const required=screensFor(row.courseSlug,row).filter(s=>s.assessmentRequired!==false&&s.questions?.length);
+  if(!required.length||!required.every(s=>Number(p.screenScores?.[s.id]?.score||0)>=80)||!p.feedbackSubmittedAt||p.finalPassed||attempt>=maxFinalAttempts(row.courseSlug))return res.status(403).json({message:'Final assessment unavailable'});
+  const collection=mongoose.connection.collection('selfstudyaccess');
+  let exam=row.trafficExam;
+  if(!exam||exam.attempt!==attempt){
+   const now=Date.now();
+   exam={attempt,deadline:new Date(now+3600000),answers:Array(30).fill(-1)};
+   const claimed=await collection.updateOne({_id:row._id,progress:p,...(row.trafficExam?{trafficExam:row.trafficExam}:{trafficExam:{$exists:false}})},{$set:{trafficExam:exam}});
+   if(!claimed.matchedCount)return res.status(409).json({message:'Refresh and resume the current exam.'});
+  }
+  if(req.body?.answers){
+   const a=req.body.answers;
+   if(req.body.attempt!==attempt||!Array.isArray(a)||a.length!==30||!a.every(v=>Number.isInteger(v)&&v>=-1&&v<=3))return res.status(400).json({message:'Invalid exam draft'});
+   if(Date.now()<new Date(exam.deadline).getTime()){
+    const saved=await collection.updateOne({_id:row._id,'trafficExam.attempt':attempt,'trafficExam.deadline':{$gt:new Date()},'progress.finalAttempts':attempt},{$set:{'trafficExam.answers':a}});
+    if(saved.matchedCount)exam.answers=a;
+   }
+  }
+  res.json({ok:true,timed:true,attempt,deadline:exam.deadline,serverNow:Date.now(),answers:exam.answers});
+ }catch(e){console.error('Traffic exam window',e);res.status(500).json({message:'Unable to open exam window'});}
+};
 const finalHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
@@ -619,7 +645,13 @@ const finalHandler=async(req,res)=>{
     const attempts=Number(p.finalAttempts||0);
     if(p.finalPassed)return res.status(409).json({message:'The final assessment has already been passed. / تم اجتياز الاختبار النهائي بالفعل.'});
     if(attempts>=maxFinalAttempts(req.selfStudy.courseSlug))return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
-    const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
+    let answers=Array.isArray(req.body?.answers)?req.body.answers:[];
+    const timed=expandedTraffic(req.selfStudy);
+    const exam=req.selfStudy.trafficExam;
+    if(timed){
+      if(!exam||exam.attempt!==attempts)return res.status(409).json({message:'Start the timed exam first.'});
+      if(Date.now()>=new Date(exam.deadline).getTime())answers=exam.answers;
+    }
     if(expandedTraffic(req.selfStudy)&&req.body?.attempt!==attempts)
       return res.status(409).json({message:'Reload the current exam before submitting. / أعد تحميل الاختبار الحالي قبل الإرسال.'});
     const finalBank=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts,req.selfStudy);
@@ -786,5 +818,6 @@ function register(app,requireAdmin){
   app.get('/api/self-study/final-assessment',sessionHandler,finalQuestionsHandler);
   app.post('/api/self-study/certificate',sessionHandler,certificateRetryHandler);
   app.post('/api/self-study/final-assessment',sessionHandler,finalHandler);
+  app.post('/api/self-study/traffic-exam-window',sessionHandler,trafficExamWindow);
 }
 module.exports={register};
