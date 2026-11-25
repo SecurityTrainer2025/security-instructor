@@ -1,3 +1,4 @@
+const { enrollmentFilter } = require('./training-search.js');
 const express=require('express');
 const mongoose=require('mongoose');
 const crypto=require('crypto');
@@ -17,7 +18,22 @@ if(!express.application.__si_certificate_admin_list_route){
         try{
           const db=mongoose.connection.db;
           if(!db)throw new Error('Database connection is not ready');
-          const completed=await db.collection('enrollments').find({status:'completed'},{projection:{enrollmentId:1}}).limit(20000).toArray();const existing=await db.collection('trainingcertificates').find({enrollmentId:{$in:completed.map(x=>x.enrollmentId)}} ,{projection:{enrollmentId:1}}).toArray();const issued=new Set(existing.map(x=>x.enrollmentId));for(const row of completed){if(issued.has(row.enrollmentId))continue;try{await issueForEnrollment(row.enrollmentId)}catch(e){console.error('Certificate list repair failed for',row.enrollmentId,e)}}const rows=await db.collection('trainingcertificates').find({}).sort({issuedAt:-1}).limit(20000).toArray();
+          const completed=await db.collection('enrollments').find({status:'completed'},{projection:{enrollmentId:1}}).limit(20000).toArray();const existing=await db.collection('trainingcertificates').find({enrollmentId:{$in:completed.map(x=>x.enrollmentId)}} ,{projection:{enrollmentId:1}}).toArray();const issued=new Set(existing.map(x=>x.enrollmentId));for(const row of completed){if(issued.has(row.enrollmentId))continue;try{await issueForEnrollment(row.enrollmentId)}catch(e){console.error('Certificate list repair failed for',row.enrollmentId,e)}}const certificates=await db.collection('trainingcertificates').find({}).sort({issuedAt:-1}).limit(20000).toArray();
+          const filter=await enrollmentFilter(db,{courseId:req.query.courseId,batch:req.query.batch});
+          const ids=certificates.map(row=>row.enrollmentId).filter(Boolean);
+          const linked=await db.collection('enrollments').find({...filter,enrollmentId:{$in:ids}},
+            {projection:{enrollmentId:1,registrationAlias:1,batchId:1,batchCode:1}}).toArray();
+          const byEnrollment=new Map(linked.map(row=>[row.enrollmentId,row]));
+          const rows=certificates.flatMap(cert=>{
+            const enrollment=byEnrollment.get(cert.enrollmentId);
+            if(!enrollment){
+              if(req.query.batch)return [];
+              if(req.query.courseId&&cert.courseId!==req.query.courseId)return [];
+              return [cert];
+            }
+            const {registrationAlias,batchId,batchCode}=enrollment;
+            return [{...cert,registrationAlias,batchId,batchCode}];
+          });
           res.status(200).json({summary:{certificates:rows.length},certificates:rows});
         }catch(e){console.error('Certificate admin list error',e);res.status(500).json({message:'Unable to load training certificates: '+clean(e.message,240)})}
       });

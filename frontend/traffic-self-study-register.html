@@ -35,7 +35,7 @@ f.onsubmit=async e=>{e.preventDefault();if(signupButton.disabled)return;m.style.
  const note=document.createElement('p');
  note.textContent=out.message;
  const id=document.createElement('p');
- id.textContent='Enrollment ID / رقم التسجيل: '+out.enrollmentId;
+ id.textContent='Registration / التسجيل: '+[out.registrationAlias,out.enrollmentId].filter(Boolean).join(' / ')+(out.batchCode?' · '+out.batchCode:'');
  const advice=document.createElement('a');
  advice.href='#recover';
  advice.textContent='Request a new secure link if needed / اطلب رابط دخول آمنًا جديدًا عند الحاجة';

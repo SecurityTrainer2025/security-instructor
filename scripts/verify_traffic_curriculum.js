@@ -46,9 +46,9 @@ global.fetch=async(url,options)=>{
   return nativeFetch(url,options);
 };
 
-async function request(route,{body,token,status=200,releaseCheck=false}={}){
+async function request(route,{body,token,status=200,releaseCheck=false,method}={}){
   const r=await fetch(root+route,{
-    method:body===undefined?'GET':'POST',
+    method:method||(body===undefined?'GET':'POST'),
     headers:{...(route.startsWith('/api/admin/')||releaseCheck?{'X-Forwarded-For':'192.0.2.10'}:route.startsWith(api+'/screens/')?{'X-Forwarded-For':'192.0.2.11'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
     body:JSON.stringify(body)
   });
@@ -68,6 +68,65 @@ const getAnswers=(items,questions)=>items.map(item=>{
   return selected;
 });
 
+async function verifyTrainingBatches(db){
+  const registration = suffix => ({
+    courseSlug:TRAFFIC_SLUG, arabicName:'أحمد محمد علي', englishName:'QA Batch Learner',
+    email, idType:'passport', idNumber:'QA-BATCH-'+suffix, mobile:'+10000000000', consent:true
+  });
+  const batchFields = {
+    courseId:'CRS-TRAFFIC-001',courseNameEn:'Traffic',courseNameAr:'المرور',
+    trainingType:'self-study',capacity:1
+  };
+  const [first,second]=await Promise.all([1,2].map(()=>request('/api/admin/batches',{body:batchFields,status:401})));
+  assert.ok(first.message&&second.message);
+  const login=await request('/api/admin/login',{body:{email:adminEmail,password}});
+  const token=login.token;
+  assert.ok(token);
+  const batch=await request('/api/admin/batches',{body:batchFields,token,status:201});
+  assert.match(batch.batchId,/^TRAFFIC-\d{4}-B001$/);
+  const register = suffix => nativeFetch(root+api+'/register',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(registration(suffix))
+  });
+  const responses=await Promise.all(['A','B','C','D','E','F'].map(register));
+  assert.deepEqual(responses.map(response=>response.status).sort(),[201,409,409,409,409,409]);
+  const winner=await responses.find(response=>response.status===201).json();
+  assert.equal(winner.batchId,batch.batchId);
+  assert.match(winner.enrollmentId,/^ENR-\d+$/);
+  assert.match(winner.registrationAlias,/^TRAFFIC-\d{4}-0001$/);
+  assert.equal(await db.collection('enrollments').countDocuments({batchId:batch.batchId}),1);
+  assert.equal(await db.collection('trainees').countDocuments({idNumber:/^QA-BATCH-/}),1);
+  assert.match(mail[0].htmlContent,/dir="rtl"/);
+  assert.match(mail[0].textContent,new RegExp(winner.registrationAlias));
+  assert.match(mail[0].textContent,/Single-use|single-use/);
+  const batchPath='/api/admin/batches/'+batch.batchId;
+  await request(batchPath,{body:{capacity:2,status:'closed'},token,method:'PATCH'});
+  assert.equal((await register('CLOSED')).status,409);
+  await request(batchPath,{body:{status:'open',registrationOpensAt:new Date(Date.now()+3600000).toISOString()},token,method:'PATCH'});
+  assert.equal((await register('FUTURE')).status,409);
+  await request(batchPath,{body:{registrationOpensAt:null,registrationClosesAt:new Date(Date.now()-3600000).toISOString()},token,method:'PATCH'});
+  assert.equal((await register('PAST')).status,409);
+  await request(batchPath,{body:{registrationClosesAt:null},token,method:'PATCH'});
+  const next=await Promise.all([register('SAME'),register('SAME')]);
+  assert.deepEqual(next.map(response=>response.status),[201,201]);
+  const [left,right]=await Promise.all(next.map(response=>response.json()));
+  assert.equal(left.enrollmentId,right.enrollmentId);
+  assert.equal(left.registrationAlias,right.registrationAlias);
+  await request(batchPath,{body:{capacity:1},token,method:'PATCH',status:409});
+  const fireBatch=await request('/api/admin/batches',{body:{...batchFields,courseId:'CRS-FIRE-001',
+    courseNameEn:'Fire Safety',courseNameAr:'السلامة من الحرائق'},token,status:201});
+  assert.match(fireBatch.batchId,/^FIRE-\d{4}-B001$/);
+  const scope='courseId='+encodeURIComponent(TRAFFIC_SLUG)+'&batch='+encodeURIComponent(batch.batchId);
+  for(const q of [winner.enrollmentId,winner.registrationAlias,'QA Batch Learner','أحمد محمد']){
+    const rows=await request('/api/admin/enrollments?'+scope+'&q='+encodeURIComponent(q),{token});
+    assert.ok(rows.some(row=>row.enrollmentId===winner.enrollmentId),q);
+  }
+  const wrongScope=await request('/api/admin/enrollments?courseId=CRS-FIRE-001&batch='+batch.batchId,{token});
+  assert.deepEqual(wrongScope,[]);
+  await request(api+'/access/request',{body:{courseSlug:TRAFFIC_SLUG,enrollmentId:winner.registrationAlias,email}});
+  assert.match(mail.at(-1).textContent,new RegExp(winner.enrollmentId));
+  console.log('Training batch QA passed: race, duplicate registration, scope, authorization, date and capacity controls, bilingual mail and alias recovery.');
+}
+
 async function run(){
   for(const name of [
     'admin-runtime','site-content-runtime','course-management-routes','document-registry-routes',
@@ -81,6 +140,7 @@ async function run(){
   const enrollments=db.collection('enrollments');
   const trainees=db.collection('trainees');
   const certificateStore=db.collection('trainingcertificates');
+  if(process.argv.includes('--batch-qa')){await verifyTrainingBatches(db);return;}
   const protection=['CRS-FIRE-001','CRS-CROWD-001','CRS-VEHICLE-001','CRS-PERSON-001'];
   for(const [i,courseId] of protection.entries()){
     await enrollments.insertOne({enrollmentId:'QA-OTHER-'+i,courseId,status:'completed'});
@@ -173,7 +233,7 @@ async function run(){
   }
   assert.equal(mail.length,1);
   assert.deepEqual(mail[0].to,[{email}]);
-  assert.match(mail[0].textContent,/40 lessons across eight units/);
+  assert.match(mail[0].textContent,/40 lessons across 8 units/);
   assert.ok(mail[0].textContent.includes(registration.enrollmentId));
   assert.doesNotMatch(mail[0].textContent,/docs\.google|slides\.google|thank-you/);
 

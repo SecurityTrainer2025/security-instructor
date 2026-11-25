@@ -58,8 +58,14 @@ const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script
 assert.ok(inlineScripts.length, 'course page missing inline JavaScript');
 for(const source of inlineScripts) new vm.Script(source, {filename:'fire-safety-self-study.html'});
 const assessmentHtml=fs.readFileSync(path.join(root,'frontend/course-assessment-v2.html'),'utf8');
-const initialBank=assessmentHtml.split('traffic:[')[1].split('],\ncrowd:')[0];
-assert.equal((initialBank.match(/^\['/gm)||[]).length,10,'Traffic initial assessment must have 10 questions');
+const publicBanks = vm.runInNewContext(assessmentHtml.match(/const Q=(\{[\s\S]*?\});\s*const data=/)[1].replace(/^/, '(') + ')');
+assert.deepEqual(Object.keys(publicBanks), ['traffic', 'crowd', 'fire', 'vehicle', 'person']);
+for (const [course, questions] of Object.entries(publicBanks)) {
+  assert.equal(questions.length, 10, course + ' public diagnostic must have 10 questions');
+  for (const [english, arabic, choices, answer] of questions) {
+    assert.ok(english && arabic && choices.length === 8 && Number.isInteger(answer) && answer >= 0 && answer < 4);
+  }
+}
 const standaloneInitial=fs.readFileSync(path.join(root,'frontend/traffic-initial-assessment.html'),'utf8');
 const legacyBank=standaloneInitial.split('const qs=[')[1].split('];')[0];
 assert.equal((legacyBank.match(/^\['M[1-5]'/gm)||[]).length,10,'The legacy Traffic assessment link must also have 10 questions');

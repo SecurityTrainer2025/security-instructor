@@ -1,3 +1,4 @@
+const { withAllocation, createEnrollment, courseKeys } = require('./training-allocation.js');
 const {trafficDatabaseMode,trafficLearnerUrl,trafficRegistrationEnabled,trafficCertificatesEnabled}=require('./traffic-deployment');
 const {canSendMailTo}=require('./staging-mail.js');
 const express=require('express');
@@ -19,6 +20,7 @@ const {TRAFFIC_SLUG,TRAFFIC_META,TRAFFIC_SCREENS,TRAFFIC_FINAL_ASSESSMENT}=requi
 const trafficCurriculum=require('./traffic-course-curriculum.js');
 const completeTraffic=row=>row?.courseSlug===TRAFFIC_SLUG&&row.curriculumVersion===trafficCurriculum.CURRICULUM_VERSION;
 const expandedTraffic=row=>completeTraffic(row)||(row?.courseSlug===TRAFFIC_SLUG&&row.curriculumVersion===2);
+const trafficCourseFor=row=>completeTraffic(row)?trafficCurriculum.meta:expandedTraffic(row)?trafficCurriculum.previousMeta:TRAFFIC_META;
 const baseProgress=()=>({
   completedScreens:[],
   screenScores:{},
@@ -369,55 +371,20 @@ const shuffleOrder=key=>{
 };
 const questionOrder=(q,accessId)=>shuffleOrder(String(q.q)+'|'+String(accessId));
 
-async function nextNumber(collection,prefix,field){
-  const last=await collection.find({[field]:new RegExp('^'+prefix+'\\d+$')},{projection:{[field]:1}}).sort({[field]:-1}).limit(1).next();
-  const n=last&&last[field]?parseInt(String(last[field]).slice(String(prefix).length),10):0;
-  return String(prefix)+String(n+1).padStart(6,'0');
-}
-async function sendTrafficStudyEmail({to,name,token,enrollmentId}){
-  if(!canSendMailTo(to))return {sent:false,error:'Recipient is not approved for staging mail'};
-  const apiKey=process.env.BREVO_API_KEY?.trim(),from=process.env.MAIL_FROM?.trim();
-  const learner=trafficLearnerUrl();
-  if(!apiKey||!from||!learner)return {sent:false,error:'Traffic mail is not configured'};
-  const url=new URL(learner);
-  url.searchParams.set('course',TRAFFIC_SLUG);
-  url.hash=new URLSearchParams({token}).toString();
-  const lines=[
-    'Hello '+name+',','Enrollment / رقم التسجيل: '+enrollmentId,'',
-    'Open your secure link to start Traffic Self-Study. The link is single-use and expires in 15 minutes.',
-    'Start with the initial assessment inside the course, then complete 40 lessons across eight units, the unit assessments, feedback and final assessment.',
-    'You have five days from activation and up to 24 hours of active study. Return to the same browser to resume.',
-    'If you need a new link, request one using your enrollment ID and registration email.','',
-    'افتح الرابط الآمن لبدء الدراسة الذاتية لدورة المرور؛ الرابط أحادي الاستخدام وصالح لمدة 15 دقيقة.',
-    'ابدأ بالتقييم المبدئي داخل الدورة، ثم أكمل 40 درسًا في ثماني وحدات وتقييمات الوحدات والتغذية الراجعة والاختبار النهائي.',
-    'لديك خمسة أيام من التفعيل، وبحد أقصى 24 ساعة دراسة فعلية. عُد عبر المتصفح نفسه لاستئناف الدراسة.',
-    'اطلب رابطًا جديدًا برقم التسجيل والبريد المسجل عند الحاجة.'
-  ];
-  const textContent=[...lines,'',url.href].join('\n');
-  const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',
-    headers:{accept:'application/json','api-key':apiKey,'content-type':'application/json'},
-    body:JSON.stringify({sender:{name:'SECURITY INSTRUCTOR',email:from},replyTo:{email:from},to:[{email:to}],
-      subject:'SECURITY INSTRUCTOR — Traffic Self-Study / الدراسة الذاتية للمرور',textContent})});
-  if(!response.ok)throw new Error('Traffic email provider returned HTTP '+response.status);
-  return {sent:true};
-}
-async function sendAccessEmail({to,name,course,token,expiresAt}){  const apiKey=(process.env.BREVO_API_KEY||'').trim();
-  const from=(process.env.MAIL_FROM||'').trim();
-  if(!canSendMailTo(to))return {sent:false,error:'Recipient is not approved for staging mail'};
-  if(!apiKey||!from)return {sent:false,error:'Brevo email settings are not configured'};
-  const mailSlug=Object.keys(COURSE_META).find(slug=>COURSE_META[slug]===course)||FIRE_SLUG;
-  const trafficUrl=trafficLearnerUrl();
-  if(mailSlug===TRAFFIC_SLUG&&!trafficUrl)return {sent:false,error:'Traffic learner URL not configured'};
-  const mailUrl=mailSlug===TRAFFIC_SLUG?trafficUrl:FRONTEND_URL;
-  const link=mailSlug===TRAFFIC_SLUG?mailUrl+(mailUrl.includes('?')?'&':'?')+'course='+encodeURIComponent(mailSlug)+'#token='+encodeURIComponent(token):FRONTEND_URL+'#token='+encodeURIComponent(token);
-  const expiry=expiresAt?new Date(expiresAt).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'}):null;
-  const subject=mailSlug===TRAFFIC_SLUG?'SECURITY INSTRUCTOR — '+course.en+' Self-Study Access':'SECURITY INSTRUCTOR — Fire Safety Self-Study Access';
-  const text='Dear '+name+',\\n\\nYour access to '+course.en+' / '+course.ar+' is ready.\\n\\nYour 5-day access window starts when you first open the course using this secure link. You may study for up to 24 active hours during that window; inactive time is not counted.\\nStart: '+link+(expiry?'\\nAccess expires: '+expiry:'')+'\\n\\nYour Enrollment ID is provided on the registration confirmation page. Keep it to request a new access link if needed.\\n\\nComplete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.\\n\\nSECURITY INSTRUCTOR';
-  const nameHtml=name.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  const html='<!doctype html><html><body style="font-family:Arial,sans-serif;color:#0B1F33"><h2 style="color:#0B1F33">SECURITY INSTRUCTOR</h2><p>Dear '+nameHtml+',</p><p>Your access to <strong>'+course.en+'</strong> / <strong>'+course.ar+'</strong> is ready.</p><p>This is a self-study pilot project. Your <strong>5-day (120-hour) access window starts when you first open the course</strong> using the secure link below. You may study for up to <strong>24 active study hours</strong>; inactive time is not counted.</p><p><a href="'+link+'" style="display:inline-block;padding:12px 18px;background:#C8A96B;color:#0B1F33;text-decoration:none;font-weight:bold">START SELF-STUDY / ابدأ الدراسة الذاتية</a></p>'+(expiry?'<p>Access expires: '+expiry+'</p>':'')+'<p>Keep your Enrollment ID from the registration confirmation page to request a new access link if needed.</p><p>Complete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.</p><p>SECURITY INSTRUCTOR<br>Knowledge • Skills • Safer Tomorrow</p></body></html>';
-  const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{accept:'application/json','api-key':apiKey,'content-type':'application/json'},body:JSON.stringify({sender:{name:'SECURITY INSTRUCTOR',email:from},replyTo:{email:from},to:[{email:to}],subject,textContent:mailSlug===TRAFFIC_SLUG?text.replaceAll('\\n','\n'):text,htmlContent:html})});
-  if(!response.ok){const detail=await response.text().catch(()=> '');throw new Error('Brevo email failed ('+response.status+'): '+detail.slice(0,300));}
-  return {sent:true,error:null};
+const { buildSelfStudyEmail, sendTrainingEmail } = require('./self-study-email.js');
+
+async function sendAccessEmail({ to, name, course, token, enrollmentId, registrationAlias, row }) {
+  const traffic = course.code === TRAFFIC_META.code;
+  const learner = traffic ? trafficLearnerUrl() : FRONTEND_URL;
+  if (!learner) return { sent: false, error: 'Self-study mail is not configured' };
+  const url = new URL(learner);
+  if (traffic) url.searchParams.set('course', TRAFFIC_SLUG);
+  url.hash = new URLSearchParams({ token }).toString();
+  const message = buildSelfStudyEmail({
+    name, course, enrollmentId, registrationAlias, link: url.href, magicMinutes: MAGIC_MINUTES, traffic, lessonCount: traffic ? (completeTraffic(row) ? trafficCurriculum.screens.length : screensFor(TRAFFIC_SLUG,row).length) : undefined,
+    hasDiagnostic: expandedTraffic(row)
+  });
+  return sendTrainingEmail(to, message);
 }
 async function findSession(req){
   const h=String(req.headers.authorization||'');
@@ -433,7 +400,7 @@ async function findSession(req){
   return row;
 }
 
-const normalizeAccessExpiry=async(row,now)=>{if(!row||!row.accessStartsAt||!row.accessExpiresAt)return row;const currentExpiry=new Date(row.accessExpiresAt);if(currentExpiry<=now)return row;const policyExpiry=new Date(new Date(row.accessStartsAt).getTime()+ACCESS_HOURS*3600000);if(Math.abs(currentExpiry.getTime()-policyExpiry.getTime())>1000){await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:policyExpiry,updatedAt:now}});return {...row,accessExpiresAt:policyExpiry};}return row;};
+const normalizeAccessExpiry=async(row,now,session)=>{if(!row||!row.accessStartsAt||!row.accessExpiresAt)return row;const currentExpiry=new Date(row.accessExpiresAt);if(currentExpiry<=now)return row;const policyExpiry=new Date(new Date(row.accessStartsAt).getTime()+ACCESS_HOURS*3600000);if(Math.abs(currentExpiry.getTime()-policyExpiry.getTime())>1000){await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{accessExpiresAt:policyExpiry,updatedAt:now}},{session});return {...row,accessExpiresAt:policyExpiry};}return row;};
 
 const sessionHandler=async(req,res,next)=>{
   try{req.selfStudy=await findSession(req);if(req.selfStudy&&!trafficPilotAvailable(req.selfStudy.courseSlug))return res.status(403).json({message:'Traffic staging course is disabled'});if(!req.selfStudy)return res.status(401).json({message:'Self-study access required'});req.selfStudy=await normalizeAccessExpiry(req.selfStudy,new Date());if(new Date(req.selfStudy.accessExpiresAt)<=new Date())return res.status(401).json({message:'Self-study access has expired. / انتهت مدة الوصول للدراسة الذاتية.'});next();}
@@ -453,66 +420,68 @@ const registerHandler=async(req,res)=>{
     const email=clean(b.email,180).toLowerCase();
     const idType=clean(b.idType,30),idNumber=clean(b.idNumber,40),mobile=clean(b.mobile,40);
     if(ar.length!==3||en.length!==3||!validEmail(email)||!idNumber||!mobile||!['national_id','iqama','passport'].includes(idType))return res.status(400).json({message:'Please complete all required registration fields / يرجى استكمال جميع بيانات التسجيل المطلوبة'});
-    const db=mongoose.connection;
-    const trainees=db.collection('trainees'), enrollments=db.collection('enrollments'), access=db.collection('selfstudyaccess');
-    let trainee=await trainees.findOne({idNumber});
-    if(trainee&&slug===TRAFFIC_SLUG){
-      if(String(trainee.email||'').trim().toLowerCase()!==email||trainee.idType!==idType)
-        return res.status(409).json({message:'Registration could not be matched. Contact SI support. / تعذرت مطابقة التسجيل. تواصل مع دعم SI.'});
-    }else if(trainee){
-      await trainees.updateOne({_id:trainee._id},{$set:{arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,mobile,email,updatedAt:new Date()}});
-      trainee=await trainees.findOne({_id:trainee._id});
-    }else{
-      const traineeId=new mongoose.Types.ObjectId().toString();
-      trainee={traineeId,arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,idNumber,mobile,email,createdAt:new Date(),updatedAt:new Date()};
-      await trainees.insertOne(trainee);
-    }
-    const productionTraffic=slug===TRAFFIC_SLUG&&trafficDatabaseMode()==='production';
-    let enrollment=await enrollments.findOne({traineeId:trainee.traineeId,courseId:course.code});
-    if(productionTraffic&&enrollment&&(enrollment.selfStudy!==true||enrollment.status==='cancelled')){
-      const recoverable=allowedLegacyTrafficStatuses.includes(enrollment.status);
-      return res.status(409).json({message:recoverable
-        ?'Use your existing enrollment ID to request a new access link below. / استخدم رقم تسجيلك السابق لطلب رابط دخول جديد أدناه.'
-        :'An earlier enrollment already exists. Contact SI support. / يوجد تسجيل سابق للدورة. تواصل مع دعم SI.'});
-    }
-    if(!enrollment){
-      const enrollmentId=await nextNumber(enrollments,'ENR-','enrollmentId');
-      enrollment={enrollmentId,traineeId:trainee.traineeId,courseId:course.code,courseNameEn:course.en,courseNameAr:course.ar,registrationType:'individual',companyName:'',companyContact:'',companyEmail:'',status:'active',score:null,selfStudy:true,registeredAt:new Date(),createdAt:new Date(),updatedAt:new Date()};
-      await enrollments.insertOne(enrollment);
-    }else if(enrollment.status==='cancelled'){
-      await enrollments.updateOne({_id:enrollment._id},{$set:{status:'active',selfStudy:true,updatedAt:new Date()}});
-      enrollment=await enrollments.findOne({_id:enrollment._id});
-    }
-    const accessNow=new Date();
-    let row=await access.findOne({enrollmentId:enrollment.enrollmentId,courseSlug:slug});
-    if(!row){
-      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,...(slug===TRAFFIC_SLUG?{curriculumVersion:trafficCurriculum.CURRICULUM_VERSION}:{}),status:'active',accessStartsAt:null,accessExpiresAt:null,activeStudySeconds:0,activeStudyLastPingAt:null,progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
-      await access.insertOne(row);
-    }else{
-      row=await normalizeAccessExpiry(row,accessNow);
-      if(row.accessExpiresAt && new Date(row.accessExpiresAt)<=accessNow){
-        return res.status(410).json({message:'The 5-day self-study access window has ended and cannot be restarted from registration. / انتهت نافذة الوصول للدراسة الذاتية البالغة 5 أيام ولا يمكن إعادة فتحها من خلال التسجيل.'});
+    const {enrollment,magic,row}=await withAllocation(async (db,session)=>{
+      const trainees=db.collection('trainees'), enrollments=db.collection('enrollments'), access=db.collection('selfstudyaccess');
+      let trainee=await trainees.findOne({idNumber},{session});
+      if(trainee&&slug===TRAFFIC_SLUG){
+        if(String(trainee.email||'').trim().toLowerCase()!==email||trainee.idType!==idType)
+          throw Object.assign(new Error('Registration could not be matched. Contact SI support. / تعذرت مطابقة التسجيل. تواصل مع دعم SI.'),{status:409});
+      }else if(trainee){
+        await trainees.updateOne({_id:trainee._id},{$set:{arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,mobile,email,updatedAt:new Date()}},{session});
+        trainee=await trainees.findOne({_id:trainee._id},{session});
+      }else{
+        const traineeId=new mongoose.Types.ObjectId().toString();
+        trainee={traineeId,arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,idNumber,mobile,email,createdAt:new Date(),updatedAt:new Date()};
+        await trainees.insertOne(trainee,{session});
       }
-    }
-    const magic=randomToken(32),magicExpires=new Date(Date.now()+MAGIC_MINUTES*60000);
-    await access.updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:magicExpires,magicUsedAt:null,updatedAt:new Date()}});
+      const productionTraffic=slug===TRAFFIC_SLUG&&trafficDatabaseMode()==='production';
+      let enrollment=await enrollments.findOne({traineeId:trainee.traineeId,courseId:{$in:courseKeys(course.code,slug)}},{session});
+      if(productionTraffic&&enrollment&&(enrollment.selfStudy!==true||enrollment.status==='cancelled')){
+        const recoverable=allowedLegacyTrafficStatuses.includes(enrollment.status);
+        throw Object.assign(new Error(recoverable
+          ?'Use your existing enrollment ID to request a new access link below. / استخدم رقم تسجيلك السابق لطلب رابط دخول جديد أدناه.'
+          :'An earlier enrollment already exists. Contact SI support. / يوجد تسجيل سابق للدورة. تواصل مع دعم SI.'),{status:409});
+      }
+      if(!enrollment){
+        enrollment=await createEnrollment(db,session,{
+          traineeId:trainee.traineeId,courseId:course.code,courseNameEn:course.en,courseNameAr:course.ar,
+          registrationType:'individual',companyName:'',companyContact:'',companyEmail:'',status:'active',score:null,selfStudy:true
+        },slug,'self-study');
+      }else if(enrollment.status==='cancelled'){
+        await enrollments.updateOne({_id:enrollment._id},{$set:{status:'active',selfStudy:true,updatedAt:new Date()}},{session});
+        enrollment=await enrollments.findOne({_id:enrollment._id},{session});
+      }
+      const accessNow=new Date();
+      let row=await access.findOne({enrollmentId:enrollment.enrollmentId,courseSlug:slug},{session});
+      if(!row){
+        row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,...(slug===TRAFFIC_SLUG?{curriculumVersion:trafficCurriculum.CURRICULUM_VERSION}:{}),status:'active',accessStartsAt:null,accessExpiresAt:null,activeStudySeconds:0,activeStudyLastPingAt:null,progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
+        await access.insertOne(row,{session});
+      }else{
+        row=await normalizeAccessExpiry(row,accessNow,session);
+        if(row.accessExpiresAt && new Date(row.accessExpiresAt)<=accessNow){
+          throw Object.assign(new Error('The 5-day self-study access window has ended and cannot be restarted from registration. / انتهت نافذة الوصول للدراسة الذاتية البالغة 5 أيام ولا يمكن إعادة فتحها من خلال التسجيل.'),{status:410});
+        }
+      }
+      const magic=randomToken(32),magicExpires=new Date(Date.now()+MAGIC_MINUTES*60000);
+      await access.updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:magicExpires,magicUsedAt:null,updatedAt:new Date()}},{session});
+      return {enrollment,magic,row};
+    });
     const fullName=[en[0],en[1],en[2]].join(' ');
     let mail={sent:false,error:null};
-    try{mail=slug===TRAFFIC_SLUG
-      ?await sendTrafficStudyEmail({to:email,name:fullName,token:magic,enrollmentId:enrollment.enrollmentId})
-      :await sendAccessEmail({to:email,name:fullName,course,token:magic,expiresAt:row.accessExpiresAt});}
+    try{mail=await sendAccessEmail({to:email,name:fullName,course:slug===TRAFFIC_SLUG?trafficCourseFor(row):course,token:magic,enrollmentId:enrollment.enrollmentId,registrationAlias:enrollment.registrationAlias,row});}
     catch(mailError){console.error('Self-study access email failed',mailError);mail={sent:false,error:'Access email could not be sent'};}
     const message=mail.sent?'Registration received. Access instructions have been sent to your email. / تم استلام التسجيل، وتم إرسال تعليمات الدخول إلى بريدك الإلكتروني.':'Registration received. Your enrollment is saved. If you do not receive the access email, use your Enrollment ID and email to request a new link. / تم حفظ التسجيل. إذا لم تصلك رسالة الدخول، استخدم رقم التسجيل والبريد الإلكتروني لطلب رابط جديد.';
-    res.status(201).json({ok:true,message,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
-  }catch(e){console.error('Self-study registration error',e);res.status(500).json({message:'Unable to complete self-study registration'});}
+    res.status(201).json({ok:true,message,enrollmentId:enrollment.enrollmentId,registrationAlias:enrollment.registrationAlias,batchId:enrollment.batchId,batchCode:enrollment.batchCode,mailSent:mail.sent});
+  }catch(e){if([409,410].includes(e.status))return res.status(e.status).json({message:e.message});console.error('Self-study registration error',e);res.status(500).json({message:'Unable to complete self-study registration'});}
 };
 
 const allowedLegacyTrafficStatuses=['pending','confirmed','active'];
 async function resendTrafficLink(enrollmentId,email){
   if(!trafficAvailable()||!canSendMailTo(email)||!process.env.BREVO_API_KEY?.trim()||!process.env.MAIL_FROM?.trim())return;
   const db=mongoose.connection;
-  const enrollment=await db.collection('enrollments').findOne({enrollmentId,courseId:TRAFFIC_META.code});
+  const enrollment=await db.collection('enrollments').findOne({courseId:TRAFFIC_META.code,$or:[{enrollmentId},{registrationAlias:enrollmentId}]});
   if(!enrollment||enrollment.status==='cancelled')return;
+  enrollmentId=enrollment.enrollmentId;
   const trainee=await db.collection('trainees').findOne({traineeId:enrollment.traineeId,email});
   if(!trainee)return;
   const access=db.collection('selfstudyaccess');
@@ -542,7 +511,7 @@ async function resendTrafficLink(enrollmentId,email){
     magicUsedAt:null,trafficLinkRequestedAt:now,updatedAt:now}});
   if(!saved.matchedCount)return;
   const name=[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].filter(Boolean).join(' ');
-  await sendTrafficStudyEmail({to:email,name,token:magic,enrollmentId});
+  await sendAccessEmail({to:email,name,course:trafficCourseFor(row),token:magic,enrollmentId,registrationAlias:enrollment.registrationAlias,row});
 }
 const requestAccessHandler=async(req,res)=>{
   const generic={ok:true,message:'If the details match an active self-study registration, an access email has been sent. / إذا تطابقت البيانات مع تسجيل نشط للدراسة الذاتية، فسيتم إرسال رسالة الدخول.'};
@@ -550,12 +519,13 @@ const requestAccessHandler=async(req,res)=>{
   const diagnose=(reason)=>{if(process.env.SI_DEPLOYMENT_ENV==='staging')console.info('SI Traffic access recovery:',reason);};
   try{
     const email=clean(req.body?.email,180).toLowerCase();
-    const enrollmentId=clean(req.body?.enrollmentId,100);
+    let enrollmentId=clean(req.body?.enrollmentId,220).toUpperCase();
     const requestedSlug=clean(req.body?.courseSlug,80);
     if(!validEmail(email)||!enrollmentId){diagnose('invalid_input');return res.json(generic);}
     if(requestedSlug===TRAFFIC_SLUG){await resendTrafficLink(enrollmentId,email);return res.json(generic);}
-    const enroll=await mongoose.connection.collection('enrollments').findOne({enrollmentId,selfStudy:true});
+    const enroll=await mongoose.connection.collection('enrollments').findOne({selfStudy:true,$or:[{enrollmentId},{registrationAlias:enrollmentId}]});
     if(!enroll){diagnose('enrollment_not_found');return res.json(generic);}
+    enrollmentId=enroll.enrollmentId;
     const trainee=await mongoose.connection.collection('trainees').findOne({traineeId:enroll.traineeId,email});
     if(!trainee){diagnose('email_mismatch');return res.json(generic);}
     const courseSlug=requestedSlug&&COURSE_META[requestedSlug]?.code===enroll.courseId
@@ -568,7 +538,7 @@ const requestAccessHandler=async(req,res)=>{
     if(!row){diagnose('access_record_not_found');return res.json(generic);}
     if(row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date()){diagnose('access_expired');return res.json(generic);}
     const magic=randomToken(32),expires=new Date(Date.now()+MAGIC_MINUTES*60000);
-    const mail=await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,expiresAt:row.accessExpiresAt});
+    const mail=await sendAccessEmail({to:email,name:[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].join(' '),course,token:magic,enrollmentId,registrationAlias:enroll.registrationAlias});
     if(!mail.sent){diagnose('provider_not_configured');return res.json(generic);}
     await mongoose.connection.collection('selfstudyaccess').updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:expires,magicUsedAt:null,updatedAt:new Date()}});
     diagnose('provider_accepted');
@@ -616,8 +586,7 @@ const exchangeHandler=async(req,res)=>{
 
 const meHandler=async(req,res)=>{
   const row=req.selfStudy;
-  const course=row.courseSlug!==TRAFFIC_SLUG?COURSE_META[row.courseSlug]:
-    completeTraffic(row)?trafficCurriculum.meta:expandedTraffic(row)?trafficCurriculum.previousMeta:TRAFFIC_META;
+  const course=row.courseSlug===TRAFFIC_SLUG?trafficCourseFor(row):COURSE_META[row.courseSlug];
   const p=row.progress||baseProgress();
   const currentScores=row.courseSlug===TRAFFIC_SLUG?trafficScores(p.screenScores,row):null;
   const q=currentScores?currentScores.reduce((sum,item)=>sum+Number(item.questions||0),0):Number(p.cumulativeQuestions||0);
