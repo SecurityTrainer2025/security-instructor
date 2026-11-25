@@ -278,13 +278,47 @@ html,body{background:#0B1F33}
  #certificate.wrap:before{display:block!important}
 }
 
+/* The original training template with the Traffic certificate fields and spacing. */
+#certificate .logo img{display:block;width:18mm;height:18mm;object-fit:contain;border-radius:50%}
+#certificate.traffic-certificate .traffic-arabic-name{font-family:Tahoma,Arial,sans-serif;font-size:.7em;line-height:1.4;margin:0}
+#certificate.traffic-certificate .topics{max-height:none}
+#certificate.traffic-certificate .topic-grid{grid-auto-flow:row;grid-template-rows:none;grid-auto-rows:minmax(11mm,auto);gap:2mm 4mm;overflow:visible}
+#certificate.traffic-certificate .topic{height:auto;min-height:0;overflow:visible;font-size:10px;line-height:1.18}
+#certificate.traffic-certificate .topic .ar{font-size:9px;line-height:1.24}
+#certificate.traffic-certificate .footer .traffic-review{font-weight:900;color:var(--ink)}
+@media screen and (min-width:761px), print{
+ #certificate.traffic-certificate .inner{justify-content:space-between}
+ #certificate.traffic-certificate .motto{margin-inline-end:18mm}
+ #certificate.traffic-certificate .heading h1{font-size:40px}
+ #certificate.traffic-certificate .heading h2{font-size:22px}
+ #certificate.traffic-certificate .completed{font-size:11px}
+ #certificate.traffic-certificate .completed b{font-size:17px}
+ #certificate.traffic-certificate .courseAr{font-size:15px}
+ #certificate.traffic-certificate .topics{margin-inline:5mm;padding-top:3mm}
+ #certificate.traffic-certificate .courseMeta{width:72%}
+ #certificate.traffic-certificate .metaBox{padding-block:2mm}
+ #certificate.traffic-certificate .metaBox b{font-size:8px}
+ #certificate.traffic-certificate .metaBox span{font-size:11px}
+ #certificate.traffic-certificate .details{font-size:9px}
+ #certificate.traffic-certificate .details b{font-size:8px}
+ #certificate.traffic-certificate .qrbox{width:26mm;height:26mm}
+ #certificate.traffic-certificate .footer{font-size:7px}
+}
+@media screen and (min-width:761px){
+ #certificate.traffic-certificate .inner{min-height:calc(min(297mm, 100vw - 32px) * 210 / 297 - 54px)}
+}
+@media screen and (max-width:760px){
+ #certificate .logo img{width:46px;height:46px}
+ #certificate.traffic-certificate .topic-grid{grid-auto-rows:auto;gap:8px}
+ #certificate.traffic-certificate .topic .ar{font-size:8px}
+}
 </style>
 </head>
 <body>
 <main id="certificate" class="wrap">
 <div class="corner tl"></div><div class="corner br"></div><div class="ribbon"></div><div class="sideRibbon"></div><div class="watermark">SI</div><div class="world"></div><div class="shield"></div><div class="shieldText">SECURITY<br>SAFETY<br>AWARENESS<br>PREPAREDNESS</div><div class="sideText">PEOPLE<br>PLACES<br>OPERATIONS<br>SAFER TOMORROW<div class="sideDash"></div></div>
 <div class="inner">
-<header class="top"><div class="brand"><div class="logo">SI</div><div><b>SECURITY INSTRUCTOR</b><small>KNOWLEDGE | SKILLS | SAFER COMMUNITIES</small></div></div><div class="motto">TRAIN TODAY • BUILD A SAFER TOMORROW<br><span dir="rtl">تدرّب اليوم • لمجتمع أكثر أمانًا</span></div></header>
+<header class="top"><div class="brand"><div class="logo"><img src="assets/traffic-practice/si-logo.jpg" alt="SECURITY INSTRUCTOR"></div><div><b>SECURITY INSTRUCTOR</b><small>KNOWLEDGE | SKILLS | SAFER COMMUNITIES</small></div></div><div class="motto">TRAIN TODAY • BUILD A SAFER TOMORROW<br><span dir="rtl">تدرّب اليوم • لمجتمع أكثر أمانًا</span></div></header>
 <section class="heading"><div class="ey">TRAINING CERTIFICATE</div><h1>Certificate of Achievement</h1><h2>شهادة إتمام دورة تدريبية</h2></section>
 <div class="certify">THIS IS TO CERTIFY THAT</div>
 <div id="name" class="name">Loading…</div>
@@ -318,10 +352,13 @@ html,body{background:#0B1F33}
 <footer class="footer"><span>SECURITY INSTRUCTOR</span><span>شهادة إتمام دورة تدريبية</span><span>KNOWLEDGE BUILDS SAFER COMMUNITIES</span></footer>
 </div></main>
 <div class="actions"><button onclick="window.print()">Print / Save as PDF — طباعة / حفظ PDF</button></div>
+<script src="traffic-staging-config.js"></script>
 <script>
 (async function(){
-const API=(window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com';
-const id=new URLSearchParams(location.search).get('id');
+const query=new URLSearchParams(location.search);
+const traffic=query.get('traffic')==='1';
+const API=traffic?window.SI_TRAFFIC_API:((window.APP_CONFIG&&window.APP_CONFIG.API_BASE)||'https://security-instructor.onrender.com');
+const id=query.get('id');
 function fail(msg){
   const certificate=document.getElementById('certificate');
   certificate.classList.add('load-failed');
@@ -341,17 +378,20 @@ function fail(msg){
   });
 }
 try{
-  if(!id)throw new Error('Certificate ID is required');
-  const r=await fetch(API+'/api/training-certificates/'+encodeURIComponent(id),{cache:'no-store'});
+  if(!id||!API)throw new Error('Certificate ID and service are required');
+  const endpoint=traffic?window.SI_TRAFFIC_VERIFY_PATH+'?id='+encodeURIComponent(id)+'&view=certificate':'/api/training-certificates/'+encodeURIComponent(id);
+  const r=await fetch(API+endpoint,{cache:'no-store'});
   const raw=await r.text();let d;
   try{d=JSON.parse(raw)}catch{throw new Error('Certificate service returned an invalid response')}
   if(!r.ok)throw new Error(d.message||'Certificate not found');
+  if(traffic&&(!d.valid||d.courseId!=='CRS-TRAFFIC-001'||d.certificateId!==id))
+    throw new Error('Traffic certificate could not be verified');
   const text=(v,f='—')=>v===null||v===undefined||String(v).trim()===''?f:String(v).trim();
   document.getElementById('name').textContent=text(d.recipientNameEn||d.recipientNameAr);
-  requestAnimationFrame(()=>{const el=document.getElementById('name');if(window.matchMedia('(max-width:760px)').matches){el.style.whiteSpace='normal';el.style.width='100%';el.style.maxWidth='100%';el.style.fontSize='';return;}const max=Math.floor(el.parentElement.clientWidth*.92);let size=35;el.style.whiteSpace='nowrap';el.style.width='max-content';el.style.maxWidth='none';el.style.fontSize=size+'px';while(el.scrollWidth>max&&size>24){size-=1;el.style.fontSize=size+'px';}});
+  if(!traffic)requestAnimationFrame(()=>{const el=document.getElementById('name');if(window.matchMedia('(max-width:760px)').matches){el.style.whiteSpace='normal';el.style.width='100%';el.style.maxWidth='100%';el.style.fontSize='';return;}const max=Math.floor(el.parentElement.clientWidth*.92);let size=35;el.style.whiteSpace='nowrap';el.style.width='max-content';el.style.maxWidth='none';el.style.fontSize=size+'px';while(el.scrollWidth>max&&size>24){size-=1;el.style.fontSize=size+'px';}});
   document.getElementById('courseEn').textContent=text(d.courseNameEn);
   document.getElementById('courseAr').textContent=text(d.courseNameAr);
-  document.getElementById('date').textContent=d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  document.getElementById('date').textContent=d.issuedAt?new Date(d.issuedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',...(traffic?{timeZone:'Africa/Cairo'}:{})}):'—';
   document.getElementById('id').textContent=text(d.certificateId);
   document.getElementById('trainingId').textContent=text(d.trainingId||d.courseId);
   document.getElementById('idNumber').textContent=text(d.idNumber);
@@ -367,6 +407,34 @@ try{
   durationValue.innerHTML=dh!==''?'<strong>'+String(dh).replace(/</g,'&lt;')+' Hours</strong> | '+String(dh).replace(/</g,'&lt;')+' ساعة':'';
   levelValue.textContent=courseLevel==='—'?'':courseLevel;
   document.getElementById('signature').textContent='Abdallah Shalaby';
+  if(traffic){
+    const certificate=document.getElementById('certificate');
+    certificate.classList.add('traffic-certificate');
+    document.title='SI Traffic Certificate — '+d.certificateId;
+    if(d.recipientNameAr&&d.recipientNameEn){
+      const arabicName=document.createElement('p');
+      arabicName.className='traffic-arabic-name';
+      arabicName.dir='rtl';
+      arabicName.lang='ar';
+      arabicName.textContent=d.recipientNameAr;
+      document.getElementById('name').append(arabicName);
+    }
+    levelBox.hidden=false;
+    levelBox.querySelector('b').textContent='RESULT / النتيجة';
+    const earned=document.createElement('strong');
+    earned.textContent=Number.isFinite(d.score)?d.score+'%':'Passed / اجتاز';
+    const threshold=document.createElement('bdi');
+    threshold.dir='ltr';
+    threshold.textContent=d.passScore+'%';
+    levelValue.replaceChildren(earned,' • Pass mark / حد النجاح: ',threshold);
+    document.getElementById('idNumber').closest('.row').hidden=true;
+    if(window.SI_TRAFFIC_MODE==='staging'){
+      const notice=document.createElement('span');
+      notice.className='traffic-review';
+      notice.textContent='STAGING REVIEW / شهادة تجريبية للمراجعة';
+      certificate.querySelector('.footer').append(notice);
+    }
+  }
 
   const grid=document.getElementById('topicGrid');
   if(grid){
@@ -378,7 +446,7 @@ try{
       ['Fire Suppression Systems','أنظمة إطفاء الحريق','╫'],
       ['Emergency Response, Evacuation & Incident Coordination','الاستجابة للطوارئ والإخلاء وإدارة الحوادث','↗']
     ];
-    const topics=Array.isArray(d.trainingTopics)?d.trainingTopics.map(t=>Array.isArray(t)?{en:t[0],ar:t[1],icon:t[2]||'•'}:t).filter(t=>t&&((t.en||t.nameEn)||(t.ar||t.nameAr))).slice(0,5):[];
+    const topics=Array.isArray(d.trainingTopics)?d.trainingTopics.map(t=>Array.isArray(t)?{en:t[0],ar:t[1],icon:t[2]||'•'}:t).filter(t=>t&&((t.en||t.nameEn)||(t.ar||t.nameAr))).slice(0,traffic?8:5):[];
     const isFire=/fire\s+safety|emergency\s+response/i.test(d.courseNameEn||'');const items=topics.length?topics:(isFire?fallback.map(t=>({en:t[0],ar:t[1],icon:t[2]})):[]);document.getElementById('topics').classList.toggle('show',items.length>0);
     items.forEach(t=>{
       const item=document.createElement('div');item.className='topic';
@@ -390,13 +458,14 @@ try{
     });
   }
 
-  const verify=new URL('verify.html',location.href);
-  verify.searchParams.set('type','certificate');verify.searchParams.set('id',d.certificateId);
+  const verify=new URL(traffic?'traffic-verify.html':'verify.html',location.href);
+  if(!traffic)verify.searchParams.set('type','certificate');
+  verify.searchParams.set('id',d.certificateId);
   const qrImg=document.createElement('img');qrImg.alt='Certificate verification QR';
-  qrImg.src=API+'/api/training-certificates/'+encodeURIComponent(d.certificateId)+'/qr?v='+Date.now();
+  qrImg.src=API+'/api/training-certificates/'+encodeURIComponent(d.certificateId)+'/qr'+(traffic?'':'?v='+Date.now());
   let qrFallbackTried=false;
   qrImg.onerror=function(){
-    if(!qrFallbackTried){qrFallbackTried=true;qrImg.src='https://quickchart.io/qr?size=180&text='+encodeURIComponent(verify.toString());return;}
+    if(!traffic&&!qrFallbackTried){qrFallbackTried=true;qrImg.src='https://quickchart.io/qr?size=180&text='+encodeURIComponent(verify.toString());return;}
     const box=document.getElementById('qr');
     box.innerHTML='<span style="font-size:7px;line-height:1.4;color:#0B1F33;padding:2mm">Verification QR unavailable<br>'+String(d.certificateId||'')+'</span>';
   };

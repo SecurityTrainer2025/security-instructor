@@ -1,0 +1,122 @@
+name: Share existing SI Traffic review files
+on:
+  push:
+    branches: [feat/self-study-traffic-course]
+    paths:
+      - .github/workflows/share-si-traffic-review.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  share:
+    if: github.ref == 'refs/heads/feat/self-study-traffic-course'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Reassemble existing review files without re-encoding
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p delivery
+          while read -r sha; do
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/$sha" --jq .content | base64 --decode
+          done > delivery/SI-Traffic-Marshal-visual-revision-review.zip <<'PARTS'
+          c25046c5891e1bb75de8093d6d397540cccad521
+          df525cd10e598369ab210870a5c6ed141b77795a
+          adacde2d0031c9128c381e060c1e96ecf21d90fb
+          06fbf6ddd40bfeb8184defb9ce0263134cbfeee3
+          ce866795b4e469207665a55d3269c8f87a80c3eb
+          84b6a89894ab80cf6d5cfa62788ceb109801d019
+          a81d27e819c09e7af677572953c4838003952dfa
+          5a25c39b3d4d6184a5b55f47b8ed61f8daa8e237
+          5a05be77d02a3584e63dc36440684d4f7d26fde5
+          2b1d3a01ec28963e1a8ef6d454f1beb652ae9919
+          38b68c317b3208f54fa0875b7904cae7a5cbd9da
+          eac3b0bdb8e433318d285b1f81ce25c0c70cc4da
+          96b73f54c756f157409279d433836c646b380951
+          PARTS
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          base = Path("delivery")
+          items = ["SI-01-visual-alignment-REVIEW.mp4","quality-report.md","SI-audio-visual-timing.csv"]
+          with ZipFile(base / "SI-Traffic-Marshal-visual-revision-review.zip") as archive:
+              assert archive.testzip() is None
+              for name in items:
+                  (base / name).write_bytes(archive.read(name))
+          PY
+          cd delivery
+          sha256sum --check <<'CHECKSUMS'
+          073c800c143156434bb31cb4f79b0072c41e64c2a4d0c381184514ee2641fa84  SI-Traffic-Marshal-visual-revision-review.zip
+          a54f457a042e75109825fdf3a824db42a08476746ce08981001c8dd8461e0448  SI-01-visual-alignment-REVIEW.mp4
+          b22c0ca48be552000718a076d0f4e5fdaa6d2831db3d88a7b6cb1780b6ea6cd2  quality-report.md
+          b71599e3b275e251c65ed8a3810a9203a874d44ef25607622bf9eed312eb3223  SI-audio-visual-timing.csv
+          CHECKSUMS
+      - name: Upload SI-Traffic-Marshal-visual-revision-review.zip
+        uses: actions/upload-artifact@v7
+        with:
+          path: delivery/SI-Traffic-Marshal-visual-revision-review.zip
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload SI-01-visual-alignment-REVIEW.mp4
+        uses: actions/upload-artifact@v7
+        with:
+          path: delivery/SI-01-visual-alignment-REVIEW.mp4
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload quality-report.md
+        uses: actions/upload-artifact@v7
+        with:
+          path: delivery/quality-report.md
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload SI-audio-visual-timing.csv
+        uses: actions/upload-artifact@v7
+        with:
+          path: delivery/SI-audio-visual-timing.csv
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+  verify:
+    needs: share
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download SI-Traffic-Marshal-visual-revision-review.zip
+        uses: actions/download-artifact@v8
+        with:
+          name: SI-Traffic-Marshal-visual-revision-review.zip
+          path: verified
+          skip-decompress: true
+      - name: Download SI-01-visual-alignment-REVIEW.mp4
+        uses: actions/download-artifact@v8
+        with:
+          name: SI-01-visual-alignment-REVIEW.mp4
+          path: verified
+          skip-decompress: true
+      - name: Download quality-report.md
+        uses: actions/download-artifact@v8
+        with:
+          name: quality-report.md
+          path: verified
+          skip-decompress: true
+      - name: Download SI-audio-visual-timing.csv
+        uses: actions/download-artifact@v8
+        with:
+          name: SI-audio-visual-timing.csv
+          path: verified
+          skip-decompress: true
+      - name: Byte-check four downloaded artifacts against the originals
+        working-directory: verified
+        run: |
+          sha256sum --check <<'CHECKSUMS'
+          073c800c143156434bb31cb4f79b0072c41e64c2a4d0c381184514ee2641fa84  SI-Traffic-Marshal-visual-revision-review.zip
+          a54f457a042e75109825fdf3a824db42a08476746ce08981001c8dd8461e0448  SI-01-visual-alignment-REVIEW.mp4
+          b22c0ca48be552000718a076d0f4e5fdaa6d2831db3d88a7b6cb1780b6ea6cd2  quality-report.md
+          b71599e3b275e251c65ed8a3810a9203a874d44ef25607622bf9eed312eb3223  SI-audio-visual-timing.csv
+          CHECKSUMS

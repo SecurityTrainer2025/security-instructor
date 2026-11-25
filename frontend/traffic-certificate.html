@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SI Traffic Certificate | شهادة دورة المرور</title>
+</head>
+<body>
+  <p><a id="openCertificate" href="certificate.html?traffic=1">Open certificate / فتح الشهادة</a></p>
+  <script>
+    const target=new URL('certificate.html',location.href);
+    target.searchParams.set('traffic','1');
+    const id=new URLSearchParams(location.search).get('id');
+    if(id)target.searchParams.set('id',id);
+    document.getElementById('openCertificate').href=target.href;
+    location.replace(target.href);
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Supervisor and marshal reviewing a plan",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:10.000",
+    "visual": "assets/tm1s2-photo.jpg",
+    "ar": "راجع خطة المرور مع المشرف قبل بدء العمل. حدد المداخل والمخارج، واتجاهات السير، ومسارات المشاة والطوارئ.",
+    "en": "Review the traffic plan with your supervisor before starting. Locate entrances, exits, travel directions, and pedestrian and emergency routes.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:10.200",
+    "actual_scene_end": "00:00:10.800"
+  },
+  {
+    "scene": 2,
+    "description_en": "Route branches and check before changing conditions",
+    "planned_start": "00:00:10.000",
+    "planned_end": "00:00:22.000",
+    "visual": "assets/tm1s2-diagram.jpg",
+    "ar": "افحص خطوط الرؤية والنقاط العمياء ومسار التفاف المركبات. عند تراجع الرؤية أبلغ غرفة التحكم وطبّق القيود المحددة في الخطة.",
+    "en": "Check sightlines, blind spots and vehicle turning paths. If visibility drops, notify control and apply the restrictions in the plan.",
+    "actual_start": "00:00:10.800",
+    "actual_caption_end": "00:00:20.760",
+    "actual_scene_end": "00:00:21.360"
+  }
+]

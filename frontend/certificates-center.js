@@ -1,5 +1,5 @@
 (function(){
-  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const API=window.SI_ADMIN_CONFIG.api,K=window.SI_ADMIN_CONFIG.tokenKey;
   const esc=s=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
   const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||'')});
   async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{'Content-Type':'application/json',...auth(),...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||('Request failed ('+r.status+')'));return d}

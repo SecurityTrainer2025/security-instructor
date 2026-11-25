@@ -1,0 +1,296 @@
+{
+  "course_id": "CRS-TRAFFIC-001",
+  "status": "illustrative_review",
+  "timing": "Planning estimates only; render measures decoded narration for final timing.",
+  "lessons": [
+    {
+      "id": "tm1s1",
+      "module": 1,
+      "kind": "explanation",
+      "title_en": "Traffic Marshal role",
+      "title_ar": "دور منظم حركة المرور",
+      "staging_filename": "01_where_traffic_marshal_works.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Illustrative marshal at protected industrial gate",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:10.000",
+          "visual": "assets/tm1s1-photo.jpg",
+          "ar": "مرحبًا بكم في دورة إدارة حركة المرور والتحكم في المركبات في الموقع من منصة سيكيوريتي إنستركتور.",
+          "en": "Welcome to Security Instructor’s Traffic Management & Vehicle Control course."
+        },
+        {
+          "scene": 2,
+          "description_en": "Crossing priority and gate coordination",
+          "planned_start": "00:00:10.000",
+          "planned_end": "00:00:23.000",
+          "visual": "assets/tm1s1-diagram.jpg",
+          "ar": "ينظم منظم حركة المرور حركة المركبات والمشاة داخل الموقع وفق الخطة والتفويض. عند ازدحام البوابة، أعطِ الأولوية للمشاة ونسّق مع فريق البوابة.",
+          "en": "A marshal coordinates vehicles and pedestrians within the site plan and their authority. When the gate is busy, prioritise pedestrians and coordinate with the gate team."
+        },
+        {
+          "scene": 3,
+          "description_en": "Identify safe position and agreed escape route",
+          "planned_start": "00:00:23.000",
+          "planned_end": "00:00:31.000",
+          "visual": "assets/tm1s1-diagram.jpg",
+          "ar": "اختر موضعًا آمنًا يراك فيه السائق، وحدد طريق انسحابك قبل بدء الحركة.",
+          "en": "Choose a safe position where drivers can see you, and identify an escape route before movement starts."
+        }
+      ]
+    },
+    {
+      "id": "tm1s2",
+      "module": 1,
+      "kind": "application",
+      "title_en": "Traffic plan and risks",
+      "title_ar": "خطة المرور والمخاطر",
+      "staging_filename": "02_tmp_and_risk_assessment.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Supervisor and marshal reviewing a plan",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:10.000",
+          "visual": "assets/tm1s2-photo.jpg",
+          "ar": "راجع خطة المرور مع المشرف قبل بدء العمل. حدد المداخل والمخارج، واتجاهات السير، ومسارات المشاة والطوارئ.",
+          "en": "Review the traffic plan with your supervisor before starting. Locate entrances, exits, travel directions, and pedestrian and emergency routes."
+        },
+        {
+          "scene": 2,
+          "description_en": "Route branches and check before changing conditions",
+          "planned_start": "00:00:10.000",
+          "planned_end": "00:00:22.000",
+          "visual": "assets/tm1s2-diagram.jpg",
+          "ar": "افحص خطوط الرؤية والنقاط العمياء ومسار التفاف المركبات. عند تراجع الرؤية أبلغ غرفة التحكم وطبّق القيود المحددة في الخطة.",
+          "en": "Check sightlines, blind spots and vehicle turning paths. If visibility drops, notify control and apply the restrictions in the plan."
+        }
+      ]
+    },
+    {
+      "id": "tm2s1",
+      "module": 2,
+      "kind": "explanation",
+      "title_en": "Gate inspection flow",
+      "title_ar": "حركة التفتيش عند البوابة",
+      "staging_filename": "03_access_control_points.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Stationary gate queue and protected marshaling position",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:09.000",
+          "visual": "assets/tm2s1-photo.jpg",
+          "ar": "استخدم حارة الانتظار المعتمدة وأبقِ مسار الطوارئ مفتوحًا. يتولى فريق الأمن المخوّل فحص التصاريح.",
+          "en": "Use the designated holding lane and keep emergency access clear. Authorised security staff check permits."
+        },
+        {
+          "scene": 2,
+          "description_en": "Hold until the authorised inspection lead confirms",
+          "planned_start": "00:00:09.000",
+          "planned_end": "00:00:19.000",
+          "visual": "assets/tm2s1-diagram.jpg",
+          "ar": "تمتلئ حارات التفتيش أحيانًا. أبقِ المركبة في نقطة انتظار آمنة إلى أن يؤكد مسؤول التفتيش جاهزية الحارة.",
+          "en": "Inspection lanes may fill up. Hold the vehicle in an approved safe area until the inspection lead confirms the bay is ready."
+        }
+      ]
+    },
+    {
+      "id": "tm2s2",
+      "module": 2,
+      "kind": "application",
+      "title_en": "Briefing and escalation",
+      "title_ar": "إحاطة السائق والتصعيد",
+      "staging_filename": "04_driver_induction.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Briefing beside a parked van",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:10.000",
+          "visual": "assets/tm2s2-photo.jpg",
+          "ar": "اشرح للسائق المتوقف المسار المعتمد وحد السرعة وأماكن الوقوف والتحميل ومعابر المشاة. اطلب منه تأكيد فهم التعليمات.",
+          "en": "Brief the stopped driver on the route, speed limit, parking, loading areas and crossings. Ask them to confirm the instructions."
+        },
+        {
+          "scene": 2,
+          "description_en": "Safe escalation without entering a live lane",
+          "planned_start": "00:00:10.000",
+          "planned_end": "00:00:19.000",
+          "visual": "assets/tm2s2-diagram.jpg",
+          "ar": "إذا رفض السائق التوجيه، حافظ على مسافة آمنة وصعّد الموقف للمشرف المخوّل وفق إجراءات الموقع.",
+          "en": "If the driver refuses a direction, keep a safe distance and escalate to the authorised supervisor under site procedures."
+        }
+      ]
+    },
+    {
+      "id": "tm3s1",
+      "module": 3,
+      "kind": "explanation",
+      "title_en": "Protected crossing",
+      "title_ar": "معبر مشاة محمي",
+      "staging_filename": "05_pedestrian_safety.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Marked walkway separated from vehicles",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:09.000",
+          "visual": "assets/tm3s1-photo.jpg",
+          "ar": "حدد الممرات المخصصة للمشاة والمعابر المحمية والمسارات الميسّرة. حافظ على وضوح الرؤية عند المعبر.",
+          "en": "Identify designated walkways, protected crossings and accessible routes. Maintain clear sightlines at crossings."
+        },
+        {
+          "scene": 2,
+          "description_en": "Separate routes and keep sightlines clear",
+          "planned_start": "00:00:09.000",
+          "planned_end": "00:00:21.000",
+          "visual": "assets/tm3s1-diagram.jpg",
+          "ar": "إذا حجبت مركبة المعبر، أمّن الحركة ونسق إزالة العائق قبل إعادة فتحه. تُضبط الحواجز ووسائل التهدئة وفق الخطة المعتمدة.",
+          "en": "If a vehicle blocks the crossing, secure movement and arrange for the obstruction to be removed before reopening it. Follow the approved plan for barriers and traffic calming."
+        }
+      ]
+    },
+    {
+      "id": "tm3s2",
+      "module": 3,
+      "kind": "application",
+      "title_en": "Parking and reversing",
+      "title_ar": "المواقف والرجوع",
+      "staging_filename": "06_parking_and_reversing.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Stationary parking area with marked bays",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:11.000",
+          "visual": "assets/tm3s2-photo.jpg",
+          "ar": "حافظ على خلو مسارات التحميل والطوارئ واتبع تخصيص أماكن الوقوف. اختر مسارًا يقلل الحاجة إلى الرجوع كلما أمكن.",
+          "en": "Keep loading and emergency routes clear and follow parking allocations. Use routes that minimise reversing where possible."
+        },
+        {
+          "scene": 2,
+          "description_en": "Safeguards diagram without depicting a manoeuvre",
+          "planned_start": "00:00:11.000",
+          "planned_end": "00:00:24.000",
+          "visual": "assets/tm3s2-diagram.jpg",
+          "ar": "عندما تتطلب الخطة استخدام موجّه مدرّب، يبقى خارج مسار المركبة وفي مجال رؤية السائق. إذا فقد السائق رؤية الموجّه، يتوقف فورًا.",
+          "en": "Where the plan requires a trained signaller, they stay clear of the vehicle path and in the driver's view. The driver stops immediately on losing sight of the signaller."
+        }
+      ]
+    },
+    {
+      "id": "tm4s1",
+      "module": 4,
+      "kind": "explanation",
+      "title_en": "PPE and emergency access",
+      "title_ar": "الوقاية ومسار الطوارئ",
+      "staging_filename": "07_ppe_heat_weather.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "PPE and shaded rest area",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:11.000",
+          "visual": "assets/tm4s1-photo.jpg",
+          "ar": "ارتدِ معدات الوقاية المحددة للعمل، وتحقق من وضوح ملابس الرؤية. اتبع ترتيبات الماء والظل وفترات الراحة أثناء الحر.",
+          "en": "Wear the PPE required for the task and check that high-visibility clothing is visible. Follow the site's water, shade and rest arrangements in hot weather."
+        },
+        {
+          "scene": 2,
+          "description_en": "Hazard reporting and protection of emergency access",
+          "planned_start": "00:00:11.000",
+          "planned_end": "00:00:21.000",
+          "visual": "assets/tm4s1-diagram.jpg",
+          "ar": "أبلغ عن تراجع الرؤية أو تغير سطح الطريق، وطبّق إجراء الموقع لتقييد الحركة. أبقِ مسار الطوارئ متاحًا.",
+          "en": "Report reduced visibility or changes in the road surface and follow the site's procedure for restricting movement. Keep the emergency route available."
+        }
+      ]
+    },
+    {
+      "id": "tm4s2",
+      "module": 4,
+      "kind": "application",
+      "title_en": "Incident report",
+      "title_ar": "تقرير الحادث",
+      "staging_filename": "08_incident_reporting.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Objective report prepared in a protected office",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:11.000",
+          "visual": "assets/tm4s2-photo.jpg",
+          "ar": "بعد اتخاذ إجراءات السلامة والإبلاغ الأولي، سجّل الوقت والمكان وتسلسل ما شاهدته. ميّز بين ملاحظاتك المباشرة وأقوال الشهود.",
+          "en": "After taking safety measures and making the initial report, record the time, location and sequence of what you observed. Distinguish direct observations from witness accounts."
+        },
+        {
+          "scene": 2,
+          "description_en": "Separate facts from accounts and send securely",
+          "planned_start": "00:00:11.000",
+          "planned_end": "00:00:19.000",
+          "visual": "assets/tm4s2-diagram.jpg",
+          "ar": "أرسل التقرير عبر القناة المعتمدة واحفظ البيانات الشخصية وفق إجراءات الموقع.",
+          "en": "Submit the report through the approved channel and protect personal information under site procedures."
+        }
+      ]
+    },
+    {
+      "id": "tm5s1",
+      "module": 5,
+      "kind": "explanation",
+      "title_en": "Site-approved signals",
+      "title_ar": "إشارات الموقع المعتمدة",
+      "staging_filename": "09_six_hand_signals.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Marshal and instructor review the signal chart, without modeled gestures",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:11.000",
+          "visual": "assets/tm5s1-photo.jpg",
+          "ar": "اتفق مع السائق على الإشارات المعتمدة قبل أي حركة. عند غموض الإشارة أو فقد الاتصال البصري، يتوقف السائق.",
+          "en": "Agree on the approved signals with the driver before moving. The driver stops if a signal is unclear or visual contact is lost."
+        },
+        {
+          "scene": 2,
+          "description_en": "Communication safeguards, not a gesture demonstration",
+          "planned_start": "00:00:11.000",
+          "planned_end": "00:00:21.000",
+          "visual": "assets/tm5s1-diagram.jpg",
+          "ar": "يراجع المدرب إشارات التقدم والرجوع والانعطاف والخروج والتوقف العادي والتوقف الطارئ. تدرّب في منطقة مغلقة تحت الإشراف.",
+          "en": "The instructor reviews forward, reverse, turn, exit, normal stop and emergency stop. Practise in a closed area under supervision."
+        }
+      ]
+    },
+    {
+      "id": "tm5s2",
+      "module": 5,
+      "kind": "application",
+      "title_en": "Radio and handover",
+      "title_ar": "اللاسلكي وتسليم المناوبة",
+      "staging_filename": "10_radios_and_shift_handover.mp4",
+      "scenes": [
+        {
+          "scene": 1,
+          "description_en": "Two marshals in a protected radio handover",
+          "planned_start": "00:00:00.000",
+          "planned_end": "00:00:09.000",
+          "visual": "assets/tm5s2-photo.jpg",
+          "ar": "ابدأ بنداء الجهة المعنية، ثم اذكر موقعك والموقف والطلب. اطلب تأكيد الرسالة عبر القناة المعتمدة.",
+          "en": "Call the intended recipient, then state your location, the situation and your request. Ask for acknowledgement on the approved channel."
+        },
+        {
+          "scene": 2,
+          "description_en": "Confirm the outstanding hazards and emergency lane",
+          "planned_start": "00:00:09.000",
+          "planned_end": "00:00:19.000",
+          "visual": "assets/tm5s2-diagram.jpg",
+          "ar": "عند تسليم الوردية، وضّح حالة الحارات والمخاطر القائمة ومسار الطوارئ. أكّد انتقال المهمة قبل مغادرة موقعك.",
+          "en": "At handover, explain lane conditions, current hazards and the emergency route. Confirm the transfer of responsibility before leaving your post."
+        }
+      ]
+    }
+  ]
+}

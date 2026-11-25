@@ -1,5 +1,5 @@
 (function(){
-  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const API=window.SI_ADMIN_CONFIG.api,K=window.SI_ADMIN_CONFIG.tokenKey;
   const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||'')});
   const originalFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){

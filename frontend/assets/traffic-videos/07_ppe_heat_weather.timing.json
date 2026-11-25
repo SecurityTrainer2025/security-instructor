@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "PPE and shaded rest area",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:11.000",
+    "visual": "assets/tm4s1-photo.jpg",
+    "ar": "ارتدِ معدات الوقاية المحددة للعمل، وتحقق من وضوح ملابس الرؤية. اتبع ترتيبات الماء والظل وفترات الراحة أثناء الحر.",
+    "en": "Wear the PPE required for the task and check that high-visibility clothing is visible. Follow the site's water, shade and rest arrangements in hot weather.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:10.680",
+    "actual_scene_end": "00:00:11.280"
+  },
+  {
+    "scene": 2,
+    "description_en": "Hazard reporting and protection of emergency access",
+    "planned_start": "00:00:11.000",
+    "planned_end": "00:00:21.000",
+    "visual": "assets/tm4s1-diagram.jpg",
+    "ar": "أبلغ عن تراجع الرؤية أو تغير سطح الطريق، وطبّق إجراء الموقع لتقييد الحركة. أبقِ مسار الطوارئ متاحًا.",
+    "en": "Report reduced visibility or changes in the road surface and follow the site's procedure for restricting movement. Keep the emergency route available.",
+    "actual_start": "00:00:11.280",
+    "actual_caption_end": "00:00:20.920",
+    "actual_scene_end": "00:00:21.520"
+  }
+]

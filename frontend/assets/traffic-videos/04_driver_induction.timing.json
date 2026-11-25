@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Briefing beside a parked van",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:10.000",
+    "visual": "assets/tm2s2-photo.jpg",
+    "ar": "اشرح للسائق المتوقف المسار المعتمد وحد السرعة وأماكن الوقوف والتحميل ومعابر المشاة. اطلب منه تأكيد فهم التعليمات.",
+    "en": "Brief the stopped driver on the route, speed limit, parking, loading areas and crossings. Ask them to confirm the instructions.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:09.600",
+    "actual_scene_end": "00:00:10.200"
+  },
+  {
+    "scene": 2,
+    "description_en": "Safe escalation without entering a live lane",
+    "planned_start": "00:00:10.000",
+    "planned_end": "00:00:19.000",
+    "visual": "assets/tm2s2-diagram.jpg",
+    "ar": "إذا رفض السائق التوجيه، حافظ على مسافة آمنة وصعّد الموقف للمشرف المخوّل وفق إجراءات الموقع.",
+    "en": "If the driver refuses a direction, keep a safe distance and escalate to the authorised supervisor under site procedures.",
+    "actual_start": "00:00:10.200",
+    "actual_caption_end": "00:00:18.080",
+    "actual_scene_end": "00:00:18.680"
+  }
+]

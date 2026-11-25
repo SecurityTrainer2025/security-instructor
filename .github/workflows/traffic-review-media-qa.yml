@@ -1,0 +1,51 @@
+name: Verify Traffic review package without deployment
+on:
+  push:
+    branches: [feat/self-study-traffic-course]
+    paths:
+      - scripts/audit_traffic_review_media.py
+      - .github/workflows/traffic-review-media-qa.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    if: github.ref == 'refs/heads/feat/self-study-traffic-course'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Recover the verified ten-video export
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir traffic-review-package
+          if gh run download 44322304800 --name SI-Traffic-Marshal-10-MP4-VTT-review-with-QA --dir traffic-review-package &&
+             test -s traffic-review-package/QA/technical.json; then
+            echo "SI_REUSE_TECHNICAL=--reuse-technical" >> "$GITHUB_ENV"
+          else
+            gh run download 44316952455 --name SI-Traffic-Marshal-REAL-Intro-REVIEW --dir traffic-review-package
+          fi
+          test "$(find traffic-review-package -maxdepth 1 -name '*.mp4' | wc -l)" -eq 10
+      - name: Prepare media and browser verification
+        run: |
+          if [[ -z "${SI_REUSE_TECHNICAL:-}" ]] && { ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; }; then
+            sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20 update -qq
+            sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20 install -y -qq ffmpeg
+          fi
+          command -v google-chrome
+          python -m pip install --disable-pip-version-check --timeout 15 --retries 2 edge-tts playwright
+      - name: Inspect media and exercise the current player with isolated fixtures
+        run: python scripts/audit_traffic_review_media.py traffic-review-package ${SI_REUSE_TECHNICAL:-}
+      - name: Preserve review copies and generated evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SI-Traffic-Marshal-10-MP4-VTT-review-with-QA
+          path: traffic-review-package/
+          if-no-files-found: error
+          retention-days: 30

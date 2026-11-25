@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Stationary gate queue and protected marshaling position",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:09.000",
+    "visual": "assets/tm2s1-photo.jpg",
+    "ar": "استخدم حارة الانتظار المعتمدة وأبقِ مسار الطوارئ مفتوحًا. يتولى فريق الأمن المخوّل فحص التصاريح.",
+    "en": "Use the designated holding lane and keep emergency access clear. Authorised security staff check permits.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:08.880",
+    "actual_scene_end": "00:00:09.480"
+  },
+  {
+    "scene": 2,
+    "description_en": "Hold until the authorised inspection lead confirms",
+    "planned_start": "00:00:09.000",
+    "planned_end": "00:00:19.000",
+    "visual": "assets/tm2s1-diagram.jpg",
+    "ar": "تمتلئ حارات التفتيش أحيانًا. أبقِ المركبة في نقطة انتظار آمنة إلى أن يؤكد مسؤول التفتيش جاهزية الحارة.",
+    "en": "Inspection lanes may fill up. Hold the vehicle in an approved safe area until the inspection lead confirms the bay is ready.",
+    "actual_start": "00:00:09.480",
+    "actual_caption_end": "00:00:18.560",
+    "actual_scene_end": "00:00:19.160"
+  }
+]

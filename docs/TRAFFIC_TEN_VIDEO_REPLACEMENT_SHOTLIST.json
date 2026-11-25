@@ -1,0 +1,110 @@
+{
+  "course": "CRS-TRAFFIC-001",
+  "branch": "feat/self-study-traffic-course",
+  "release_status": "BLOCKED_UNTIL_OWNER_APPROVAL",
+  "visual_identity": {
+    "employer": "private security company",
+    "uniform": "navy professional security uniform, yellow high-visibility reflective vest, radio, safety footwear; site-specific hardhat",
+    "exclude": "police uniform, generic road worker substituted for security operative, static filler shots"
+  },
+  "rules": [
+    "Preserve Arabic narration as source timing; do not rewrite without owner agreement",
+    "One narrated action equals one demonstrable physical scene; avoid generic establishing fillers",
+    "Use identical recognizable marshal actor and appropriate licensed location",
+    "No invented regulatory compliance or generic hand signals portrayed as standard",
+    "Verify per-clip commercial license and source provenance",
+    "All files review-only until safety, mobile playback and visual signoff"
+  ],
+  "screens": [
+    {
+      "id": "tm1s1",
+      "title_ar": "دور منظم حركة المرور",
+      "visual_prompt_en": "At an industrial security gate the same PRIVATE SECURITY traffic marshal wearing navy security uniform, yellow high-visibility vest, radio and safe footwear, demonstrates identifying pedestrian crossing, maintaining emergency lane and radio coordination; vehicles respond only when directed safely.",
+      "visual_acceptance": "marshal at protected site entry, clear pedestrian crossing and operational radio; not generic worker or policeman",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm1s2",
+      "title_ar": "خطة إدارة المرور وتقييم المخاطر",
+      "visual_prompt_en": "Private security traffic marshal and security supervisor review a readable site Traffic Management Plan on a clipboard in a safe office; cut to the marshal tracing authorized gate entry, pedestrian route, blind spot and emergency escape route while pointing at real physical signs.",
+      "visual_acceptance": "TMP being reviewed on screen then confirmed in real site; no unrelated highway establishing shots",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm2s1",
+      "title_ar": "بوابات الدخول والتفتيش",
+      "visual_prompt_en": "Private security traffic marshal at a controlled entrance communicates with access-control colleague using radio; incoming vehicle stops at marked checkpoint, guard checks clearance, driver moves forward only after explicit safe release, emergency lane remains clear.",
+      "visual_acceptance": "vehicle response, gate inspection and marshal coordination visible",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm2s2",
+      "title_ar": "إرشاد السائق والتعامل مع الرفض",
+      "visual_prompt_en": "Driver's vehicle is safely parked in briefing bay; uniformed private security traffic marshal explains site speed limit and authorized loading route, driver acknowledges; for refusal the marshal calmly reports to supervisor via radio instead of arguing in traffic.",
+      "visual_acceptance": "respectful driver briefing and safe escalation visibly performed",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm3s1",
+      "title_ar": "المشاة وتهدئة الحركة",
+      "visual_prompt_en": "Uniformed private security marshal stands outside vehicle path at a protected pedestrian crossing; ensures approaching site vehicle is fully stationary; pedestrian and wheelchair user cross protected route; only then controlled safe release of vehicles.",
+      "visual_acceptance": "protected pedestrian crossing and real vehicle response required",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm3s2",
+      "title_ar": "إدارة المواقف والرجوع الآمن",
+      "visual_prompt_en": "Security marshal coordinates accessible parking, loading bay and cone layout; controlled reversing manoeuvre filmed only after qualified trainer signs off, guide stays visible outside reversing path and driver stops when eye contact lost.",
+      "visual_acceptance": "for reversing demonstration, hold release until site-specific instructor approval; contextual footage alone cannot pass",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm4s1",
+      "title_ar": "معدات السلامة والطقس والطوارئ",
+      "visual_prompt_en": "Private security marshal checks reflective vest, boots and weather protection, drinks water under shade during authorised break, points to safe escape route; radio coordination clears emergency access before an ambulance approaches.",
+      "visual_acceptance": "hazard action PPE heat stress and emergency lane must match corresponding audio",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm4s2",
+      "title_ar": "توثيق البلاغات والحوادث",
+      "visual_prompt_en": "Security marshal at safe post records accurate observed time, vehicle description, location and direction in incident report; radios control room; no unverified accusation, no scene contamination.",
+      "visual_acceptance": "show writing actual report and verbal report, not just generic notebook",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm5s1",
+      "title_ar": "إشارات اليد الست",
+      "visual_prompt_en": "One consistent trained private security marshal performs six distinct site-approved traffic signals with front three-quarter and side views, visible compliant driver response; movement is slow, fully human and continuous.",
+      "visual_acceptance": "UNAPPROVED unless verified against target site's official signals by qualified instructor; no improvised AI hand gestures",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    },
+    {
+      "id": "tm5s2",
+      "title_ar": "الاتصالات وتسليم الوردية",
+      "visual_prompt_en": "Uniformed traffic marshal demonstrates concise radio call and acknowledgment with control room; presents lane status and route hazards to incoming relief marshal, hands over log and radio at approved safe post.",
+      "visual_acceptance": "show call acknowledgment, log handover and second uniformed marshal",
+      "approved": false,
+      "footage_source": null,
+      "reviewer": null
+    }
+  ]
+}

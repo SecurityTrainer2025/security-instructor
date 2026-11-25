@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Marshal and instructor review the signal chart, without modeled gestures",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:11.000",
+    "visual": "assets/tm5s1-photo.jpg",
+    "ar": "اتفق مع السائق على الإشارات المعتمدة قبل أي حركة. عند غموض الإشارة أو فقد الاتصال البصري، يتوقف السائق.",
+    "en": "Agree on the approved signals with the driver before moving. The driver stops if a signal is unclear or visual contact is lost.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:09.520",
+    "actual_scene_end": "00:00:10.120"
+  },
+  {
+    "scene": 2,
+    "description_en": "Communication safeguards, not a gesture demonstration",
+    "planned_start": "00:00:11.000",
+    "planned_end": "00:00:21.000",
+    "visual": "assets/tm5s1-diagram.jpg",
+    "ar": "يراجع المدرب إشارات التقدم والرجوع والانعطاف والخروج والتوقف العادي والتوقف الطارئ. تدرّب في منطقة مغلقة تحت الإشراف.",
+    "en": "The instructor reviews forward, reverse, turn, exit, normal stop and emergency stop. Practise in a closed area under supervision.",
+    "actual_start": "00:00:10.120",
+    "actual_caption_end": "00:00:20.520",
+    "actual_scene_end": "00:00:21.120"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Stationary parking area with marked bays",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:11.000",
+    "visual": "assets/tm3s2-photo.jpg",
+    "ar": "حافظ على خلو مسارات التحميل والطوارئ واتبع تخصيص أماكن الوقوف. اختر مسارًا يقلل الحاجة إلى الرجوع كلما أمكن.",
+    "en": "Keep loading and emergency routes clear and follow parking allocations. Use routes that minimise reversing where possible.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:09.920",
+    "actual_scene_end": "00:00:10.520"
+  },
+  {
+    "scene": 2,
+    "description_en": "Safeguards diagram without depicting a manoeuvre",
+    "planned_start": "00:00:11.000",
+    "planned_end": "00:00:24.000",
+    "visual": "assets/tm3s2-diagram.jpg",
+    "ar": "عندما تتطلب الخطة استخدام موجّه مدرّب، يبقى خارج مسار المركبة وفي مجال رؤية السائق. إذا فقد السائق رؤية الموجّه، يتوقف فورًا.",
+    "en": "Where the plan requires a trained signaller, they stay clear of the vehicle path and in the driver's view. The driver stops immediately on losing sight of the signaller.",
+    "actual_start": "00:00:10.520",
+    "actual_caption_end": "00:00:22.160",
+    "actual_scene_end": "00:00:22.760"
+  }
+]

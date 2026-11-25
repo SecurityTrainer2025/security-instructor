@@ -1,0 +1,26 @@
+[
+  {
+    "scene": 1,
+    "description_en": "Objective report prepared in a protected office",
+    "planned_start": "00:00:00.000",
+    "planned_end": "00:00:11.000",
+    "visual": "assets/tm4s2-photo.jpg",
+    "ar": "بعد اتخاذ إجراءات السلامة والإبلاغ الأولي، سجّل الوقت والمكان وتسلسل ما شاهدته. ميّز بين ملاحظاتك المباشرة وأقوال الشهود.",
+    "en": "After taking safety measures and making the initial report, record the time, location and sequence of what you observed. Distinguish direct observations from witness accounts.",
+    "actual_start": "00:00:00.000",
+    "actual_caption_end": "00:00:11.000",
+    "actual_scene_end": "00:00:11.600"
+  },
+  {
+    "scene": 2,
+    "description_en": "Separate facts from accounts and send securely",
+    "planned_start": "00:00:11.000",
+    "planned_end": "00:00:19.000",
+    "visual": "assets/tm4s2-diagram.jpg",
+    "ar": "أرسل التقرير عبر القناة المعتمدة واحفظ البيانات الشخصية وفق إجراءات الموقع.",
+    "en": "Submit the report through the approved channel and protect personal information under site procedures.",
+    "actual_start": "00:00:11.600",
+    "actual_caption_end": "00:00:17.600",
+    "actual_scene_end": "00:00:18.200"
+  }
+]
