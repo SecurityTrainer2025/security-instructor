@@ -41,7 +41,6 @@ async function send(to,subject,text,html,attachments=[]){
 const htmlEsc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const TRAINING_MATERIAL_LINKS={
   'crowd-management-event-security':'https://docs.google.com/presentation/d/1kU0u8P39R0eNOd5PydOB6HTU20VJ1aNA/preview',
-  'traffic-management-vehicle-control':'https://docs.google.com/presentation/d/1i22gLHuR-EJ3cQbahCI9wldVqX4fiwKx/preview',
   'fire-safety-emergency-response':'https://docs.google.com/presentation/d/1LQ-1faypsf0gZHMVmDOynl618uy6d-zf/preview',
   'vehicle-search-security-inspection':'https://docs.google.com/presentation/d/1FMkl3eCPEpKHTuM9AFpKaQ0xAbcD3yz4/preview',
   'person-search-security-screening':'https://docs.google.com/presentation/d/1Rn7zs0MIZz6ebH7sA8y__RR2a-xDu5C9/preview'

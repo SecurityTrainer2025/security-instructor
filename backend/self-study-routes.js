@@ -374,6 +374,33 @@ async function nextNumber(collection,prefix,field){
   const n=last&&last[field]?parseInt(String(last[field]).slice(String(prefix).length),10):0;
   return String(prefix)+String(n+1).padStart(6,'0');
 }
+async function sendTrafficStudyEmail({to,name,token,enrollmentId}){
+  if(!canSendMailTo(to))return {sent:false,error:'Recipient is not approved for staging mail'};
+  const apiKey=process.env.BREVO_API_KEY?.trim(),from=process.env.MAIL_FROM?.trim();
+  const learner=trafficLearnerUrl();
+  if(!apiKey||!from||!learner)return {sent:false,error:'Traffic mail is not configured'};
+  const url=new URL(learner);
+  url.searchParams.set('course',TRAFFIC_SLUG);
+  url.hash=new URLSearchParams({token}).toString();
+  const lines=[
+    'Hello '+name+',','Enrollment / رقم التسجيل: '+enrollmentId,'',
+    'Open your secure link to start Traffic Self-Study. The link is single-use and expires in 15 minutes.',
+    'Start with the initial assessment inside the course, then complete 40 lessons across eight units, the unit assessments, feedback and final assessment.',
+    'You have five days from activation and up to 24 hours of active study. Return to the same browser to resume.',
+    'If you need a new link, request one using your enrollment ID and registration email.','',
+    'افتح الرابط الآمن لبدء الدراسة الذاتية لدورة المرور؛ الرابط أحادي الاستخدام وصالح لمدة 15 دقيقة.',
+    'ابدأ بالتقييم المبدئي داخل الدورة، ثم أكمل 40 درسًا في ثماني وحدات وتقييمات الوحدات والتغذية الراجعة والاختبار النهائي.',
+    'لديك خمسة أيام من التفعيل، وبحد أقصى 24 ساعة دراسة فعلية. عُد عبر المتصفح نفسه لاستئناف الدراسة.',
+    'اطلب رابطًا جديدًا برقم التسجيل والبريد المسجل عند الحاجة.'
+  ];
+  const textContent=[...lines,'',url.href].join('\n');
+  const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',
+    headers:{accept:'application/json','api-key':apiKey,'content-type':'application/json'},
+    body:JSON.stringify({sender:{name:'SECURITY INSTRUCTOR',email:from},replyTo:{email:from},to:[{email:to}],
+      subject:'SECURITY INSTRUCTOR — Traffic Self-Study / الدراسة الذاتية للمرور',textContent})});
+  if(!response.ok)throw new Error('Traffic email provider returned HTTP '+response.status);
+  return {sent:true};
+}
 async function sendAccessEmail({to,name,course,token,expiresAt}){  const apiKey=(process.env.BREVO_API_KEY||'').trim();
   const from=(process.env.MAIL_FROM||'').trim();
   if(!canSendMailTo(to))return {sent:false,error:'Recipient is not approved for staging mail'};
@@ -442,8 +469,12 @@ const registerHandler=async(req,res)=>{
     }
     const productionTraffic=slug===TRAFFIC_SLUG&&trafficDatabaseMode()==='production';
     let enrollment=await enrollments.findOne({traineeId:trainee.traineeId,courseId:course.code});
-    if(productionTraffic&&enrollment&&(enrollment.selfStudy!==true||enrollment.status==='cancelled'))
-      return res.status(409).json({message:'An earlier enrollment already exists. Contact SI support. / يوجد تسجيل سابق للدورة. تواصل مع دعم SI.'});
+    if(productionTraffic&&enrollment&&(enrollment.selfStudy!==true||enrollment.status==='cancelled')){
+      const recoverable=allowedLegacyTrafficStatuses.includes(enrollment.status);
+      return res.status(409).json({message:recoverable
+        ?'Use your existing enrollment ID to request a new access link below. / استخدم رقم تسجيلك السابق لطلب رابط دخول جديد أدناه.'
+        :'An earlier enrollment already exists. Contact SI support. / يوجد تسجيل سابق للدورة. تواصل مع دعم SI.'});
+    }
     if(!enrollment){
       const enrollmentId=await nextNumber(enrollments,'ENR-','enrollmentId');
       enrollment={enrollmentId,traineeId:trainee.traineeId,courseId:course.code,courseNameEn:course.en,courseNameAr:course.ar,registrationType:'individual',companyName:'',companyContact:'',companyEmail:'',status:'active',score:null,selfStudy:true,registeredAt:new Date(),createdAt:new Date(),updatedAt:new Date()};
@@ -467,13 +498,52 @@ const registerHandler=async(req,res)=>{
     await access.updateOne({_id:row._id},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:magicExpires,magicUsedAt:null,updatedAt:new Date()}});
     const fullName=[en[0],en[1],en[2]].join(' ');
     let mail={sent:false,error:null};
-    try{mail=await sendAccessEmail({to:email,name:fullName,course,token:magic,expiresAt:row.accessExpiresAt});}
+    try{mail=slug===TRAFFIC_SLUG
+      ?await sendTrafficStudyEmail({to:email,name:fullName,token:magic,enrollmentId:enrollment.enrollmentId})
+      :await sendAccessEmail({to:email,name:fullName,course,token:magic,expiresAt:row.accessExpiresAt});}
     catch(mailError){console.error('Self-study access email failed',mailError);mail={sent:false,error:'Access email could not be sent'};}
     const message=mail.sent?'Registration received. Access instructions have been sent to your email. / تم استلام التسجيل، وتم إرسال تعليمات الدخول إلى بريدك الإلكتروني.':'Registration received. Your enrollment is saved. If you do not receive the access email, use your Enrollment ID and email to request a new link. / تم حفظ التسجيل. إذا لم تصلك رسالة الدخول، استخدم رقم التسجيل والبريد الإلكتروني لطلب رابط جديد.';
     res.status(201).json({ok:true,message,enrollmentId:enrollment.enrollmentId,mailSent:mail.sent});
   }catch(e){console.error('Self-study registration error',e);res.status(500).json({message:'Unable to complete self-study registration'});}
 };
 
+const allowedLegacyTrafficStatuses=['pending','confirmed','active'];
+async function resendTrafficLink(enrollmentId,email){
+  if(!trafficAvailable()||!canSendMailTo(email)||!process.env.BREVO_API_KEY?.trim()||!process.env.MAIL_FROM?.trim())return;
+  const db=mongoose.connection;
+  const enrollment=await db.collection('enrollments').findOne({enrollmentId,courseId:TRAFFIC_META.code});
+  if(!enrollment||enrollment.status==='cancelled')return;
+  const trainee=await db.collection('trainees').findOne({traineeId:enrollment.traineeId,email});
+  if(!trainee)return;
+  const access=db.collection('selfstudyaccess');
+  let row=await access.findOne({enrollmentId,courseSlug:TRAFFIC_SLUG});
+  if(!enrollment.selfStudy){
+    if(!allowedLegacyTrafficStatuses.includes(enrollment.status)||
+      await db.collection('trainingcertificates').findOne({enrollmentId},{projection:{_id:1}}))return;
+    if(!row){
+      // Deterministic identity prevents duplicate recovery state on concurrent requests.
+      const key='traffic-recovery:'+enrollmentId;
+      await access.updateOne({_id:key},{$setOnInsert:{
+        accessId:'SSA-'+randomToken(8),enrollmentId,traineeId:enrollment.traineeId,
+        courseSlug:TRAFFIC_SLUG,curriculumVersion:trafficCurriculum.CURRICULUM_VERSION,
+        legacyRecovery:true,legacyEnrollmentStatus:enrollment.status,legacyEnrollmentScore:enrollment.score??null,
+        status:'active',createdAt:new Date(),progress:baseProgress()
+      }},{upsert:true});
+      row=await access.findOne({_id:key});
+    }
+  }
+  if(!row||row.status!=='active'||row.traineeId!==enrollment.traineeId||
+    (row.accessExpiresAt&&new Date(row.accessExpiresAt)<=new Date()))return;
+  const magic=randomToken(32),now=new Date();
+  const mailWindow=new Date(now.getTime()-60000);
+  const saved=await access.updateOne({_id:row._id,status:'active',$or:[
+    {trafficLinkRequestedAt:{$exists:false}},{trafficLinkRequestedAt:{$lt:mailWindow}}
+  ]},{$set:{magicTokenHash:sha(magic),magicTokenExpiresAt:new Date(now.getTime()+MAGIC_MINUTES*60000),
+    magicUsedAt:null,trafficLinkRequestedAt:now,updatedAt:now}});
+  if(!saved.matchedCount)return;
+  const name=[trainee.englishFirstName,trainee.englishMiddleName,trainee.englishLastName].filter(Boolean).join(' ');
+  await sendTrafficStudyEmail({to:email,name,token:magic,enrollmentId});
+}
 const requestAccessHandler=async(req,res)=>{
   const generic={ok:true,message:'If the details match an active self-study registration, an access email has been sent. / إذا تطابقت البيانات مع تسجيل نشط للدراسة الذاتية، فسيتم إرسال رسالة الدخول.'};
   // Staging-only diagnosis: reason codes, no email, IDs, access tokens or credentials in logs.
@@ -483,6 +553,7 @@ const requestAccessHandler=async(req,res)=>{
     const enrollmentId=clean(req.body?.enrollmentId,100);
     const requestedSlug=clean(req.body?.courseSlug,80);
     if(!validEmail(email)||!enrollmentId){diagnose('invalid_input');return res.json(generic);}
+    if(requestedSlug===TRAFFIC_SLUG){await resendTrafficLink(enrollmentId,email);return res.json(generic);}
     const enroll=await mongoose.connection.collection('enrollments').findOne({enrollmentId,selfStudy:true});
     if(!enroll){diagnose('enrollment_not_found');return res.json(generic);}
     const trainee=await mongoose.connection.collection('trainees').findOne({traineeId:enroll.traineeId,email});
@@ -491,6 +562,7 @@ const requestAccessHandler=async(req,res)=>{
       ? requestedSlug:Object.keys(COURSE_META).find(slug=>COURSE_META[slug].code===enroll.courseId);
     if(!courseSlug){diagnose('course_not_found');return res.json(generic);}
     if(!trafficPilotAvailable(courseSlug)){diagnose('course_disabled');return res.json(generic);}
+    if(courseSlug===TRAFFIC_SLUG){await resendTrafficLink(enrollmentId,email);return res.json(generic);}
     const course=COURSE_META[courseSlug];
     const row=await mongoose.connection.collection('selfstudyaccess').findOne({enrollmentId,courseSlug});
     if(!row){diagnose('access_record_not_found');return res.json(generic);}
@@ -528,6 +600,16 @@ const exchangeHandler=async(req,res)=>{
       {$set:{accessStartsAt,accessExpiresAt,activatedAt:row.activatedAt||now,magicUsedAt:now,sessionTokenHash:sha(session),sessionExpiresAt:new Date(Math.min(now.getTime()+SESSION_HOURS*3600000,accessExpiresAt.getTime())),updatedAt:now}}
     );
     if(update.modifiedCount!==1)return res.status(401).json({message:'This access link has already been used or expired. Return to the course page if you already activated it, or request a new access email.'});
+    if(row.legacyRecovery&&row.courseSlug===TRAFFIC_SLUG){
+      const enroll=mongoose.connection.collection('enrollments');
+      const match={enrollmentId:row.enrollmentId,traineeId:row.traineeId,courseId:TRAFFIC_META.code,
+        $or:[{selfStudy:true,status:{$ne:'cancelled'}},{status:{$in:allowedLegacyTrafficStatuses}}]};
+      const linked=await enroll.updateOne(match,{$set:{selfStudy:true}});
+      if(!linked.matchedCount){
+        await c.updateOne({_id:row._id,sessionTokenHash:sha(session)},{$unset:{sessionTokenHash:'',sessionExpiresAt:''}});
+        return res.status(409).json({message:'Registration could not be linked. Contact SI support.'});
+      }
+    }
     res.json({ok:true,sessionToken:session,courseSlug:row.courseSlug,accessExpiresAt});
   }catch(e){console.error('Self-study token exchange error',e);res.status(500).json({message:'Unable to start self-study session'});}
 };

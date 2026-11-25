@@ -14,6 +14,8 @@ const email = 'traffic-qa@example.test';
 const adminEmail = 'admin-qa@example.test';
 const password = randomUUID();
 const productionMode=process.argv.includes('--production-mode');
+const recoverLegacy=process.argv.includes('--recover-legacy');
+const autoCertificate=process.argv.includes('--auto-cert');
 const trafficUi=productionMode
   ?'https://securitytrainer2025.github.io/security-instructor/frontend'
   :'https://si-staging-ui.onrender.com';
@@ -145,10 +147,36 @@ async function run(){
     await enrollments.insertOne({...legacyEnrollment});
     await request(api+'/register',{body:{...profile,idNumber:'QA-PREVIOUS-TRAFFIC'},status:409,releaseCheck:true});
   }
-  const registration=await request(api+'/register',{body:profile,status:201});
-  assert.equal(registration.mailSent,true);
+  await request('/api/course-registration',{body:{courseSlug:TRAFFIC_SLUG},status:409,releaseCheck:true});
+  let registration;
+  if(recoverLegacy){
+    const traineeId='QA-TRAFFIC-RECOVERY';
+    const enrollmentId='ENR-000017';
+    const former={enrollmentId,traineeId,courseId:'CRS-TRAFFIC-001',status:'pending',score:6};
+    await trainees.insertOne({traineeId,idNumber:profile.idNumber,idType:profile.idType,email,
+      englishFirstName:'Local',englishMiddleName:'Traffic',englishLastName:'Learner'});
+    await enrollments.insertOne({...former});
+    const recovery={enrollmentId,courseSlug:TRAFFIC_SLUG,email};
+    await request(api+'/access/request',{body:{...recovery,email:'incorrect@example.test'},releaseCheck:true});
+    assert.equal(await access.countDocuments({enrollmentId}),0);
+    assert.equal(mail.length,0);
+    await request(api+'/access/request',{body:recovery,releaseCheck:true});
+    await request(api+'/access/request',{body:recovery,releaseCheck:true});
+    assert.equal(await access.countDocuments({enrollmentId}),1);
+    assert.equal(await enrollments.countDocuments({enrollmentId}),1);
+    const {_id,...stored}=await enrollments.findOne({enrollmentId});
+    assert.deepEqual(stored,former);
+    registration={enrollmentId};
+  }else{
+    registration=await request(api+'/register',{body:profile,status:201});
+    assert.equal(registration.mailSent,true);
+  }
   assert.equal(mail.length,1);
   assert.deepEqual(mail[0].to,[{email}]);
+  assert.match(mail[0].textContent,/40 lessons across eight units/);
+  assert.ok(mail[0].textContent.includes(registration.enrollmentId));
+  assert.doesNotMatch(mail[0].textContent,/docs\.google|slides\.google|thank-you/);
+
   const accessLink=mail[0].textContent.split(/\s+/).find(word=>word.startsWith('https://'));
   assert.ok(accessLink);
   const accessUrl=new URL(accessLink);
@@ -161,6 +189,13 @@ async function run(){
   const token=session.sessionToken;
   assert.ok(token);
   const enrollmentId=registration.enrollmentId;
+  if(recoverLegacy){
+    const linked=await enrollments.findOne({enrollmentId});
+    assert.equal(linked.selfStudy,true);
+    assert.equal(linked.score,6);
+    assert.equal(linked.status,'pending');
+    assert.equal((await access.findOne({enrollmentId})).legacyEnrollmentScore,6);
+  }
   const profileBefore=await trainees.findOne({idNumber:profile.idNumber});
   await request(api+'/register',{body:{...profile,email:'other@example.test'},status:409});
   assert.deepEqual(await trainees.findOne({_id:profileBefore._id}),profileBefore);
@@ -268,14 +303,19 @@ async function run(){
     const first=final.questions.find(question=>question.q===q.q);
     return first&&first.options.join('|')!==q.options.join('|');
   }));
+  if(productionMode&&autoCertificate)process.env.TRAFFIC_PRODUCTION_CERTIFICATES_ENABLED='true';
   const passed=await request(api+'/final-assessment',{token,body:{attempt:retake.attempts,answers:getAnswers(retake.questions,bank)}});
   assert.equal(passed.score,100);
   let id=passed.certificateId;
   if(productionMode){
-    assert.equal(id,null);
-    await request(api+'/certificate',{token,body:{},status:503,releaseCheck:true});
-    process.env.TRAFFIC_PRODUCTION_CERTIFICATES_ENABLED='true';
-    id=(await request(api+'/certificate',{token,body:{},releaseCheck:true})).certificateId;
+    if(autoCertificate){
+      assert.ok(id,'Passing the exam must issue the certificate without an admin action');
+    }else{
+      assert.equal(id,null);
+      await request(api+'/certificate',{token,body:{},status:503,releaseCheck:true});
+      process.env.TRAFFIC_PRODUCTION_CERTIFICATES_ENABLED='true';
+      id=(await request(api+'/certificate',{token,body:{},releaseCheck:true})).certificateId;
+    }
     const stored=await certificateStore.findOne({certificateId:id});
     assert.equal(stored.trafficSelfStudy,true);
     assert.equal(stored.verificationUrl,trafficUi+'/traffic-verify.html?id='+id);

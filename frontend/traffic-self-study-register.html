@@ -29,11 +29,23 @@ if(STAGING_READY){
 }
 function requireStaging(){if(!STAGING_READY)throw new Error('Traffic staging server is not configured; registration is disabled. / خادم تجربة دورة المرور غير مهيأ، والتسجيل معطل لحماية بيانات المتدربين.');}
 const f=document.getElementById('form'),m=document.getElementById('msg'),country=document.getElementById('phoneCountry'),otherWrap=document.getElementById('otherCodeWrap'),otherCode=document.getElementById('otherCode');country.onchange=()=>{const other=country.value==='OTHER';otherWrap.style.display=other?'block':'none';otherCode.required=other};
-f.onsubmit=async e=>{e.preventDefault();m.style.display='none';if(!f.checkValidity()){f.reportValidity();return}try{
+f.onsubmit=async e=>{e.preventDefault();if(signupButton.disabled)return;m.style.display='none';if(!f.checkValidity()){f.reportValidity();return}signupButton.disabled=true;try{
  const rawMobile=document.getElementById('mobile').value.replace(/\D/g,'');if(rawMobile.length<5)throw new Error('Please enter a valid mobile number / يرجى إدخال رقم هاتف صحيح');const country=document.getElementById('phoneCountry').value;let countryCode='';if(country==='OTHER'){countryCode=String(document.getElementById('otherCode').value||'').trim().replace(/[^0-9+]/g,'');if(!/^\+\d{1,4}$/.test(countryCode))throw new Error('Please enter a valid country code such as +44 / يرجى إدخال كود دولة صحيح مثل +44')}else countryCode='+'+country.split('|')[1];const data={courseSlug:COURSE_SLUG,arabicName:document.getElementById('ar').value,englishName:document.getElementById('en').value,idType:document.getElementById('idType').value,idNumber:document.getElementById('idNumber').value.trim(),mobile:countryCode+rawMobile,email:document.getElementById('email').value.trim()};
  requireStaging();const r=await fetch(API+'/api/self-study/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const out=await r.json();if(!r.ok)throw new Error(out.message||'Registration failed');
- m.innerHTML='<strong>Registration received / تم استلام التسجيل</strong><p>'+out.message+'</p><p><b>Enrollment ID:</b> '+out.enrollmentId+'</p><p>Check your email for the secure access link. / تحقق من بريدك الإلكتروني للحصول على رابط الدخول الآمن.</p>';m.style.display='block';f.querySelectorAll('input,select,button').forEach(x=>x.disabled=true);
-}catch(err){m.textContent=err.message;m.className='msg error';m.style.display='block'}};
+ const note=document.createElement('p');
+ note.textContent=out.message;
+ const id=document.createElement('p');
+ id.textContent='Enrollment ID / رقم التسجيل: '+out.enrollmentId;
+ const advice=document.createElement('a');
+ advice.href='#recover';
+ advice.textContent='Request a new secure link if needed / اطلب رابط دخول آمنًا جديدًا عند الحاجة';
+ m.replaceChildren(note,id,advice);
+ m.className='msg';
+ m.style.display='block';
+ f.querySelectorAll('input,select,button').forEach(x=>x.disabled=true);
+ document.getElementById('recoverEnrollment').value=out.enrollmentId;
+ document.getElementById('recoverEmail').value=data.email;
+}catch(err){signupButton.disabled=false;m.textContent=err.message;m.className='msg error';m.style.display='block'}};
 const recoverBtn=document.getElementById('recoverBtn'),recoverMsg=document.getElementById('recoverMsg');
 recoverBtn.onclick=async()=>{
   recoverMsg.style.display='none';recoverMsg.className='msg';
