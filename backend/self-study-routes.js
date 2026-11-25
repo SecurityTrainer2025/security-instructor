@@ -15,6 +15,8 @@ const SESSION_HOURS=Number(process.env.SELF_STUDY_SESSION_HOURS||120);
 const FIRE_SLUG='fire-safety-emergency-response';
 // Isolated Traffic staging integration: never enables the new course on production by itself.
 const {TRAFFIC_SLUG,TRAFFIC_META,TRAFFIC_SCREENS,TRAFFIC_FINAL_ASSESSMENT}=require('./self-study-traffic-config.js');
+const trafficCurriculum=require('./traffic-course-curriculum.js');
+const expandedTraffic=row=>row?.courseSlug===TRAFFIC_SLUG&&row.curriculumVersion===trafficCurriculum.CURRICULUM_VERSION;
 const baseProgress=()=>({
   completedScreens:[],
   screenScores:{},
@@ -66,7 +68,7 @@ const FINAL_FIRE_ASSESSMENT=[
 
 
 if(FINAL_FIRE_ASSESSMENT.length!==30||FINAL_FIRE_ASSESSMENT.some(x=>!x.q||!Array.isArray(x.a)||x.a.length!==4||new Set(x.a).size!==4||x.correct<0||x.correct>3))throw new Error('Validated Fire Safety final assessment must contain 30 questions with four unique options each');
-const finalQuestionOrder=(q,accessId)=>shuffleOrder(String(q.q)+'|'+String(accessId));
+const finalQuestionOrder=(q,accessId,attempt)=>shuffleOrder(String(q.q)+'|'+String(accessId)+(attempt===undefined?'':'|final|'+attempt));
 
 const FIRE_SCREENS={
 m1:[
@@ -257,15 +259,22 @@ m4:[
 {id:'m5s15',slide:70,titleEn:'Thank You',titleAr:'شكراً لك',bodyEn:'Thank you for completing the SECURITY INSTRUCTOR Fire Safety self-study learning content. Continue to the final assessment when the required learning screens are mastered.',bodyAr:'شكراً لإكمال محتوى الدراسة الذاتية لدورة السلامة من الحرائق من SECURITY INSTRUCTOR. انتقل إلى الاختبار النهائي عند إتقان شاشات التعلم المطلوبة.',assessmentRequired:false,videoUrl:''}
 ]};
 const FIRE_SCREEN_LIST=Object.values(FIRE_SCREENS).flat();
-const screensFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_SCREENS:(slug===FIRE_SLUG?FIRE_SCREEN_LIST:[]);
+const screensFor=(slug,row)=>slug===TRAFFIC_SLUG?(expandedTraffic(row)||!row?trafficCurriculum.screens:TRAFFIC_SCREENS):(slug===FIRE_SLUG?FIRE_SCREEN_LIST:[]);
 const finalFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_FINAL_ASSESSMENT:(slug===FIRE_SLUG?FINAL_FIRE_ASSESSMENT:[]);
+const validAnswerIndexes=answers=>answers.every(answer=>Number.isInteger(answer)&&answer>=0&&answer<4);
 // Only the new Traffic course randomizes final question order, deterministically
 // for each learner + attempt. Do not alter the existing Fire Safety question order.
-const orderedFinalFor=(slug,accessId,attemptIndex)=>{
+const orderedFinalFor=(slug,accessId,attemptIndex,row)=>{
+  const sort=(questions)=>questions.map((q,i)=>({q,i,key:sha(String(accessId)+'|traffic-final|'+String(attemptIndex)+'|'+q.q)}))
+    .sort((a,b)=>a.key.localeCompare(b.key)||a.i-b.i).map(x=>x.q);
+  if(expandedTraffic(row)){
+    const pools=trafficCurriculum.assessmentPools.map(sort);
+    const coverage=pools.flatMap(pool=>pool.slice(0,3));
+    return sort([...coverage,...sort(pools.flatMap(pool=>pool.slice(3))).slice(0,6)]);
+  }
   const questions=finalFor(slug);
   if(slug!==TRAFFIC_SLUG)return questions;
-  return questions.map((q,i)=>({q,i,key:sha(String(accessId)+'|traffic-final|'+String(attemptIndex)+'|'+q.q)}))
-    .sort((a,b)=>a.key.localeCompare(b.key)||a.i-b.i).map(x=>x.q);
+  return sort(questions);
 };
 // Independent ten-question satisfaction survey for the Traffic pilot only.
 const TRAFFIC_FEEDBACK_QUESTIONS=[
@@ -280,14 +289,14 @@ const TRAFFIC_FEEDBACK_QUESTIONS=[
  ['The website was easy to use.','كانت المنصة سهلة الاستخدام.'],
  ['I would recommend this training to a colleague.','أوصي زميلًا بهذه الدورة التدريبية.']
 ].map(([en,ar],i)=>({id:i+1,en,ar}));
-const trafficAssessments=TRAFFIC_SCREENS.filter(screen=>screen.assessmentRequired!==false);
-const trafficScores=scores=>trafficAssessments.map(screen=>scores?.[screen.id]).filter(Boolean);
+const assessedFor=row=>screensFor(row.courseSlug,row).filter(screen=>screen.assessmentRequired!==false&&screen.questions?.length>0);
+const trafficScores=(scores,row)=>assessedFor(row).map(screen=>scores?.[screen.id]).filter(Boolean);
 const feedbackRequired=slug=>slug===TRAFFIC_SLUG;
 const trafficFeedbackHandler=async(req,res)=>{
  try{
   if(req.selfStudy.courseSlug!==TRAFFIC_SLUG)return res.status(404).json({message:'Traffic feedback only'});
   const p=req.selfStudy.progress||baseProgress();
-  const completed=trafficAssessments.every(q=>Number((p.screenScores||{})[q.id]?.score||0)>=80);
+  const completed=assessedFor(req.selfStudy).every(q=>Number((p.screenScores||{})[q.id]?.score||0)>=80);
   if(!completed)return res.status(403).json({message:'Complete all Traffic learning screens first.'});
   if(req.method==='GET')return res.json({ok:true,questions:TRAFFIC_FEEDBACK_QUESTIONS,submitted:!!p.feedbackSubmittedAt,scale:'1=Very dissatisfied, 5=Very satisfied'});
   if(p.feedbackSubmittedAt)return res.status(409).json({message:'Feedback was already submitted.'});
@@ -319,11 +328,11 @@ const trafficPilotEnabled=()=>{
 const trafficPilotAvailable=slug=>slug!==TRAFFIC_SLUG||trafficPilotEnabled();
 // Keep Traffic certificates disabled until separate staging certificate + QR verification passes.
 const trafficCertificateEnabled=()=>trafficPilotEnabled()&&process.env.TRAFFIC_CERTIFICATES_ENABLED==='true';
-const screenFor=(slug,id)=>screensFor(slug).find(x=>x.id===id)||null;
+const screenFor=(row,id)=>screensFor(row.courseSlug,row).find(x=>x.id===id)||null;
 const moduleFor=id=>String(id).split('s')[0];
 
 const COURSE_META={
-  [TRAFFIC_SLUG]:TRAFFIC_META,
+  [TRAFFIC_SLUG]:trafficCurriculum.meta,
   [FIRE_SLUG]:{
     code:'CRS-FIRE-001',
     en:'FIRE SAFETY & EMERGENCY RESPONSE',
@@ -422,7 +431,10 @@ const registerHandler=async(req,res)=>{
     const db=mongoose.connection;
     const trainees=db.collection('trainees'), enrollments=db.collection('enrollments'), access=db.collection('selfstudyaccess');
     let trainee=await trainees.findOne({idNumber});
-    if(trainee){
+    if(trainee&&slug===TRAFFIC_SLUG){
+      if(String(trainee.email||'').trim().toLowerCase()!==email||trainee.idType!==idType)
+        return res.status(409).json({message:'Registration could not be matched. Contact SI support. / تعذرت مطابقة التسجيل. تواصل مع دعم SI.'});
+    }else if(trainee){
       await trainees.updateOne({_id:trainee._id},{$set:{arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,mobile,email,updatedAt:new Date()}});
       trainee=await trainees.findOne({_id:trainee._id});
     }else{
@@ -442,7 +454,7 @@ const registerHandler=async(req,res)=>{
     const accessNow=new Date();
     let row=await access.findOne({enrollmentId:enrollment.enrollmentId,courseSlug:slug});
     if(!row){
-      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,status:'active',accessStartsAt:null,accessExpiresAt:null,activeStudySeconds:0,activeStudyLastPingAt:null,progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
+      row={accessId:'SSA-'+randomToken(8),enrollmentId:enrollment.enrollmentId,traineeId:trainee.traineeId,courseSlug:slug,...(slug===TRAFFIC_SLUG?{curriculumVersion:trafficCurriculum.CURRICULUM_VERSION}:{}),status:'active',accessStartsAt:null,accessExpiresAt:null,activeStudySeconds:0,activeStudyLastPingAt:null,progress:baseProgress(),createdAt:accessNow,updatedAt:accessNow};
       await access.insertOne(row);
     }else{
       row=await normalizeAccessExpiry(row,accessNow);
@@ -520,23 +532,26 @@ const exchangeHandler=async(req,res)=>{
 };
 
 const meHandler=async(req,res)=>{
-  const row=req.selfStudy,course=COURSE_META[row.courseSlug];
+  const row=req.selfStudy;
+  const course=row.courseSlug===TRAFFIC_SLUG&&!expandedTraffic(row)?TRAFFIC_META:COURSE_META[row.courseSlug];
   const p=row.progress||baseProgress();
-  const currentScores=row.courseSlug===TRAFFIC_SLUG?trafficScores(p.screenScores):null;
+  const currentScores=row.courseSlug===TRAFFIC_SLUG?trafficScores(p.screenScores,row):null;
   const q=currentScores?currentScores.reduce((sum,item)=>sum+Number(item.questions||0),0):Number(p.cumulativeQuestions||0);
   const correct=currentScores?currentScores.reduce((sum,item)=>sum+Number(item.correct||0),0):Number(p.cumulativeCorrect||0);
   const cumulative=q?Math.round(correct/q*100):0;
-  const assessed=screensFor(row.courseSlug).filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
+  const assessed=assessedFor(row);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,enrollmentId:row.enrollmentId,course,accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,maxFinalAttempts(row.courseSlug)-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,feedbackSubmitted:!!p.feedbackSubmittedAt,certificateEnabled:row.courseSlug===TRAFFIC_SLUG?trafficCertificateEnabled():true,certificateId:p.certificateId||null});
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,...(expandedTraffic(row)?{initialAssessment:row.initialAssessment||null}:{}),...(row.courseSlug===TRAFFIC_SLUG?{lessons:screensFor(row.courseSlug,row).map(({id,assessmentRequired})=>({id,moduleId:moduleFor(id),assessmentRequired:assessmentRequired!==false}))}:{}),accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,maxFinalAttempts(row.courseSlug)-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,feedbackSubmitted:!!p.feedbackSubmittedAt,certificateEnabled:row.courseSlug===TRAFFIC_SLUG?trafficCertificateEnabled():true,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
   try{
-    const s=screenFor(req.selfStudy.courseSlug,clean(req.params.screenId,100));
+    if(expandedTraffic(req.selfStudy)&&!req.selfStudy.initialAssessment)
+      return res.status(403).json({message:'Complete the initial assessment first / أكمل التقييم المبدئي أولًا'});
+    const s=screenFor(req.selfStudy,clean(req.params.screenId,100));
     if(!s)return res.status(404).json({message:'Learning screen not found'});
     const p=req.selfStudy.progress||baseProgress();
-    const courseScreens=screensFor(req.selfStudy.courseSlug);
+    const courseScreens=screensFor(req.selfStudy.courseSlug,req.selfStudy);
     const pos=courseScreens.findIndex(x=>x.id===s.id);
     if(pos>0){
       const previousAssessed=[...courseScreens].slice(0,pos).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
@@ -545,17 +560,19 @@ const screenHandler=async(req,res)=>{
         if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
       }
     }
-    res.json({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
+    res.json({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',...(expandedTraffic(req.selfStudy)?{approvedVideo:!!s.approvedVideo,imageUrl:s.imageUrl||'',diagram:s.diagram}:{}),assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
   }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
 };
 const screenAssessmentHandler=async(req,res)=>{
   try{
-    const s=screenFor(req.selfStudy.courseSlug,clean(req.params.screenId,100));
+    if(expandedTraffic(req.selfStudy)&&!req.selfStudy.initialAssessment)
+      return res.status(403).json({message:'Complete the initial assessment first / أكمل التقييم المبدئي أولًا'});
+    const s=screenFor(req.selfStudy,clean(req.params.screenId,100));
     if(!s)return res.status(404).json({message:'Learning screen not found'});
     if(req.selfStudy.courseSlug===TRAFFIC_SLUG&&s.assessmentRequired===false)
       return res.status(400).json({message:'This Traffic lesson has no assessment / لا يوجد تقييم لهذا الدرس'});
     const p0=req.selfStudy.progress||baseProgress();
-    const courseScreens=screensFor(req.selfStudy.courseSlug);
+    const courseScreens=screensFor(req.selfStudy.courseSlug,req.selfStudy);
     const pos0=courseScreens.findIndex(x=>x.id===s.id);
     if(pos0>0){
       const previousAssessed=[...courseScreens].slice(0,pos0).reverse().find(x=>x.assessmentRequired!==false&&Array.isArray(x.questions)&&x.questions.length>0);
@@ -565,21 +582,25 @@ const screenAssessmentHandler=async(req,res)=>{
       }
     }
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
-    if(answers.length!==s.questions.length)return res.status(400).json({message:'Please answer all questions'});
+    if(answers.length!==s.questions.length||(expandedTraffic(req.selfStudy)&&!validAnswerIndexes(answers)))return res.status(400).json({message:'Please answer all questions'});
     const correct=s.questions.reduce((n,q,i)=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/s.questions.length*100);
-    const p=req.selfStudy.progress||baseProgress();
+    const p={...(req.selfStudy.progress||baseProgress())};
     const scores={...(p.screenScores||{})};
     const modules={...(p.modules||{})};
     const previous=scores[s.id];
-    scores[s.id]={score,questions:s.questions.length,correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
+    const retainBest=expandedTraffic(req.selfStudy)&&Number(previous?.score)>score;
+    scores[s.id]={score:retainBest?previous.score:score,questions:s.questions.length,correct:retainBest?previous.correct:correct,attempts:Number(previous?.attempts||0)+1,updatedAt:new Date()};
     if(score>=80&&!p.completedScreens.includes(s.id))p.completedScreens=[...p.completedScreens,s.id];
     modules[moduleFor(s.id)]=Math.max(Number(modules[moduleFor(s.id)]||0),score);
-    const all=req.selfStudy.courseSlug===TRAFFIC_SLUG?trafficScores(scores):Object.values(scores);
+    const all=req.selfStudy.courseSlug===TRAFFIC_SLUG?trafficScores(scores,req.selfStudy):Object.values(scores);
     p.cumulativeQuestions=all.reduce((n,x)=>n+Number(x.questions||0),0);
     p.cumulativeCorrect=all.reduce((n,x)=>n+Number(x.correct||0),0);
     p.screenScores=scores;p.modules=modules;
-    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:p,updatedAt:new Date()}});
+    const updateFilter={_id:req.selfStudy._id};
+    if(expandedTraffic(req.selfStudy))updateFilter.progress=req.selfStudy.progress||{$exists:false};
+    const write=await mongoose.connection.collection('selfstudyaccess').updateOne(updateFilter,{$set:{progress:p,updatedAt:new Date()}});
+    if(!write.matchedCount&&expandedTraffic(req.selfStudy))return res.status(409).json({message:'Progress changed. Refresh and retry. / تغيّر التقدم. حدّث الصفحة وأعد المحاولة.'});
     const cumulative=p.cumulativeQuestions?Math.round(p.cumulativeCorrect/p.cumulativeQuestions*100):0;
     res.json({ok:true,score,passed:score>=80,correct,total:s.questions.length,cumulativeScore:cumulative,attempts:scores[s.id].attempts});
   }catch(e){console.error('Self-study screen assessment error',e);res.status(500).json({message:'Unable to save screen assessment'});}
@@ -591,7 +612,7 @@ const progressHandler=async(req,res)=>{
 const finalHandler=async(req,res)=>{
   try{
     const p=req.selfStudy.progress||baseProgress();
-    const assessed=screensFor(req.selfStudy.courseSlug).filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
+    const assessed=screensFor(req.selfStudy.courseSlug,req.selfStudy).filter(s=>s.assessmentRequired!==false&&Array.isArray(s.questions)&&s.questions.length>0);
     const mastered=assessed.length>0&&assessed.every(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
     if(!mastered)return res.status(403).json({message:'Complete all required learning screens with at least 80% before taking the final assessment.'});
     if(feedbackRequired(req.selfStudy.courseSlug)&&!p.feedbackSubmittedAt)return res.status(403).json({message:'Complete the 10-question Traffic feedback before the final exam. / أكمل تقييم الدورة قبل الاختبار النهائي.'});
@@ -599,14 +620,22 @@ const finalHandler=async(req,res)=>{
     if(p.finalPassed)return res.status(409).json({message:'The final assessment has already been passed. / تم اجتياز الاختبار النهائي بالفعل.'});
     if(attempts>=maxFinalAttempts(req.selfStudy.courseSlug))return res.status(403).json({message:'No final-assessment attempts remain. / لا توجد محاولات متبقية للاختبار النهائي.'});
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
-    const finalBank=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts);
-    if(answers.length!==finalBank.length)return res.status(400).json({message:'Please answer all 30 questions.'});
-    const correct=finalBank.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
+    if(expandedTraffic(req.selfStudy)&&req.body?.attempt!==attempts)
+      return res.status(409).json({message:'Reload the current exam before submitting. / أعد تحميل الاختبار الحالي قبل الإرسال.'});
+    const finalBank=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts,req.selfStudy);
+    if(answers.length!==finalBank.length||(expandedTraffic(req.selfStudy)&&!validAnswerIndexes(answers)))return res.status(400).json({message:'Please answer all 30 questions.'});
+    const correct=finalBank.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId,expandedTraffic(req.selfStudy)?attempts:undefined);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/finalBank.length*100);
     const finalAttempts=attempts+1;    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
     const finalPassed=!!p.finalPassed||score>=70;
     const finalScores=[...(p.finalScores||[]),{score,correct,total:finalBank.length,attempt:finalAttempts,passed:score>=70,updatedAt:new Date()}];
     const updated={...p,finalAttempts,finalBestScore,finalPassed,finalScores};
+    const versioned=expandedTraffic(req.selfStudy);
+    const access=mongoose.connection.collection('selfstudyaccess');
+    if(versioned){
+      const claim=await access.updateOne({_id:req.selfStudy._id,progress:p},{$set:{progress:updated,updatedAt:new Date()}});
+      if(!claim.matchedCount)return res.status(409).json({message:'Progress changed. Refresh and retry. / تغيّر التقدم. حدّث الصفحة وأعد المحاولة.'});
+    }
     let certificateId=null;
     if(finalPassed){
       const enrollments=mongoose.connection.collection('enrollments');
@@ -624,7 +653,8 @@ const finalHandler=async(req,res)=>{
     // Traffic-only: retain the issued certificate identifier in the self-study progress.
     // Leave legacy Fire Safety certificate persistence exactly as before.
     if(req.selfStudy.courseSlug===TRAFFIC_SLUG&&certificateId)updated.certificateId=certificateId;
-    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress:updated,updatedAt:new Date()}});
+    if(!versioned)await access.updateOne({_id:req.selfStudy._id},{$set:{progress:updated,updatedAt:new Date()}});
+    if(versioned&&certificateId)await access.updateOne({_id:req.selfStudy._id},{$set:{'progress.certificateId':certificateId,updatedAt:new Date()}});
     res.json({ok:true,score,correct,total:finalBank.length,passed:score>=70||finalPassed,attempt:finalAttempts,attemptsRemaining:Math.max(0,maxFinalAttempts(req.selfStudy.courseSlug)-finalAttempts),bestScore:finalBestScore,certificateEligible:finalPassed,certificateId});
   }catch(e){console.error('Self-study final assessment error',e);res.status(500).json({message:'Unable to save final assessment'});}
 };
@@ -634,14 +664,18 @@ const certificateRetryHandler=async(req,res)=>{
     const p=req.selfStudy.progress||baseProgress();
     if(!p.finalPassed)return res.status(403).json({message:'Final assessment must be passed before certificate issuance.'});
     const enrollments=mongoose.connection.collection('enrollments');
-    const enrollment=await enrollments.findOne({enrollmentId:req.selfStudy.enrollmentId,selfStudy:true});
+    const enrollmentFilter={enrollmentId:req.selfStudy.enrollmentId,selfStudy:true};
+    if(expandedTraffic(req.selfStudy)){
+      await enrollments.updateOne({...enrollmentFilter,courseId:TRAFFIC_META.code,status:{$ne:'completed'}},
+        {$set:{status:'completed',score:p.finalBestScore,completedAt:new Date(),updatedAt:new Date()}});
+    }
+    const enrollment=await enrollments.findOne(enrollmentFilter);
     if(!enrollment||enrollment.status!=='completed')return res.status(409).json({message:'Completed self-study enrollment not found.'});
     if(req.selfStudy.courseSlug===TRAFFIC_SLUG&&!trafficCertificateEnabled())return res.status(503).json({message:'Traffic certificate verification is pending safety approval. / شهادة المرور قيد الاعتماد.'});
     const {issueForEnrollment}=require('./training-certificate-routes.js');
     const cert=await issueForEnrollment(req.selfStudy.enrollmentId);
     if(!cert)return res.status(503).json({message:'Certificate is not available yet. Please try again later.'});
-    const progress={...p,certificateId:cert.certificateId};
-    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{progress,updatedAt:new Date()}});
+    await mongoose.connection.collection('selfstudyaccess').updateOne({_id:req.selfStudy._id},{$set:{'progress.certificateId':cert.certificateId,updatedAt:new Date()}});
     res.json({ok:true,certificateId:cert.certificateId,emailStatus:cert.emailStatus||'pending'});
   }catch(e){console.error('Self-study certificate retry error',e);res.status(503).json({message:'Certificate issuance is temporarily unavailable. Please try again later.'});}
 };
@@ -651,8 +685,8 @@ const finalQuestionsHandler=async(req,res)=>{
     const p=req.selfStudy.progress||baseProgress();
     if(feedbackRequired(req.selfStudy.courseSlug)&&!p.feedbackSubmittedAt)return res.status(403).json({message:'Complete the 10-question Traffic feedback before the final exam. / أكمل تقييم الدورة قبل الاختبار النهائي.'});
     const attempts=Number(p.finalAttempts||0);
-    const questions=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts).map((q,i)=>{
-      const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);
+    const questions=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts,req.selfStudy).map((q,i)=>{
+      const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId,expandedTraffic(req.selfStudy)?attempts:undefined);
       return {number:i+1,q:q.q,options:order.map(idx=>q.a[idx])};
     });
     res.json({ok:true,total:questions.length,passScore:70,attempts,attemptsRemaining:Math.max(0,maxFinalAttempts(req.selfStudy.courseSlug)-attempts),passed:!!p.finalPassed,questions});
@@ -671,7 +705,69 @@ const studyHeartbeatHandler=async(req,res)=>{
     res.json({ok:true,activeStudySeconds:used,activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,accessExpiresAt:row.accessExpiresAt});
   }catch(e){console.error('Self-study heartbeat error',e);res.status(500).json({message:'Unable to update active study time'});}
 };
-function register(app){
+const initialQuestionSet=row=>{
+  const key=row.accessId||row.enrollmentId;
+  const rank=questions=>questions.map(q=>({q,key:sha(key+'|initial|'+q.q)}))
+    .sort((a,b)=>a.key.localeCompare(b.key)).map(x=>x.q);
+  const pools=trafficCurriculum.assessmentPools.map(rank);
+  return rank([...pools.map(pool=>pool[0]),...rank(pools.flatMap(pool=>pool.slice(1))).slice(0,2)]);
+};
+const trafficInitialHandler=async(req,res)=>{
+  try{
+    const row=req.selfStudy;
+    if(!expandedTraffic(row))return res.status(404).json({message:'Initial assessment is unavailable for this enrollment'});
+    if(row.initialAssessment)return res.json({result:row.initialAssessment});
+    const questions=initialQuestionSet(row);
+    const answerOrder=q=>shuffleOrder((row.accessId||row.enrollmentId)+'|initial-option|'+q.q);
+    if(req.method==='GET')return res.json({questions:questions.map(q=>({
+      q:q.q,options:answerOrder(q).map(i=>q.a[i])
+    }))});
+    const answers=req.body?.answers;
+    if(!Array.isArray(answers)||answers.length!==questions.length||!validAnswerIndexes(answers))
+      return res.status(400).json({message:'Answer all diagnostic questions / أجب عن جميع أسئلة التقييم المبدئي'});
+    const correct=questions.filter((q,i)=>answers[i]===answerOrder(q).indexOf(q.correct)).length;
+    const result={correct,total:questions.length,score:Math.round(correct/questions.length*100),submittedAt:new Date()};
+    const access=mongoose.connection.collection('selfstudyaccess');
+    const write=await access.updateOne({_id:row._id,initialAssessment:{$exists:false}},
+      {$set:{initialAssessment:result,updatedAt:new Date()}});
+    if(!write.matchedCount){
+      const current=await access.findOne({_id:row._id},{projection:{initialAssessment:1}});
+      return res.json({result:current?.initialAssessment});
+    }
+    return res.json({result});
+  }catch(error){
+    console.error('Traffic initial assessment error',error);
+    return res.status(500).json({message:'Unable to process Traffic initial assessment'});
+  }
+};
+
+const trafficAdminResult=async(req,res)=>{
+  try{
+    if(!trafficPilotEnabled())return res.status(404).json({message:'Traffic staging results are unavailable'});
+    const enrollmentId=clean(req.params.enrollmentId,100);
+    const db=mongoose.connection;
+    const row=await db.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:TRAFFIC_SLUG},
+      {projection:{curriculumVersion:1,initialAssessment:1,progress:1}});
+    if(!row)return res.status(404).json({message:'Traffic self-study enrollment not found'});
+    const progress=row.progress||baseProgress();
+    const cohort={...row,courseSlug:TRAFFIC_SLUG};
+    const lessons=assessedFor(cohort).map(({id,titleEn,titleAr})=>({id,titleEn,titleAr,
+      score:progress.screenScores?.[id]?.score??null,attempts:progress.screenScores?.[id]?.attempts||0}));
+    const [feedback,certificate]=await Promise.all([
+      db.collection('selfstudytrafficfeedback').findOne({enrollmentId,courseSlug:TRAFFIC_SLUG},
+        {projection:{_id:0,answers:1,submittedAt:1}}),
+      db.collection('trainingcertificates').findOne({enrollmentId,courseId:TRAFFIC_META.code},
+        {projection:{_id:0,certificateId:1,verificationStatus:1,emailStatus:1}})
+    ]);
+    res.set('Cache-Control','no-store').json({enrollmentId,initial:row.initialAssessment||null,
+      lessons,feedback,finalScores:progress.finalScores||[],finalPassed:!!progress.finalPassed,certificate});
+  }catch(error){
+    console.error('Traffic admin results error',error);
+    res.status(500).json({message:'Unable to load Traffic self-study results'});
+  }
+};
+
+function register(app,requireAdmin){
   app.post('/api/self-study/heartbeat',sessionHandler,studyHeartbeatHandler);
   app.get('/api/self-study/courses/:slug',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c||!trafficPilotAvailable(slug))return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:screensFor(clean(req.params.slug,80)).length});});
   app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c||!trafficPilotAvailable(slug))return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:screensFor(slug).map((s,i)=>({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
@@ -681,6 +777,9 @@ function register(app){
   app.post('/api/self-study/access/request',requestAccessHandler);
   app.post('/api/self-study/session/exchange',exchangeHandler);
   app.get('/api/self-study/me',sessionHandler,meHandler);
+  app.get('/api/self-study/traffic-initial-assessment',sessionHandler,trafficInitialHandler);
+  app.post('/api/self-study/traffic-initial-assessment',sessionHandler,trafficInitialHandler);
+  app.get('/api/admin/traffic-self-study/:enrollmentId',requireAdmin,trafficAdminResult);
   app.post('/api/self-study/progress',sessionHandler,progressHandler);
   app.get('/api/self-study/traffic-feedback',sessionHandler,trafficFeedbackHandler);
   app.post('/api/self-study/traffic-feedback',sessionHandler,trafficFeedbackHandler);

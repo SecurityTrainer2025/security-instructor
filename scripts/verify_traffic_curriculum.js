@@ -1,0 +1,244 @@
+#!/usr/bin/env node
+// Integration test. Use only the disposable local Mongo instance on port 27019.
+const assert = require('node:assert/strict');
+const {createHash, randomUUID} = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const {setTimeout: delay} = require('node:timers/promises');
+const backend = path.resolve(__dirname, '../backend');
+const frontend = path.resolve(__dirname, '../frontend');
+const mongoose = require(path.join(backend, 'node_modules/mongoose'));
+const {TRAFFIC_SLUG, TRAFFIC_SCREENS} = require(path.join(backend, 'self-study-traffic-config'));
+const curriculum = require(path.join(backend, 'traffic-course-curriculum'));
+const email = 'traffic-qa@example.test';
+const adminEmail = 'admin-qa@example.test';
+const password = randomUUID();
+const database = 'si_traffic_staging_qa_' + randomUUID().replaceAll('-', '');
+const root = 'http://127.0.0.1:5000';
+const api = '/api/self-study';
+Object.assign(process.env,{
+  PORT:'5000', FRONTEND_URL:'http://127.0.0.1:8000',
+  MONGODB_URI:'mongodb://127.0.0.1:27019/'+database,
+  SI_DEPLOYMENT_ENV:'staging', SI_TRAFFIC_STAGING_DB_NAME:database,
+  TRAFFIC_PILOT_ENABLED:'true', TRAFFIC_CERTIFICATES_ENABLED:'true',
+  TRAFFIC_STAGING_FRONTEND_URL:'https://si-staging-ui.onrender.com/traffic-self-study.html',
+  SI_QA_TEST_EMAIL:email, BREVO_API_KEY:'qa-stub', MAIL_FROM:'si@example.test',
+  ADMIN_EMAIL:adminEmail, ADMIN_PASSWORD:password, ADMIN_SESSION_SECRET:randomUUID()
+});
+
+const mail=[];
+const nativeFetch=global.fetch;
+global.fetch=async(url,options)=>{
+  if(url==='https://api.brevo.com/v3/smtp/email'){
+    mail.push(JSON.parse(options.body));
+    return new Response('{}',{status:201});
+  }
+  assert.equal(new URL(url).origin,root,'Unexpected outbound request in QA');
+  return nativeFetch(url,options);
+};
+
+async function request(route,{body,token,status=200}={}){
+  const r=await fetch(root+route,{
+    method:body===undefined?'GET':'POST',
+    headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
+    body:JSON.stringify(body)
+  });
+  const data=await r.text();
+  assert.equal(r.status,status,route+': '+data.slice(0,350));
+  return JSON.parse(data);
+}
+
+const slugFire='fire-safety-emergency-response';
+const hash=value=>createHash('sha256').update(value).digest('hex');
+const bank=curriculum.assessmentPools.flat();
+const getAnswers=(items,questions)=>items.map(item=>{
+  const expected=questions.find(q=>q.q===item.q);
+  assert.ok(expected,item.q);
+  const selected=item.options.indexOf(expected.a[expected.correct]);
+  assert.ok(selected>=0,item.q);
+  return selected;
+});
+
+async function run(){
+  for(const name of [
+    'admin-runtime','site-content-runtime','course-management-routes','document-registry-routes',
+    'certificate-admin-list-routes','training-certificate-routes','enrollment-management-routes',
+    'batch-management-routes','operations-routes','reports-routes','start'
+  ])require(path.join(backend,name));
+  for(let i=0;mongoose.connection.readyState!==1&&i<40;i++)await delay(250);
+  assert.equal(mongoose.connection.db?.databaseName,database);
+  const db=mongoose.connection;
+  const access=db.collection('selfstudyaccess');
+  const enrollments=db.collection('enrollments');
+  const trainees=db.collection('trainees');
+  const certificateStore=db.collection('trainingcertificates');
+  const protection=['CRS-FIRE-001','CRS-CROWD-001','CRS-VEHICLE-001','CRS-PERSON-001'];
+  for(const [i,courseId] of protection.entries()){
+    await enrollments.insertOne({enrollmentId:'QA-OTHER-'+i,courseId,status:'completed'});
+    await certificateStore.insertOne({certificateId:'SI-CERT-QA-OTHER-'+i,enrollmentId:'QA-OTHER-'+i,
+      traineeId:'QA-OTHER-TRAINEE-'+i,courseId,verificationStatus:'valid'});
+  }
+  const otherCourses=await enrollments.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray();
+  const otherCertificates=await certificateStore.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray();
+  const oldSession=randomUUID();
+  const oldProgress={
+    screenScores:{tm1s2:{score:100,questions:5,correct:5}},completedScreens:['tm1s2'],
+    finalAttempts:1,finalBestScore:50
+  };
+  await access.insertOne({
+    enrollmentId:'QA-LEGACY-TRAFFIC',courseSlug:TRAFFIC_SLUG,accessId:'QA-LEGACY',
+    accessStartsAt:new Date(),accessExpiresAt:new Date(Date.now()+120*3600000),
+    sessionTokenHash:hash(oldSession),sessionExpiresAt:new Date(Date.now()+3600000),
+    status:'active',progress:oldProgress
+  });
+  const old=await request(api+'/me',{token:oldSession});
+  assert.equal(old.lessons.length,10);
+  assert.equal(old.course.modules.length,5);
+  assert.deepEqual(old.progress,oldProgress);
+  await request(api+'/screens/tm1s3',{token:oldSession,status:404});
+
+  const catalog=await request(api+'/courses/'+TRAFFIC_SLUG);
+  assert.equal(catalog.screenCount,40);
+  assert.equal(catalog.modules.length,8);
+  assert.ok(catalog.introduction.en&&catalog.introduction.ar);
+  const fire=await request(api+'/courses/'+slugFire);
+  assert.equal(fire.code,'CRS-FIRE-001');
+
+  const profile={courseSlug:TRAFFIC_SLUG,arabicName:'متدرب تجريبي محلي',
+    englishName:'Local Traffic Learner',email,idType:'passport',idNumber:'QA-TRAFFIC-001',mobile:'0000000000'};
+  const registration=await request(api+'/register',{body:profile,status:201});
+  assert.equal(registration.mailSent,true);
+  assert.equal(mail.length,1);
+  assert.deepEqual(mail[0].to,[{email}]);
+  const match=mail[0].textContent.match(/https:\/\/si-staging-ui\.onrender\.com\/traffic-self-study\.html\?course=[^#]+#token=([^\s]+)/);
+  assert.ok(match);
+  const session=await request(api+'/session/exchange',{body:{token:match[1]}});
+  await request(api+'/session/exchange',{body:{token:match[1]},status:401});
+  const token=session.sessionToken;
+  assert.ok(token);
+  const enrollmentId=registration.enrollmentId;
+  const profileBefore=await trainees.findOne({idNumber:profile.idNumber});
+  await request(api+'/register',{body:{...profile,email:'other@example.test'},status:409});
+  assert.deepEqual(await trainees.findOne({_id:profileBefore._id}),profileBefore);
+  assert.equal(mail.length,1);
+
+  const me=await request(api+'/me',{token});
+  assert.equal(me.lessons.length,40);
+  assert.equal(me.assessedScreens,35);
+  assert.equal((await access.findOne({enrollmentId})).curriculumVersion,curriculum.CURRICULUM_VERSION);
+  await request(api+'/screens/tm8s5',{token,status:403});
+  await request(api+'/final-assessment',{token,status:403});
+  await request(api+'/traffic-feedback',{token,status:403});
+  await request(api+'/certificate',{token,body:{},status:403});
+
+  const diagnosticRoute=api+'/traffic-initial-assessment';
+  await request(api+'/screens/tm1s1',{token,status:403});
+  await request(diagnosticRoute,{token:oldSession,status:404});
+  const diagnostic=await request(diagnosticRoute,{token});
+  assert.equal(diagnostic.questions.length,10);
+  for(const pool of curriculum.assessmentPools){
+    assert.ok(diagnostic.questions.some(question=>pool.some(q=>q.q===question.q)));
+  }
+  await request(diagnosticRoute,{token,body:{answers:Array(10).fill(null)},status:400});
+  const initial=await request(diagnosticRoute,{token,body:{answers:getAnswers(diagnostic.questions,bank)}});
+  assert.equal(initial.result.score,100);
+  assert.deepEqual(await request(diagnosticRoute,{token,body:{answers:Array(10).fill(0)}}),initial);
+  assert.deepEqual((await request(api+'/me',{token})).initialAssessment,initial.result);
+
+  const videos=new Set();
+  for(const [i,lesson] of me.lessons.entries()){
+    const route=api+'/screens/'+lesson.id;
+    const screen=await request(route,{token});
+    assert.equal(screen.id,lesson.id);
+    assert.ok(screen.bodyAr&&screen.bodyEn&&screen.diagram.length===3);
+    if(screen.approvedVideo){
+      videos.add(screen.videoUrl);
+      assert.ok(fs.existsSync(path.join(frontend,screen.videoUrl)));
+      assert.ok(fs.existsSync(path.join(frontend,screen.videoUrl.replace(/\.mp4$/,'.en.vtt'))));
+      assert.ok(fs.existsSync(path.join(frontend,screen.imageUrl)));
+    }
+    if(!lesson.assessmentRequired)continue;
+    const questions=curriculum.screens[i].questions;
+    const answers=getAnswers(screen.questions,questions);
+    const result=await request(route+'/assessment',{token,body:{answers}});
+    assert.equal(result.score,100);
+    if(lesson.id==='tm1s2'){
+      await request(route+'/assessment',{token,body:{answers:answers.map(a=>(a+1)%4)}});
+      const progress=await request(api+'/me',{token});
+      assert.equal(progress.progress.screenScores.tm1s2.score,100);
+      assert.equal(progress.progress.screenScores.tm1s2.attempts,2);
+    }
+  }
+  assert.equal(videos.size,10);
+  assert.equal((await request(api+'/me',{token})).learningMastered,true);
+  await request(api+'/traffic-feedback',{token,body:{answers:Array(10).fill(5)}});
+
+  const final=await request(api+'/final-assessment',{token});
+  assert.equal(final.questions.length,30);
+  assert.equal(new Set(final.questions.map(q=>q.q)).size,30);
+  for(const pool of curriculum.assessmentPools){
+    assert.ok(final.questions.filter(question=>pool.some(q=>q.q===question.q)).length>=3);
+  }
+  await request(api+'/final-assessment',{token,body:{attempt:1,answers:Array(30).fill(0)},status:409});
+  const wrong=getAnswers(final.questions,bank).map(a=>(a+1)%4);
+  const failed=await request(api+'/final-assessment',{token,body:{attempt:0,answers:wrong}});
+  assert.equal(failed.score,0);
+  assert.equal(failed.attemptsRemaining,1);
+  const retake=await request(api+'/final-assessment',{token});
+  assert.notDeepEqual(retake.questions,final.questions);
+  assert.ok(retake.questions.some(q=>{
+    const first=final.questions.find(question=>question.q===q.q);
+    return first&&first.options.join('|')!==q.options.join('|');
+  }));
+  const passed=await request(api+'/final-assessment',{token,body:{attempt:retake.attempts,answers:getAnswers(retake.questions,bank)}});
+  assert.equal(passed.score,100);
+  assert.ok(passed.certificateId);
+  const id=passed.certificateId;
+  assert.equal((await request(api+'/me',{token})).certificateId,id);
+  assert.equal((await request(api+'/certificate',{token,body:{}})).certificateId,id);
+  const verified=await request('/api/verify/traffic-staging-certificate?id='+id);
+  assert.equal(verified.valid,true);
+  assert.equal(verified.courseId,'CRS-TRAFFIC-001');
+  for(const field of ['email','traineeId','idNumber','idType'])assert.equal(verified[field],undefined);
+  await request('/api/verify/training-certificate?id='+id,{status:404});
+  await request('/api/training-certificates/'+id,{status:404});
+  const qr=await fetch(root+'/api/training-certificates/'+id+'/qr');
+  assert.equal(qr.status,200);
+  assert.match(qr.headers.get('content-type'),/^image\/(png|svg\+xml)/);
+  assert.equal(qr.headers.get('cross-origin-resource-policy'),'cross-origin');
+  assert.ok((await qr.arrayBuffer()).byteLength>100);
+  assert.equal(mail.length,2);
+  assert.ok(mail[1].textContent.includes('https://si-staging-ui.onrender.com/traffic-verify.html?id='+id));
+
+  await request('/api/admin/enrollments',{status:401});
+  const admin=await request('/api/admin/login',{body:{email:adminEmail,password}});
+  assert.equal((await request('/api/admin/me',{token:admin.token})).role,'admin');
+  const enrollmentList=await request('/api/admin/enrollments?q='+enrollmentId,{token:admin.token});
+  assert.ok(JSON.stringify(enrollmentList).includes(enrollmentId));
+  await request('/api/admin/traffic-self-study/'+enrollmentId,{status:401});
+  await request('/api/admin/traffic-self-study/QA-OTHER-0',{token:admin.token,status:404});
+  const results=await request('/api/admin/traffic-self-study/'+enrollmentId,{token:admin.token});
+  assert.equal(results.initial.score,100);
+  assert.equal(results.lessons.length,35);
+  assert.ok(results.lessons.every(lesson=>lesson.score===100));
+  assert.deepEqual(results.feedback.answers,Array(10).fill(5));
+  assert.deepEqual(results.finalScores.map(x=>x.score),[0,100]);
+  assert.equal(results.certificate.certificateId,id);
+  const certificates=await request('/api/admin/certificates/list',{token:admin.token});
+  assert.ok(JSON.stringify(certificates).includes(id));
+
+  assert.deepEqual(await enrollments.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray(),otherCourses);
+  assert.deepEqual(await certificateStore.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray(),otherCertificates);
+  assert.deepEqual((await request(api+'/me',{token:oldSession})).progress,oldProgress);
+  assert.equal(TRAFFIC_SCREENS.length,10);
+  console.log('PASS: 40 lessons, initial assessment, registration and mocked access email, saved progress, feedback, shuffled final and retake, mocked certificate email, QR response, protected admin results and legacy records');
+}
+
+run().catch(error=>{
+  console.error(error);
+  process.exitCode=1;
+}).finally(async()=>{
+  if(mongoose.connection.db?.databaseName===database)await mongoose.connection.dropDatabase();
+  await mongoose.disconnect();
+  process.exit(process.exitCode||0);
+});

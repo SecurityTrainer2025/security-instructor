@@ -13,13 +13,15 @@
 <b>Issue date / تاريخ الإصدار</b><span id="date"></span>
 </div>
 <p style="font-size:13px;color:#c2ccd8">STAGING ONLY / اختبار فقط — لا تُستخدم هذه الصفحة للتحقق من شهادات الدورات الأخرى.</p>
-</main><script>
+</main><script src="traffic-staging-config.js"></script><script>
 (async()=>{
  const status=document.getElementById('status');
  const id=new URLSearchParams(location.search).get('id')||'';
  if(!/^SI-CERT-[A-Za-z0-9-]{6,90}$/.test(id)){status.textContent='Invalid certificate identifier / رقم الشهادة غير صالح';status.classList.add('invalid');return}
  try{
-   const url='https://si-avs-staging-test.onrender.com/api/verify/traffic-staging-certificate?id='+encodeURIComponent(id);
+   const base=window.SI_TRAFFIC_STAGING_API;
+   if(!base)throw Error('Traffic staging verification is unavailable / التحقق التجريبي غير متاح');
+   const url=base+'/api/verify/traffic-staging-certificate?id='+encodeURIComponent(id);
    const res=await fetch(url,{cache:'no-store'});
    if(!res.ok)throw Error('No Traffic staging certificate found / لم يتم العثور على شهادة المرور في سجل الاختبار');
    const d=await res.json();
