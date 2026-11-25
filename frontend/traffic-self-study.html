@@ -142,7 +142,7 @@ async function renderScreen(){
 let dQuestionCount=3;
 async function submitScreen(){
  if(!dQuestionCount){if(index<screens.length-1){index++;renderScreen()}else{showCompletion()}return}
- const answers=[];for(let i=0;i<dQuestionCount;i++){const x=document.querySelector('input[name="q'+i+'"]:checked');if(!x){showResult('Please answer all questions. / يرجى الإجابة عن جميع الأسئلة.');return}answers.push(Number(x.value))}
+ const answers=[];for(let i=0;i<dQuestionCount;i++){const x=document.querySelector('input[name="q'+i+'"]:checked');if(!x&&!expired){showResult('Please answer all questions. / يرجى الإجابة عن جميع الأسئلة.');return}answers.push(x?Number(x.value):-1)}
  try{const d=await api('/api/self-study/screens/'+screens[index]+'/assessment',{method:'POST',body:JSON.stringify({answers})});showResult('Score: <strong>'+d.score+'%</strong><br>'+ (d.passed?'Passed. You may continue. / ناجح، يمكنك المتابعة.':'You need 80% to continue. Try again. / تحتاج إلى 80% للمتابعة، حاول مرة أخرى.')+'<br>Cumulative: '+d.cumulativeScore+'%');if(d.passed){me=await api('/api/self-study/me');renderModules();if(index<screens.length-1){index++;setTimeout(renderScreen,900)}else{setTimeout(showCompletion,900)}}}catch(e){showResult(esc(e.message))}
 }
 function showResult(html){const r=document.getElementById('result');r.innerHTML=html;r.style.display='block'}
@@ -178,8 +178,11 @@ async function showCompletion(){
   if(!me.feedbackSubmitted){await showTrafficFeedback();return}
   if(me.finalPassed){showFinalResult({passed:true,score:me.finalBestScore,certificateId:me.certificateId});return}
   const d=await api('/api/self-study/final-assessment');
-  document.getElementById('content').innerHTML='<div class="kicker">LEARNING PHASE COMPLETE</div><h1>Final Assessment</h1><div class="body">You have completed the required learning screens. The final assessment has 30 questions. Pass mark: 70%. You have up to 3 total attempts (2 free retakes).</div><div class="body ar">لقد أكملت شاشات التعلم المطلوبة. يتكون الاختبار النهائي من 30 سؤالًا. درجة النجاح: 70٪. لديك ثلاث محاولات إجمالًا (محاولة أساسية ومحاولتا إعادة مجانًا).</div><div class="notice" style="background:#132a3d;border-color:#627386;color:#DDE5EB">Attempts remaining: <strong>'+d.attemptsRemaining+'</strong> / المحاولات المتبقية: <strong>'+d.attemptsRemaining+'</strong></div><div class="actions"><button class="btn" id="startFinal">Start Final Assessment / بدء الاختبار النهائي</button></div><div id="result" class="result"></div>';
-  document.getElementById('startFinal').onclick=()=>renderFinalAssessment(d);
+  document.getElementById('content').innerHTML='<div class="kicker">LEARNING PHASE COMPLETE</div><h1>Final Assessment</h1><div class="body">You have completed the required learning screens. The final assessment has 30 questions. Pass mark: 70%. Time limit: 60 minutes for the expanded course. You have up to 3 total attempts (2 free retakes).</div><div class="body ar">لقد أكملت شاشات التعلم المطلوبة. يتكون الاختبار النهائي من 30 سؤالًا. درجة النجاح: 70٪. مدة الاختبار للمنهج الموسّع 60 دقيقة. لديك ثلاث محاولات إجمالًا (محاولة أساسية ومحاولتا إعادة مجانًا).</div><div class="notice" style="background:#132a3d;border-color:#627386;color:#DDE5EB">Attempts remaining: <strong>'+d.attemptsRemaining+'</strong> / المحاولات المتبقية: <strong>'+d.attemptsRemaining+'</strong></div><div class="actions"><button class="btn" id="startFinal">Start Final Assessment / بدء الاختبار النهائي</button></div><div id="result" class="result"></div>';
+  document.getElementById('startFinal').disabled=d.attemptsRemaining<=0;
+  document.getElementById('startFinal').onclick=async()=>{
+   try{const exam=await api('/api/self-study/traffic-exam-window',{method:'POST',body:JSON.stringify({})});renderFinalAssessment({...d,exam});}catch(e){showResult(esc(e.message))}
+  };
  }catch(e){document.getElementById('content').innerHTML='<div class="kicker">FINAL ASSESSMENT</div><h1>Unavailable</h1><div class="body">'+esc(e.message)+'</div>'}
 }
 async function showTrafficFeedback(){
@@ -202,19 +205,32 @@ async function showTrafficFeedback(){
   };
  }catch(err){document.getElementById('content').innerHTML='<h1>Feedback unavailable / تعذر عرض التقييم</h1><div class="body">'+esc(err.message)+'</div>'}
 }
+let examClock=null,examSave=Promise.resolve();
 function renderFinalAssessment(d){
+ clearInterval(examClock);
  const qs=d.questions||[];let html='<div class="kicker">FINAL ASSESSMENT • 30 QUESTIONS</div><h1>Traffic Management &amp; Vehicle Control / إدارة حركة المرور والتحكم في المركبات في الموقع</h1><div class="body">Answer all 30 questions. Pass mark: 70%.</div><div class="body ar">أجب عن جميع الأسئلة الثلاثين. درجة النجاح: 70٪.</div><section class="quiz">';
  qs.forEach((x,i)=>{html+='<div class="q"><strong>'+x.number+'. '+esc(x.q)+'</strong>'+x.options.map((o,j)=>'<label class="opt"><input type="radio" name="finalq'+i+'" value="'+j+'"> '+esc(o)+'</label>').join('')+'</div>'});
  html+='</section><div class="actions"><button class="btn secondary" id="backLearning">← Back / رجوع</button><button class="btn" id="submitFinal">Submit Final Assessment / إرسال الاختبار النهائي</button></div><div id="result" class="result"></div>';
  document.getElementById('content').innerHTML=html;
- document.getElementById('backLearning').onclick=()=>showCompletion();
+ document.getElementById('backLearning').onclick=()=>{clearInterval(examClock);showCompletion()};
  document.getElementById('submitFinal').onclick=()=>submitFinalAssessment(qs.length,d.attempts);
+ if(d.exam?.timed){
+  const clock=document.createElement('div');clock.className='timer';clock.style.cssText='position:sticky;top:0;background:#0B1F33;z-index:5';clock.setAttribute('role','timer');document.getElementById('content').prepend(clock);
+  const end=performance.now()+Math.max(0,new Date(d.exam.deadline).getTime()-d.exam.serverNow);
+  const read=()=>qs.map((_,i)=>Number(document.querySelector('input[name="finalq'+i+'"]:checked')?.value??-1));
+  d.exam.answers.forEach((v,i)=>{if(v>=0){const el=document.querySelector('input[name="finalq'+i+'"][value="'+v+'"]');if(el)el.checked=true}});
+  document.querySelectorAll('input[name^="finalq"]').forEach(el=>el.addEventListener('change',()=>{const answers=read();examSave=examSave.catch(()=>{}).then(()=>api('/api/self-study/traffic-exam-window',{method:'POST',body:JSON.stringify({attempt:d.attempts,answers})})).catch(e=>showResult('Answer save failed / تعذر حفظ الإجابة: '+esc(e.message)));}));
+  const update=()=>{const left=Math.max(0,Math.ceil((end-performance.now())/1000));clock.textContent='EXAM / الاختبار: '+fmtTime(left)+(left<=300?' — Time remaining / الوقت المتبقي':'');if(left<=300)clock.style.color='#ffb6a2';if(!left){clearInterval(examClock);document.querySelectorAll('input[name^="finalq"]').forEach(el=>el.disabled=true);submitFinalAssessment(qs.length,d.attempts,true)}};
+  examClock=setInterval(update,250);update();
+ }
 }
-async function submitFinalAssessment(total,attempt){
+async function submitFinalAssessment(total,attempt,expired=false){
  const answers=[];for(let i=0;i<total;i++){const x=document.querySelector('input[name="finalq'+i+'"]:checked');if(!x){showResult('Please answer all questions. / يرجى الإجابة عن جميع الأسئلة.');return}answers.push(Number(x.value))}
- const btn=document.getElementById('submitFinal');if(btn)btn.disabled=true;
+ const btn=document.getElementById('submitFinal');if(btn?.disabled)return;if(btn)btn.disabled=true;
  try{
+  await examSave;
   const d=await api('/api/self-study/final-assessment',{method:'POST',body:JSON.stringify({answers,attempt})});
+  clearInterval(examClock);
   me=await api('/api/self-study/me');renderModules();
   if(d.passed){showFinalResult(d)}else{
    showResult('Score: <strong>'+d.score+'%</strong><br>Not passed. You need 70% to pass. Attempts remaining: '+d.attemptsRemaining+'<br>النتيجة: <strong>'+d.score+'٪</strong> — لم تنجح. تحتاج إلى 70٪ للنجاح. المحاولات المتبقية: '+d.attemptsRemaining);
