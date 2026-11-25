@@ -1,3 +1,4 @@
+const {trafficDatabaseMode,trafficLearnerUrl,trafficRegistrationEnabled,trafficCertificatesEnabled}=require('./traffic-deployment');
 const {canSendMailTo}=require('./staging-mail.js');
 const express=require('express');
 const mongoose=require('mongoose');
@@ -313,21 +314,9 @@ const trafficFeedbackHandler=async(req,res)=>{
  }catch(err){console.error('Traffic feedback error',err);res.status(500).json({message:'Unable to save feedback'});}
 };
 const maxFinalAttempts=row=>row.courseSlug===TRAFFIC_SLUG&&!expandedTraffic(row)?2:3;
-// Explicitly opt-in on a dedicated staging deployment; Traffic is OFF everywhere else.
-// All three variables must be configured on the staging server, never on SI production.
-const trafficPilotEnabled=()=>{
-  // A flag alone cannot guarantee DB isolation: enforce a dedicated, named staging DB.
-  const expectedDb=String(process.env.SI_TRAFFIC_STAGING_DB_NAME||'').trim();
-  const connectedDb=String(mongoose.connection.db?.databaseName||'').trim();
-  return process.env.SI_DEPLOYMENT_ENV==='staging' &&
-    process.env.TRAFFIC_PILOT_ENABLED==='true' &&
-    expectedDb.length>0 && /staging/i.test(expectedDb) &&
-    expectedDb===connectedDb &&
-    /^https:\/\/si-staging-ui\.onrender\.com\/traffic-self-study\.html$/i.test((process.env.TRAFFIC_STAGING_FRONTEND_URL||'').trim());
-};
-const trafficPilotAvailable=slug=>slug!==TRAFFIC_SLUG||trafficPilotEnabled();
-// Keep Traffic certificates disabled until separate staging certificate + QR verification passes.
-const trafficCertificateEnabled=()=>trafficPilotEnabled()&&process.env.TRAFFIC_CERTIFICATES_ENABLED==='true';
+const trafficAvailable=()=>Boolean(trafficLearnerUrl());
+const trafficPilotAvailable=slug=>slug!==TRAFFIC_SLUG||trafficAvailable();
+const trafficCertificateEnabled=trafficCertificatesEnabled;
 const screenFor=(row,id)=>screensFor(row.courseSlug,row).find(x=>x.id===id)||null;
 const moduleFor=id=>String(id).split('s')[0];
 
@@ -382,14 +371,15 @@ async function sendAccessEmail({to,name,course,token,expiresAt}){  const apiKey=
   if(!canSendMailTo(to))return {sent:false,error:'Recipient is not approved for staging mail'};
   if(!apiKey||!from)return {sent:false,error:'Brevo email settings are not configured'};
   const mailSlug=Object.keys(COURSE_META).find(slug=>COURSE_META[slug]===course)||FIRE_SLUG;
-  const trafficUrl=(process.env.TRAFFIC_STAGING_FRONTEND_URL||'').trim();
-  if(mailSlug===TRAFFIC_SLUG&&!trafficUrl)return {sent:false,error:'Traffic staging learner URL not configured'};
+  const trafficUrl=trafficLearnerUrl();
+  if(mailSlug===TRAFFIC_SLUG&&!trafficUrl)return {sent:false,error:'Traffic learner URL not configured'};
   const mailUrl=mailSlug===TRAFFIC_SLUG?trafficUrl:FRONTEND_URL;
   const link=mailSlug===TRAFFIC_SLUG?mailUrl+(mailUrl.includes('?')?'&':'?')+'course='+encodeURIComponent(mailSlug)+'#token='+encodeURIComponent(token):FRONTEND_URL+'#token='+encodeURIComponent(token);
   const expiry=expiresAt?new Date(expiresAt).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'}):null;
   const subject=mailSlug===TRAFFIC_SLUG?'SECURITY INSTRUCTOR — '+course.en+' Self-Study Access':'SECURITY INSTRUCTOR — Fire Safety Self-Study Access';
   const text='Dear '+name+',\\n\\nYour access to '+course.en+' / '+course.ar+' is ready.\\n\\nYour 5-day access window starts when you first open the course using this secure link. You may study for up to 24 active hours during that window; inactive time is not counted.\\nStart: '+link+(expiry?'\\nAccess expires: '+expiry:'')+'\\n\\nYour Enrollment ID is provided on the registration confirmation page. Keep it to request a new access link if needed.\\n\\nComplete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.\\n\\nSECURITY INSTRUCTOR';
-  const html='<!doctype html><html><body style="font-family:Arial,sans-serif;color:#0B1F33"><h2 style="color:#0B1F33">SECURITY INSTRUCTOR</h2><p>Dear '+name+',</p><p>Your access to <strong>'+course.en+'</strong> / <strong>'+course.ar+'</strong> is ready.</p><p>This is a self-study pilot project. Your <strong>5-day (120-hour) access window starts when you first open the course</strong> using the secure link below. You may study for up to <strong>24 active study hours</strong>; inactive time is not counted.</p><p><a href="'+link+'" style="display:inline-block;padding:12px 18px;background:#C8A96B;color:#0B1F33;text-decoration:none;font-weight:bold">START SELF-STUDY / ابدأ الدراسة الذاتية</a></p>'+(expiry?'<p>Access expires: '+expiry+'</p>':'')+'<p>Keep your Enrollment ID from the registration confirmation page to request a new access link if needed.</p><p>Complete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.</p><p>SECURITY INSTRUCTOR<br>Knowledge • Skills • Safer Tomorrow</p></body></html>';
+  const nameHtml=name.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const html='<!doctype html><html><body style="font-family:Arial,sans-serif;color:#0B1F33"><h2 style="color:#0B1F33">SECURITY INSTRUCTOR</h2><p>Dear '+nameHtml+',</p><p>Your access to <strong>'+course.en+'</strong> / <strong>'+course.ar+'</strong> is ready.</p><p>This is a self-study pilot project. Your <strong>5-day (120-hour) access window starts when you first open the course</strong> using the secure link below. You may study for up to <strong>24 active study hours</strong>; inactive time is not counted.</p><p><a href="'+link+'" style="display:inline-block;padding:12px 18px;background:#C8A96B;color:#0B1F33;text-decoration:none;font-weight:bold">START SELF-STUDY / ابدأ الدراسة الذاتية</a></p>'+(expiry?'<p>Access expires: '+expiry+'</p>':'')+'<p>Keep your Enrollment ID from the registration confirmation page to request a new access link if needed.</p><p>Complete the learning screens, achieve at least 80% on required knowledge checks, then complete the 30-question final assessment. The final assessment pass mark is 70%.</p><p>SECURITY INSTRUCTOR<br>Knowledge • Skills • Safer Tomorrow</p></body></html>';
   const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{accept:'application/json','api-key':apiKey,'content-type':'application/json'},body:JSON.stringify({sender:{name:'SECURITY INSTRUCTOR',email:from},replyTo:{email:from},to:[{email:to}],subject,textContent:mailSlug===TRAFFIC_SLUG?text.replaceAll('\\n','\n'):text,htmlContent:html})});
   if(!response.ok){const detail=await response.text().catch(()=> '');throw new Error('Brevo email failed ('+response.status+'): '+detail.slice(0,300));}
   return {sent:true,error:null};
@@ -420,7 +410,7 @@ const registerHandler=async(req,res)=>{
     const registrationNow=new Date();
     const b=req.body||{};
     const slug=clean(b.courseSlug,80)||FIRE_SLUG;
-    if(!trafficPilotAvailable(slug))return res.status(403).json({message:'Traffic staging course is disabled / دورة المرور التجريبية غير مفعلة'});
+    if(slug===TRAFFIC_SLUG&&!trafficRegistrationEnabled())return res.status(403).json({message:'Traffic registration is disabled / التسجيل في دورة المرور غير متاح'});
     const course=COURSE_META[slug];
     if(!course)return res.status(400).json({message:'Self-study course not available'});
     const ar=clean(b.arabicName,180).replace(/\s+/g,' ').split(' ').filter(Boolean);
@@ -442,7 +432,10 @@ const registerHandler=async(req,res)=>{
       trainee={traineeId,arabicFirstName:ar[0],arabicMiddleName:ar[1],arabicLastName:ar[2],englishFirstName:en[0],englishMiddleName:en[1],englishLastName:en[2],idType,idNumber,mobile,email,createdAt:new Date(),updatedAt:new Date()};
       await trainees.insertOne(trainee);
     }
+    const productionTraffic=slug===TRAFFIC_SLUG&&trafficDatabaseMode()==='production';
     let enrollment=await enrollments.findOne({traineeId:trainee.traineeId,courseId:course.code});
+    if(productionTraffic&&enrollment&&(enrollment.selfStudy!==true||enrollment.status==='cancelled'))
+      return res.status(409).json({message:'An earlier enrollment already exists. Contact SI support. / يوجد تسجيل سابق للدورة. تواصل مع دعم SI.'});
     if(!enrollment){
       const enrollmentId=await nextNumber(enrollments,'ENR-','enrollmentId');
       enrollment={enrollmentId,traineeId:trainee.traineeId,courseId:course.code,courseNameEn:course.en,courseNameAr:course.ar,registrationType:'individual',companyName:'',companyContact:'',companyEmail:'',status:'active',score:null,selfStudy:true,registeredAt:new Date(),createdAt:new Date(),updatedAt:new Date()};
@@ -782,7 +775,7 @@ const trafficInitialHandler=async(req,res)=>{
 
 const trafficAdminResult=async(req,res)=>{
   try{
-    if(!trafficPilotEnabled())return res.status(404).json({message:'Traffic staging results are unavailable'});
+    if(!trafficAvailable())return res.status(404).json({message:'Traffic results are unavailable'});
     const enrollmentId=clean(req.params.enrollmentId,100);
     const db=mongoose.connection;
     const row=await db.collection('selfstudyaccess').findOne({enrollmentId,courseSlug:TRAFFIC_SLUG},
@@ -808,6 +801,7 @@ const trafficAdminResult=async(req,res)=>{
 
 function register(app,requireAdmin){
   app.post('/api/self-study/heartbeat',sessionHandler,studyHeartbeatHandler);
+  app.get('/api/self-study/traffic-availability',(req,res)=>res.set('Cache-Control','no-store').json({available:trafficAvailable(),registrationOpen:trafficRegistrationEnabled()}));
   app.get('/api/self-study/courses/:slug',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c||!trafficPilotAvailable(slug))return res.status(404).json({message:'Self-study course not found'});res.json({...c,screenCount:screensFor(clean(req.params.slug,80)).length});});
   app.get('/api/self-study/courses/:slug/screens',(req,res)=>{const slug=clean(req.params.slug,80),c=COURSE_META[slug];if(!c||!trafficPilotAvailable(slug))return res.status(404).json({message:'Self-study course not found'});res.json({ok:true,screens:screensFor(slug).map((s,i)=>({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,order:i+1,titleEn:s.titleEn,titleAr:s.titleAr}))});});
   app.get('/api/self-study/screens/:screenId',sessionHandler,screenHandler);

@@ -9,6 +9,14 @@ window.SI_TRAFFIC_STAGING_API = trafficHost === 'si-staging-ui.onrender.com'
     ? 'http://127.0.0.1:5000'
     : '';
 
+window.SI_TRAFFIC_MODE = window.SI_TRAFFIC_STAGING_API ? 'staging'
+  : trafficHost === 'securitytrainer2025.github.io' &&
+    window.location.pathname?.startsWith('/security-instructor/frontend/') ? 'production' : '';
+window.SI_TRAFFIC_API = window.SI_TRAFFIC_MODE === 'production'
+  ? 'https://security-instructor.onrender.com' : window.SI_TRAFFIC_STAGING_API;
+window.SI_TRAFFIC_VERIFY_PATH = window.SI_TRAFFIC_MODE === 'production'
+  ? '/api/verify/traffic-certificate' : '/api/verify/traffic-staging-certificate';
+
 /* In-place Traffic media approvals, never a new course or deployment target.
  * Owner-approved illustrative Windows assets. The site-specific practical
  * hand-signal assessment remains instructor-led.

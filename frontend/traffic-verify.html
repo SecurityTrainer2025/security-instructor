@@ -12,21 +12,26 @@
 <b>Course / الدورة</b><span id="course"></span>
 <b>Issue date / تاريخ الإصدار</b><span id="date"></span>
 </div>
-<p style="font-size:13px;color:#c2ccd8">STAGING ONLY / اختبار فقط — لا تُستخدم هذه الصفحة للتحقق من شهادات الدورات الأخرى.</p>
+<p id="stagingNotice" style="font-size:13px;color:#c2ccd8">STAGING ONLY / اختبار فقط — لا تُستخدم هذه الصفحة للتحقق من شهادات الدورات الأخرى.</p>
 </main><script src="traffic-staging-config.js"></script><script>
 (async()=>{
+ const production=window.SI_TRAFFIC_MODE==='production';
+ if(production){
+  document.getElementById('stagingNotice').hidden=true;
+  document.title='SI Traffic Certificate / شهادة دورة المرور';
+ }
  const status=document.getElementById('status');
  const id=new URLSearchParams(location.search).get('id')||'';
  if(!/^SI-CERT-[A-Za-z0-9-]{6,90}$/.test(id)){status.textContent='Invalid certificate identifier / رقم الشهادة غير صالح';status.classList.add('invalid');return}
  try{
-   const base=window.SI_TRAFFIC_STAGING_API;
+   const base=window.SI_TRAFFIC_API;
    if(!base)throw Error('Traffic staging verification is unavailable / التحقق التجريبي غير متاح');
-   const url=base+'/api/verify/traffic-staging-certificate?id='+encodeURIComponent(id);
+   const url=base+window.SI_TRAFFIC_VERIFY_PATH+'?id='+encodeURIComponent(id);
    const res=await fetch(url,{cache:'no-store'});
    if(!res.ok)throw Error('No Traffic staging certificate found / لم يتم العثور على شهادة المرور في سجل الاختبار');
    const d=await res.json();
    if(d.courseId!=='CRS-TRAFFIC-001'||d.certificateId!==id||d.valid!==true)throw Error('Unverified Traffic certificate / شهادة المرور غير معتمدة');
-   status.textContent='VALID TRAFFIC STAGING CERTIFICATE / شهادة مرور تجريبية صالحة';status.classList.add('valid');
+   status.textContent=production?'VALID TRAFFIC CERTIFICATE / شهادة مرور صالحة':'VALID TRAFFIC STAGING CERTIFICATE / شهادة مرور تجريبية صالحة';status.classList.add('valid');
    document.getElementById('certId').textContent=d.certificateId;
    document.getElementById('recipient').textContent=d.recipientNameEn||d.recipientNameAr||'—';
    document.getElementById('course').textContent=d.courseNameEn||d.courseNameAr||'—';

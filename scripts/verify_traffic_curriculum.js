@@ -13,13 +13,20 @@ const curriculum = require(path.join(backend, 'traffic-course-curriculum'));
 const email = 'traffic-qa@example.test';
 const adminEmail = 'admin-qa@example.test';
 const password = randomUUID();
-const database = 'si_traffic_staging_qa_' + randomUUID().replaceAll('-', '');
+const productionMode=process.argv.includes('--production-mode');
+const trafficUi=productionMode
+  ?'https://securitytrainer2025.github.io/security-instructor/frontend'
+  :'https://si-staging-ui.onrender.com';
+const verifier=productionMode?'traffic-certificate':'traffic-staging-certificate';
+const database = (productionMode?'si_traffic_release_qa_':'si_traffic_staging_qa_') + randomUUID().replaceAll('-', '');
 const root = 'http://127.0.0.1:5000';
 const api = '/api/self-study';
 Object.assign(process.env,{
   PORT:'5000', FRONTEND_URL:'http://127.0.0.1:8000',
   MONGODB_URI:'mongodb://127.0.0.1:27019/'+database,
-  SI_DEPLOYMENT_ENV:'staging', SI_TRAFFIC_STAGING_DB_NAME:database,
+  SI_DEPLOYMENT_ENV:productionMode?'production':'staging', SI_TRAFFIC_STAGING_DB_NAME:productionMode?'si_traffic_staging_qa':database,
+  SI_TRAFFIC_PRODUCTION_DB_NAME:productionMode?database:'', TRAFFIC_PRODUCTION_ENABLED:'false',
+  TRAFFIC_PRODUCTION_REGISTRATION_ENABLED:'false', TRAFFIC_PRODUCTION_CERTIFICATES_ENABLED:'false',
   TRAFFIC_PILOT_ENABLED:'true', TRAFFIC_CERTIFICATES_ENABLED:'true',
   TRAFFIC_STAGING_FRONTEND_URL:'https://si-staging-ui.onrender.com/traffic-self-study.html',
   SI_QA_TEST_EMAIL:email, BREVO_API_KEY:'qa-stub', MAIL_FROM:'si@example.test',
@@ -37,10 +44,10 @@ global.fetch=async(url,options)=>{
   return nativeFetch(url,options);
 };
 
-async function request(route,{body,token,status=200}={}){
+async function request(route,{body,token,status=200,releaseCheck=false}={}){
   const r=await fetch(root+route,{
     method:body===undefined?'GET':'POST',
-    headers:{...(route.startsWith('/api/admin/')?{'X-Forwarded-For':'192.0.2.10'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
+    headers:{...(route.startsWith('/api/admin/')||releaseCheck?{'X-Forwarded-For':'192.0.2.10'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
     body:JSON.stringify(body)
   });
   const data=await r.text();
@@ -91,6 +98,19 @@ async function run(){
     sessionTokenHash:hash(oldSession),sessionExpiresAt:new Date(Date.now()+3600000),
     status:'active',progress:oldProgress
   });
+  if(productionMode){
+    const availability=()=>request(api+'/traffic-availability',{releaseCheck:true});
+    assert.deepEqual(await availability(),{available:false,registrationOpen:false});
+    process.env.TRAFFIC_PRODUCTION_ENABLED='true';
+    assert.deepEqual(await availability(),{available:true,registrationOpen:false});
+    await request(api+'/register',{body:{courseSlug:TRAFFIC_SLUG},status:403,releaseCheck:true});
+    const databaseName=process.env.SI_TRAFFIC_PRODUCTION_DB_NAME;
+    process.env.SI_TRAFFIC_PRODUCTION_DB_NAME='unrelated_database';
+    assert.deepEqual(await availability(),{available:false,registrationOpen:false});
+    process.env.SI_TRAFFIC_PRODUCTION_DB_NAME=databaseName;
+    process.env.TRAFFIC_PRODUCTION_REGISTRATION_ENABLED='true';
+    assert.deepEqual(await availability(),{available:true,registrationOpen:true});
+  }
   const old=await request(api+'/me',{token:oldSession});
   assert.equal(old.lessons.length,10);
   assert.equal(old.attemptsRemaining,1);
@@ -107,14 +127,27 @@ async function run(){
 
   const profile={courseSlug:TRAFFIC_SLUG,arabicName:'متدرب تجريبي محلي',
     englishName:'Local Traffic Learner',email,idType:'passport',idNumber:'QA-TRAFFIC-001',mobile:'0000000000'};
+  let legacyEnrollment;
+  if(productionMode){
+    await trainees.insertOne({traineeId:'QA-PREVIOUS-TRAFFIC',email,idType:profile.idType,idNumber:'QA-PREVIOUS-TRAFFIC'});
+    legacyEnrollment={enrollmentId:'QA-PREVIOUS-TRAFFIC',traineeId:'QA-PREVIOUS-TRAFFIC',
+      courseId:'CRS-TRAFFIC-001',status:'cancelled'};
+    await enrollments.insertOne({...legacyEnrollment});
+    await request(api+'/register',{body:{...profile,idNumber:'QA-PREVIOUS-TRAFFIC'},status:409,releaseCheck:true});
+  }
   const registration=await request(api+'/register',{body:profile,status:201});
   assert.equal(registration.mailSent,true);
   assert.equal(mail.length,1);
   assert.deepEqual(mail[0].to,[{email}]);
-  const match=mail[0].textContent.match(/https:\/\/si-staging-ui\.onrender\.com\/traffic-self-study\.html\?course=[^#]+#token=([^\s]+)/);
-  assert.ok(match);
-  const session=await request(api+'/session/exchange',{body:{token:match[1]}});
-  await request(api+'/session/exchange',{body:{token:match[1]},status:401});
+  const accessLink=mail[0].textContent.split(/\s+/).find(word=>word.startsWith('https://'));
+  assert.ok(accessLink);
+  const accessUrl=new URL(accessLink);
+  assert.equal(accessUrl.origin+accessUrl.pathname,trafficUi+'/traffic-self-study.html');
+  assert.equal(accessUrl.searchParams.get('course'),TRAFFIC_SLUG);
+  const magic=new URLSearchParams(accessUrl.hash.slice(1)).get('token');
+  assert.ok(magic);
+  const session=await request(api+'/session/exchange',{body:{token:magic}});
+  await request(api+'/session/exchange',{body:{token:magic},status:401});
   const token=session.sessionToken;
   assert.ok(token);
   const enrollmentId=registration.enrollmentId;
@@ -214,12 +247,32 @@ async function run(){
   }));
   const passed=await request(api+'/final-assessment',{token,body:{attempt:retake.attempts,answers:getAnswers(retake.questions,bank)}});
   assert.equal(passed.score,100);
-  assert.ok(passed.certificateId);
-  const id=passed.certificateId;
+  let id=passed.certificateId;
+  if(productionMode){
+    assert.equal(id,null);
+    await request(api+'/certificate',{token,body:{},status:503,releaseCheck:true});
+    process.env.TRAFFIC_PRODUCTION_CERTIFICATES_ENABLED='true';
+    id=(await request(api+'/certificate',{token,body:{},releaseCheck:true})).certificateId;
+    const stored=await certificateStore.findOne({certificateId:id});
+    assert.equal(stored.trafficSelfStudy,true);
+    assert.equal(stored.verificationUrl,trafficUi+'/traffic-verify.html?id='+id);
+    process.env.TRAFFIC_PRODUCTION_CERTIFICATES_ENABLED='false';
+    process.env.TRAFFIC_PRODUCTION_REGISTRATION_ENABLED='false';
+    assert.deepEqual(await request(api+'/traffic-availability',{releaseCheck:true}),{available:true,registrationOpen:false});
+  }
+  assert.ok(id);
   assert.equal((await request(api+'/me',{token})).certificateId,id);
-  assert.equal((await request(api+'/certificate',{token,body:{}})).certificateId,id);
-  const verified=await request('/api/verify/traffic-staging-certificate?id='+id);
+  if(!productionMode)assert.equal((await request(api+'/certificate',{token,body:{}})).certificateId,id);
+  const verified=await request('/api/verify/'+verifier+'?id='+id,{releaseCheck:true});
   assert.equal(verified.valid,true);
+  if(productionMode){
+    await request('/api/verify/traffic-staging-certificate?id='+id,{status:404,releaseCheck:true});
+    const legacyTraffic={certificateId:'SI-CERT-QA-LEGACY-TRAFFIC',enrollmentId:'QA-OLD-OFFLINE',
+      traineeId:'QA-LEGACY',courseId:'CRS-TRAFFIC-001',verificationStatus:'valid'};
+    await certificateStore.insertOne(legacyTraffic);
+    assert.equal((await request('/api/verify/training-certificate?id='+legacyTraffic.certificateId,{releaseCheck:true})).valid,true);
+    await request('/api/verify/traffic-certificate?id='+legacyTraffic.certificateId,{status:404,releaseCheck:true});
+  }
   assert.equal(verified.courseId,'CRS-TRAFFIC-001');
   for(const field of ['email','traineeId','idNumber','idType'])assert.equal(verified[field],undefined);
   await request('/api/verify/training-certificate?id='+id,{status:404});
@@ -230,7 +283,7 @@ async function run(){
   assert.equal(qr.headers.get('cross-origin-resource-policy'),'cross-origin');
   assert.ok((await qr.arrayBuffer()).byteLength>100);
   assert.equal(mail.length,2);
-  assert.ok(mail[1].textContent.includes('https://si-staging-ui.onrender.com/traffic-verify.html?id='+id));
+  assert.ok(mail[1].textContent.includes(trafficUi+'/traffic-verify.html?id='+id));
 
   await request('/api/admin/enrollments',{status:401});
   const admin=await request('/api/admin/login',{body:{email:adminEmail,password}});
@@ -252,8 +305,12 @@ async function run(){
   assert.deepEqual(await enrollments.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray(),otherCourses);
   assert.deepEqual(await certificateStore.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray(),otherCertificates);
   assert.deepEqual((await request(api+'/me',{token:oldSession})).progress,oldProgress);
+  if(legacyEnrollment){
+    const {_id,...previous}=await enrollments.findOne({enrollmentId:legacyEnrollment.enrollmentId});
+    assert.deepEqual(previous,legacyEnrollment);
+  }
   assert.equal(TRAFFIC_SCREENS.length,10);
-  console.log('PASS: 40 lessons, initial assessment, registration and mocked access email, saved progress, feedback, timed draft/resume/expiry, shuffled final and two retakes, mocked certificate email, QR response, protected admin results and legacy records');
+  console.log((productionMode?'production-mode ':'staging-mode ')+'PASS: 40 lessons, initial assessment, registration and mocked access email, saved progress, feedback, timed draft/resume/expiry, shuffled final and two retakes, mocked certificate email, QR response, protected admin results and legacy records');
 }
 
 run().catch(error=>{

@@ -9,16 +9,21 @@
 <p id="course" class="course"></p><div id="score" class="details"></div>
 <div id="details" class="details"></div>
 <div class="verify"><img id="qr" alt="Traffic staging certificate verification QR" hidden><a id="verifyLink" target="_blank" rel="noopener">Verify certificate / التحقق من الشهادة</a></div>
-<footer>STAGING ONLY / شهادة تجريبية وليست وثيقة صادرة من المنصة الرئيسية</footer>
+<footer id="stagingNotice">STAGING ONLY / شهادة تجريبية وليست وثيقة صادرة من المنصة الرئيسية</footer>
 <div style="text-align:center"><button onclick="print()">Print / طباعة</button></div>
 </section></main><script src="traffic-staging-config.js"></script><script>
 (async()=>{
+ const production=window.SI_TRAFFIC_MODE==='production';
+ if(production){
+  document.getElementById('stagingNotice').hidden=true;
+  document.title='SI Traffic Certificate / شهادة دورة المرور';
+ }
  const error=document.getElementById('error'),id=new URLSearchParams(location.search).get('id')||'';
  if(!/^SI-CERT-[A-Za-z0-9-]{6,90}$/.test(id)){error.textContent='Invalid certificate ID / رقم الشهادة غير صالح';return}
  try{
-  const base=window.SI_TRAFFIC_STAGING_API;
+  const base=window.SI_TRAFFIC_API;
   if(!base)throw Error('Traffic staging verification is unavailable / التحقق التجريبي غير متاح');
-  const response=await fetch(base+'/api/verify/traffic-staging-certificate?id='+encodeURIComponent(id),{cache:'no-store'});
+  const response=await fetch(base+window.SI_TRAFFIC_VERIFY_PATH+'?id='+encodeURIComponent(id),{cache:'no-store'});
   if(!response.ok)throw Error('Traffic staging certificate not found / الشهادة التجريبية غير موجودة');
   const d=await response.json();
   if(!d.valid||d.courseId!=='CRS-TRAFFIC-001'||d.certificateId!==id)throw Error('Certificate cannot be verified / تعذر التحقق من الشهادة');
