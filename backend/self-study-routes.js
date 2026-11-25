@@ -582,7 +582,7 @@ const screenAssessmentHandler=async(req,res)=>{
       }
     }
     const answers=Array.isArray(req.body?.answers)?req.body.answers:[];
-    if(answers.length!==s.questions.length||(timed&&!answers.every(v=>Number.isInteger(v)&&v>=-1&&v<=3)))return res.status(400).json({message:'Please answer all questions'});
+    if(answers.length!==s.questions.length||(expandedTraffic(req.selfStudy)&&!validAnswerIndexes(answers)))return res.status(400).json({message:'Please answer all questions'});
     const correct=s.questions.reduce((n,q,i)=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/s.questions.length*100);
     const p={...(req.selfStudy.progress||baseProgress())};
@@ -628,7 +628,7 @@ const trafficExamWindow=async(req,res)=>{
    const a=req.body.answers;
    if(req.body.attempt!==attempt||!Array.isArray(a)||a.length!==30||!a.every(v=>Number.isInteger(v)&&v>=-1&&v<=3))return res.status(400).json({message:'Invalid exam draft'});
    if(Date.now()<new Date(exam.deadline).getTime()){
-    const saved=await collection.updateOne({_id:row._id,'trafficExam.attempt':attempt,'trafficExam.deadline':{$gt:new Date()},'progress.finalAttempts':attempt},{$set:{'trafficExam.answers':a}});
+    const saved=await collection.updateOne({_id:row._id,'trafficExam.attempt':attempt,'trafficExam.deadline':{$gt:new Date()},progress:p},{$set:{'trafficExam.answers':a}});
     if(saved.matchedCount)exam.answers=a;
    }
   }
@@ -655,7 +655,7 @@ const finalHandler=async(req,res)=>{
     if(expandedTraffic(req.selfStudy)&&req.body?.attempt!==attempts)
       return res.status(409).json({message:'Reload the current exam before submitting. / أعد تحميل الاختبار الحالي قبل الإرسال.'});
     const finalBank=orderedFinalFor(req.selfStudy.courseSlug,req.selfStudy.accessId||req.selfStudy.enrollmentId,attempts,req.selfStudy);
-    if(answers.length!==finalBank.length||(expandedTraffic(req.selfStudy)&&!validAnswerIndexes(answers)))return res.status(400).json({message:'Please answer all 30 questions.'});
+    if(answers.length!==finalBank.length||(timed&&!answers.every(v=>Number.isInteger(v)&&v>=-1&&v<=3)))return res.status(400).json({message:'Please answer all 30 questions.'});
     const correct=finalBank.reduce((n,q,i)=>{const order=finalQuestionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId,expandedTraffic(req.selfStudy)?attempts:undefined);return n+(Number(answers[i])===order.indexOf(q.correct)?1:0)},0);
     const score=Math.round(correct/finalBank.length*100);
     const finalAttempts=attempts+1;    const finalBestScore=Math.max(Number(p.finalBestScore||0),score);
