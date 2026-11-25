@@ -1,5 +1,5 @@
 (function(){
-  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const API=window.SI_ADMIN_CONFIG.api,K=window.SI_ADMIN_CONFIG.tokenKey;
   const NAVY='0B1F33',NAVY2='102A43',GOLD='C8A96B',WHITE='EEF3F7',MUTED='B7C4CE',LINE='294158';
   let current={title:'',columns:[],rows:[],summary:{},generatedAt:'',filters:{}};
   const $=s=>document.querySelector(s);

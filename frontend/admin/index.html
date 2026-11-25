@@ -90,9 +90,11 @@
 </div></div>
 </section>
 </div><div id="toast" class="toast"></div>
+<script src="../traffic-staging-config.js"></script>
+<script src="../admin-api-config.js"></script>
 <script>
 (function(){
-const isStagingApi=new URLSearchParams(location.search).get('api')==='staging';const articlesFrame=document.getElementById('articlesFrame');if(articlesFrame&&isStagingApi)articlesFrame.src='../admin-articles.html?api=staging';const API=isStagingApi?'https://security-instructor-staging.onrender.com':'https://security-instructor.onrender.com';const tokenKey='securityInstructorAdminToken'+(isStagingApi?':staging':'');let token=localStorage.getItem(tokenKey)||'';
+const isStagingApi=window.SI_ADMIN_CONFIG.staging;const articlesFrame=document.getElementById('articlesFrame');if(articlesFrame&&isStagingApi)articlesFrame.src='../admin-articles.html?api=staging';const API=window.SI_ADMIN_CONFIG.api;const tokenKey=window.SI_ADMIN_CONFIG.tokenKey;let token=localStorage.getItem(tokenKey)||'';
 const CH_DONE='securityKnowledgeChallengeCompleted',CH_SCORE='securityKnowledgeChallengeScore',CH_ATTEMPT='securityKnowledgeChallengeAttempt';
 const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));if(isStagingApi){const stagingEmail=document.getElementById('email');if(stagingEmail)stagingEmail.value='';}
 function msg(text,error=false){const el=$('#loginMsg');el.textContent=text;el.className='msg'+(error?' error':'');el.style.display='block'}
@@ -206,13 +208,13 @@ async function loadWorkshops(){const rows=document.getElementById('workshopsRows
 const avsInviteTools=document.getElementById('avsInviteTools');if(avsInviteTools)avsInviteTools.classList.toggle('hidden',!isStagingApi);const avsInviteModeNotice=document.getElementById('avsInviteModeNotice');if(avsInviteModeNotice)avsInviteModeNotice.style.display=isStagingApi?'none':'block';const avsInviteBtn=document.getElementById('avsInviteBtn');if(avsInviteBtn)avsInviteBtn.onclick=createAvsInvitation;const invitesRefresh=document.getElementById('avsInvitesRefresh');if(invitesRefresh)invitesRefresh.onclick=loadAvsInvitations;const inviteList=document.getElementById('avsInvitationList');if(inviteList)inviteList.classList.toggle('hidden',!isStagingApi);$('#workshopsRefresh').onclick=loadWorkshops;$('#traineeSearch').oninput=()=>loadTrainees();$('#enrollSearch').oninput=()=>loadEnrollments();$('#statusFilter').onchange=()=>loadEnrollments();$('#traineeRefresh').onclick=loadTrainees;$('#enrollRefresh').onclick=loadEnrollments;$('#visitorRefresh').onclick=loadVisitors;$('#visitorLetterRefresh').onclick=loadVisitorLetters;$('#visitorLetterSearch').oninput=loadVisitorLetters;$('#statsRefresh').onclick=loadStats;$('#feedbackRefresh').onclick=loadFeedback;document.getElementById('lmsAnalyticsRefresh').onclick=loadAnalytics;setInterval(()=>{if(token)loadAnalytics()},60000);$('#challengeResetBrowser').onclick=resetBrowserChallenge;$('#challengeOpenTest').onclick=openAdminChallenge;$('#challengeShowResults').onclick=showChallengeResults;check();
 })();
 </script>
-<script src="../admin-center.js?v=20260929-05"></script>
-<script src="../batches-center.js?v=20260929-02"></script>
-<script src="../media-center.js?v=20260929-04"></script>
-<script src="../visitor-analytics.js?v=20260929-02"></script>
-<script src="../operations-report.js?v=20260929-02"></script>
-<script src="../course-management.js?v=20260929-05"></script>
-<script src="../contact-admin.js?v=20260929-02"></script>
+<script src="../admin-center.js?v=20261125-staging"></script>
+<script src="../batches-center.js?v=20261125-staging"></script>
+<script src="../media-center.js?v=20261125-staging"></script>
+<script src="../visitor-analytics.js?v=20261125-staging"></script>
+<script src="../operations-report.js?v=20261125-staging"></script>
+<script src="../course-management.js?v=20261125-staging"></script>
+<script src="../contact-admin.js?v=20261125-staging"></script>
 <script>
 (function(){
   function integrateArticleTab(){
@@ -223,7 +225,7 @@ const avsInviteTools=document.getElementById('avsInviteTools');if(avsInviteTools
   new MutationObserver(integrateArticleTab).observe(document.querySelector('.tabs')||document.body,{childList:true,subtree:true});
 })();
 </script>
-<script src="../reports-center.js?v=20260929-02"></script>
-<script src="../certificates-center.js?v=20260929-02"></script>
+<script src="../reports-center.js?v=20261125-staging"></script>
+<script src="../certificates-center.js?v=20261125-staging"></script>
 </body>
 </html>

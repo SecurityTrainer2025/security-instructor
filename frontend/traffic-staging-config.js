@@ -1,9 +1,10 @@
 /* SECURITY INSTRUCTOR Traffic — isolated staging only.
  * The dedicated staging UI uses the staging API. A loopback UI uses the local API.
  */
+window.SI_STAGING_API_ORIGIN = 'https://si-avs-staging-test.onrender.com';
 const trafficHost = window.location.hostname;
 window.SI_TRAFFIC_STAGING_API = trafficHost === 'si-staging-ui.onrender.com'
-  ? 'https://si-avs-staging-test.onrender.com'
+  ? window.SI_STAGING_API_ORIGIN
   : ['127.0.0.1', 'localhost'].includes(trafficHost)
     ? 'http://127.0.0.1:5000'
     : '';

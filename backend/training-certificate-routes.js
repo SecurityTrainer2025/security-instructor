@@ -1,3 +1,4 @@
+const {canSendMailTo}=require('./staging-mail.js');
 const express=require('express');
 const mongoose=require('mongoose');
 const crypto=require('crypto');
@@ -15,7 +16,7 @@ const adminAuth=async req=>{try{const h=String(req.headers.authorization||'');if
 async function send(to,subject,text,html,attachments=[]){
   const apiKey=(process.env.BREVO_API_KEY||'').trim();
   const from=(process.env.MAIL_FROM||'').trim();
-  if(!apiKey||!from)return false;
+  if(!canSendMailTo(to)||!apiKey||!from)return false;
   const response=await fetch('https://api.brevo.com/v3/smtp/email',{
     method:'POST',
     headers:{'accept':'application/json','api-key':apiKey,'content-type':'application/json'},

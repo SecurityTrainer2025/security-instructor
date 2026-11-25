@@ -1,3 +1,4 @@
+const {canSendMailTo}=require('./staging-mail.js');
 const express=require('express');
 const mongoose=require('mongoose');
 const crypto=require('crypto');
@@ -369,6 +370,7 @@ async function nextNumber(collection,prefix,field){
 }
 async function sendAccessEmail({to,name,course,token,expiresAt}){  const apiKey=(process.env.BREVO_API_KEY||'').trim();
   const from=(process.env.MAIL_FROM||'').trim();
+  if(!canSendMailTo(to))return {sent:false,error:'Recipient is not approved for staging mail'};
   if(!apiKey||!from)return {sent:false,error:'Brevo email settings are not configured'};
   const mailSlug=Object.keys(COURSE_META).find(slug=>COURSE_META[slug]===course)||FIRE_SLUG;
   const trafficUrl=(process.env.TRAFFIC_STAGING_FRONTEND_URL||'').trim();

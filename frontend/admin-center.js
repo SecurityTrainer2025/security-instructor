@@ -1,5 +1,5 @@
 (function(){
-  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const API=window.SI_ADMIN_CONFIG.api,K=window.SI_ADMIN_CONFIG.tokenKey;
   const esc=s=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
   const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||'')});
   async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{...auth(),...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||'Request failed');return d}
@@ -22,7 +22,7 @@
 })();
 // Direct completion action: finish a pending enrollment and issue its certificate from the Registrations tab.
 (function(){
-  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const API=window.SI_ADMIN_CONFIG.api,K=window.SI_ADMIN_CONFIG.tokenKey;
   const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||''),'Content-Type':'application/json'});
   async function completeAndIssue(id,btn){
     const old=btn.textContent;btn.disabled=true;btn.textContent='جاري الإصدار… / Processing…';
@@ -54,7 +54,7 @@
 
 // Reliable enrollment status update: use the backend POST fallback before the legacy inline PATCH handler.
 (function(){
-  const API='https://security-instructor.onrender.com',K='securityInstructorAdminToken';
+  const API=window.SI_ADMIN_CONFIG.api,K=window.SI_ADMIN_CONFIG.tokenKey;
   const auth=()=>({Authorization:'Bearer '+(localStorage.getItem(K)||''),'Content-Type':'application/json'});
   async function updateEnrollmentStatus(select){
     const id=select.dataset.status,status=select.value;
