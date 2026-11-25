@@ -40,7 +40,7 @@ global.fetch=async(url,options)=>{
 async function request(route,{body,token,status=200}={}){
   const r=await fetch(root+route,{
     method:body===undefined?'GET':'POST',
-    headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
+    headers:{...(route.startsWith('/api/admin/')?{'X-Forwarded-For':'192.0.2.10'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
     body:JSON.stringify(body)
   });
   const data=await r.text();
@@ -93,6 +93,7 @@ async function run(){
   });
   const old=await request(api+'/me',{token:oldSession});
   assert.equal(old.lessons.length,10);
+  assert.equal(old.attemptsRemaining,1);
   assert.equal(old.course.modules.length,5);
   assert.deepEqual(old.progress,oldProgress);
   await request(api+'/screens/tm1s3',{token:oldSession,status:404});
@@ -179,12 +180,33 @@ async function run(){
   for(const pool of curriculum.assessmentPools){
     assert.ok(final.questions.filter(question=>pool.some(q=>q.q===question.q)).length>=3);
   }
-  await request(api+'/final-assessment',{token,body:{attempt:1,answers:Array(30).fill(0)},status:409});
-  const wrong=getAnswers(final.questions,bank).map(a=>(a+1)%4);
-  const failed=await request(api+'/final-assessment',{token,body:{attempt:0,answers:wrong}});
+  const examRoute=api+'/traffic-exam-window';
+  const submit=api+'/final-assessment';
+  await request(submit,{token,body:{attempt:0,answers:Array(30).fill(0)},status:409});
+  const firstExam=await request(examRoute,{token,body:{}});
+  assert.equal(firstExam.attempt,0);
+  assert.ok(Math.abs(new Date(firstExam.deadline).getTime()-firstExam.serverNow-3600000)<5000);
+  const firstCorrect=getAnswers(final.questions,bank);
+  const partial=firstCorrect.map((value,i)=>i===0?value:-1);
+  await request(submit,{token,body:{attempt:0,answers:partial},status:400});
+  await request(examRoute,{token,body:{attempt:0,answers:partial}});
+  const resumed=await request(examRoute,{token,body:{}});
+  assert.deepEqual(resumed.answers,partial);
+  assert.equal(resumed.deadline,firstExam.deadline);
+  await access.updateOne({enrollmentId},{$set:{'trafficExam.deadline':new Date(Date.now()-1000)}});
+  const expired=await request(submit,{token,body:{attempt:0,answers:firstCorrect}});
+  assert.equal(expired.correct,1);
+  assert.equal(expired.attemptsRemaining,2);
+
+  await request(examRoute,{token,body:{attempt:0,answers:partial},status:400});
+  const second=await request(api+'/final-assessment',{token});
+  await request(examRoute,{token,body:{}});
+  const wrong=getAnswers(second.questions,bank).map(a=>(a+1)%4);
+  const failed=await request(submit,{token,body:{attempt:1,answers:wrong}});
   assert.equal(failed.score,0);
   assert.equal(failed.attemptsRemaining,1);
   const retake=await request(api+'/final-assessment',{token});
+  await request(examRoute,{token,body:{}});
   assert.notDeepEqual(retake.questions,final.questions);
   assert.ok(retake.questions.some(q=>{
     const first=final.questions.find(question=>question.q===q.q);
@@ -222,7 +244,7 @@ async function run(){
   assert.equal(results.lessons.length,35);
   assert.ok(results.lessons.every(lesson=>lesson.score===100));
   assert.deepEqual(results.feedback.answers,Array(10).fill(5));
-  assert.deepEqual(results.finalScores.map(x=>x.score),[0,100]);
+  assert.deepEqual(results.finalScores.map(x=>x.score),[3,0,100]);
   assert.equal(results.certificate.certificateId,id);
   const certificates=await request('/api/admin/certificates/list',{token:admin.token});
   assert.ok(JSON.stringify(certificates).includes(id));
@@ -231,7 +253,7 @@ async function run(){
   assert.deepEqual(await certificateStore.find({courseId:{$in:protection}}).sort({enrollmentId:1}).toArray(),otherCertificates);
   assert.deepEqual((await request(api+'/me',{token:oldSession})).progress,oldProgress);
   assert.equal(TRAFFIC_SCREENS.length,10);
-  console.log('PASS: 40 lessons, initial assessment, registration and mocked access email, saved progress, feedback, shuffled final and retake, mocked certificate email, QR response, protected admin results and legacy records');
+  console.log('PASS: 40 lessons, initial assessment, registration and mocked access email, saved progress, feedback, timed draft/resume/expiry, shuffled final and two retakes, mocked certificate email, QR response, protected admin results and legacy records');
 }
 
 run().catch(error=>{
