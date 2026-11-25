@@ -1,0 +1,11 @@
+[diagnostic]
+Which objective best describes traffic marshaling at a workplace?|أي هدف يصف تنظيم المرور في موقع عمل؟|Safe, coordinated movement of vehicles and pedestrians|حركة آمنة ومنسقة للمركبات والمشاة
+Which document is most useful before taking an unfamiliar traffic post?|أي مستند يفيد قبل تسلم نقطة مرور غير مألوفة؟|The current site traffic management plan|خطة إدارة المرور السارية
+Which action comes before visiting vehicles enter a restricted facility?|أي إجراء يسبق دخول مركبات الزوار منشأة مقيّدة؟|Verification under the site's entry procedure|التحقق وفق إجراء دخول الموقع
+What is a blind spot for a vehicle driver?|ما النقطة العمياء بالنسبة إلى السائق؟|An area the driver cannot see from the driving position|منطقة لا يراها السائق من موضع القيادة
+What is a near miss in site transport?|ما الحادث الوشيك في حركة النقل بالموقع؟|An event that could have caused harm but did not|حدث كان يمكن أن يسبب ضررًا ولم يفعل
+When is a hand signal safe to act on?|متى يكون العمل بإشارة اليد آمنًا؟|When it is agreed, clearly understood and the path is safe|عندما تكون متفقًا عليها ومفهومة بوضوح والمسار آمنًا
+What distinguishes a public terminal area from an aircraft movement area?|ما الذي يميز منطقة الركاب العامة عن منطقة حركة الطائرات؟|They have different access and authorization arrangements|لهما ترتيبات مختلفة للوصول والتفويض
+Which period often concentrates pedestrian demand at a venue exit?|أي فترة تتركّز فيها حركة المشاة عند مخرج المنشأة عادةً؟|Immediately after the event ends|بعد انتهاء الفعالية مباشرةً
+What makes a retail loading point a mixed-traffic risk?|ما الذي يجعل نقطة تحميل المجمع معرضة لتداخل الحركة؟|Delivery vehicles and members of the public can share nearby space|إمكان اشتراك مركبات التوريد والجمهور في حيز متقارب
+What must a forklift operator and nearby pedestrians avoid sharing?|ما الذي يجب ألا يتشاركه مشغّل الرافعة والمشاة القريبون؟|An uncontrolled movement path|مسار حركة بلا ضوابط

@@ -17,7 +17,8 @@ const FIRE_SLUG='fire-safety-emergency-response';
 // Isolated Traffic staging integration: never enables the new course on production by itself.
 const {TRAFFIC_SLUG,TRAFFIC_META,TRAFFIC_SCREENS,TRAFFIC_FINAL_ASSESSMENT}=require('./self-study-traffic-config.js');
 const trafficCurriculum=require('./traffic-course-curriculum.js');
-const expandedTraffic=row=>row?.courseSlug===TRAFFIC_SLUG&&row.curriculumVersion===trafficCurriculum.CURRICULUM_VERSION;
+const completeTraffic=row=>row?.courseSlug===TRAFFIC_SLUG&&row.curriculumVersion===trafficCurriculum.CURRICULUM_VERSION;
+const expandedTraffic=row=>completeTraffic(row)||(row?.courseSlug===TRAFFIC_SLUG&&row.curriculumVersion===2);
 const baseProgress=()=>({
   completedScreens:[],
   screenScores:{},
@@ -260,7 +261,13 @@ m4:[
 {id:'m5s15',slide:70,titleEn:'Thank You',titleAr:'شكراً لك',bodyEn:'Thank you for completing the SECURITY INSTRUCTOR Fire Safety self-study learning content. Continue to the final assessment when the required learning screens are mastered.',bodyAr:'شكراً لإكمال محتوى الدراسة الذاتية لدورة السلامة من الحرائق من SECURITY INSTRUCTOR. انتقل إلى الاختبار النهائي عند إتقان شاشات التعلم المطلوبة.',assessmentRequired:false,videoUrl:''}
 ]};
 const FIRE_SCREEN_LIST=Object.values(FIRE_SCREENS).flat();
-const screensFor=(slug,row)=>slug===TRAFFIC_SLUG?(expandedTraffic(row)||!row?trafficCurriculum.screens:TRAFFIC_SCREENS):(slug===FIRE_SLUG?FIRE_SCREEN_LIST:[]);
+const screensFor=(slug,row)=>{
+  if(slug===FIRE_SLUG)return FIRE_SCREEN_LIST;
+  if(slug!==TRAFFIC_SLUG)return [];
+  if(!row)return trafficCurriculum.screens;
+  if(completeTraffic(row))return trafficCurriculum.sequence;
+  return expandedTraffic(row)?trafficCurriculum.previousScreens:TRAFFIC_SCREENS;
+};
 const finalFor=slug=>slug===TRAFFIC_SLUG?TRAFFIC_FINAL_ASSESSMENT:(slug===FIRE_SLUG?FINAL_FIRE_ASSESSMENT:[]);
 const validAnswerIndexes=answers=>answers.every(answer=>Number.isInteger(answer)&&answer>=0&&answer<4);
 // Only the new Traffic course randomizes final question order, deterministically
@@ -268,6 +275,7 @@ const validAnswerIndexes=answers=>answers.every(answer=>Number.isInteger(answer)
 const orderedFinalFor=(slug,accessId,attemptIndex,row)=>{
   const sort=(questions)=>questions.map((q,i)=>({q,i,key:sha(String(accessId)+'|traffic-final|'+String(attemptIndex)+'|'+q.q)}))
     .sort((a,b)=>a.key.localeCompare(b.key)||a.i-b.i).map(x=>x.q);
+  if(completeTraffic(row))return sort(trafficCurriculum.banks.final);
   if(expandedTraffic(row)){
     const pools=trafficCurriculum.assessmentPools.map(sort);
     const coverage=pools.flatMap(pool=>pool.slice(0,3));
@@ -526,7 +534,8 @@ const exchangeHandler=async(req,res)=>{
 
 const meHandler=async(req,res)=>{
   const row=req.selfStudy;
-  const course=row.courseSlug===TRAFFIC_SLUG&&!expandedTraffic(row)?TRAFFIC_META:COURSE_META[row.courseSlug];
+  const course=row.courseSlug!==TRAFFIC_SLUG?COURSE_META[row.courseSlug]:
+    completeTraffic(row)?trafficCurriculum.meta:expandedTraffic(row)?trafficCurriculum.previousMeta:TRAFFIC_META;
   const p=row.progress||baseProgress();
   const currentScores=row.courseSlug===TRAFFIC_SLUG?trafficScores(p.screenScores,row):null;
   const q=currentScores?currentScores.reduce((sum,item)=>sum+Number(item.questions||0),0):Number(p.cumulativeQuestions||0);
@@ -534,7 +543,7 @@ const meHandler=async(req,res)=>{
   const cumulative=q?Math.round(correct/q*100):0;
   const assessed=assessedFor(row);
   const completedAssessed=assessed.filter(s=>Number((p.screenScores||{})[s.id]?.score||0)>=80);
-  res.json({ok:true,enrollmentId:row.enrollmentId,course,...(expandedTraffic(row)?{initialAssessment:row.initialAssessment||null}:{}),...(row.courseSlug===TRAFFIC_SLUG?{lessons:screensFor(row.courseSlug,row).map(({id,assessmentRequired})=>({id,moduleId:moduleFor(id),assessmentRequired:assessmentRequired!==false}))}:{}),accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,maxFinalAttempts(row)-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,feedbackSubmitted:!!p.feedbackSubmittedAt,certificateEnabled:row.courseSlug===TRAFFIC_SLUG?trafficCertificateEnabled():true,certificateId:p.certificateId||null});
+  res.json({ok:true,enrollmentId:row.enrollmentId,course,...(expandedTraffic(row)?{initialAssessment:row.initialAssessment||null}:{}),...(row.courseSlug===TRAFFIC_SLUG?{lessons:screensFor(row.courseSlug,row).map(({id,kind,assessmentRequired})=>({id,moduleId:moduleFor(id),kind,assessmentRequired:assessmentRequired!==false}))}:{}),accessStartsAt:row.accessStartsAt,accessExpiresAt:row.accessExpiresAt,activeStudySeconds:Number(row.activeStudySeconds||0),activeStudyLimitSeconds:ACTIVE_STUDY_SECONDS,progress:p,cumulativeScore:cumulative,assessedScreens:assessed.length,completedAssessedScreens:completedAssessed.length,learningMastered:assessed.length>0&&completedAssessed.length===assessed.length,finalAttempts:Number(p.finalAttempts||0),attemptsRemaining:Math.max(0,maxFinalAttempts(row)-Number(p.finalAttempts||0)),finalBestScore:p.finalBestScore||null,finalPassed:!!p.finalPassed,feedbackSubmitted:!!p.feedbackSubmittedAt,certificateEnabled:row.courseSlug===TRAFFIC_SLUG?trafficCertificateEnabled():true,certificateId:p.certificateId||null});
 };
 
 const screenHandler=async(req,res)=>{
@@ -553,7 +562,7 @@ const screenHandler=async(req,res)=>{
         if(previousScore<80)return res.status(403).json({message:'Complete the previous assessed learning screen with at least 80% before continuing.'});
       }
     }
-    res.json({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',...(expandedTraffic(req.selfStudy)?{approvedVideo:!!s.approvedVideo,imageUrl:s.imageUrl||'',diagram:s.diagram}:{}),assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
+    res.json({id:s.id,moduleId:moduleFor(s.id),slide:s.slide||null,kind:s.kind,titleEn:s.titleEn,titleAr:s.titleAr,bodyEn:s.bodyEn,bodyAr:s.bodyAr,videoUrl:s.videoUrl||'',...(expandedTraffic(req.selfStudy)?{approvedVideo:!!s.approvedVideo,imageUrl:s.imageUrl||'',diagram:s.diagram,siteMap:s.siteMap,supplementalVideo:s.supplementalVideo}:{}),assessmentRequired:s.assessmentRequired!==false,questions:(s.questions||[]).map(q=>{const order=questionOrder(q,req.selfStudy.accessId||req.selfStudy.enrollmentId);return {q:q.q,options:order.map(i=>q.a[i])}})});
   }catch(e){res.status(500).json({message:'Unable to load learning screen'});}
 };
 const screenAssessmentHandler=async(req,res)=>{
@@ -741,6 +750,7 @@ const initialQuestionSet=row=>{
   const key=row.accessId||row.enrollmentId;
   const rank=questions=>questions.map(q=>({q,key:sha(key+'|initial|'+q.q)}))
     .sort((a,b)=>a.key.localeCompare(b.key)).map(x=>x.q);
+  if(completeTraffic(row))return rank(trafficCurriculum.banks.diagnostic);
   const pools=trafficCurriculum.assessmentPools.map(rank);
   return rank([...pools.map(pool=>pool[0]),...rank(pools.flatMap(pool=>pool.slice(1))).slice(0,2)]);
 };
@@ -783,7 +793,7 @@ const trafficAdminResult=async(req,res)=>{
     if(!row)return res.status(404).json({message:'Traffic self-study enrollment not found'});
     const progress=row.progress||baseProgress();
     const cohort={...row,courseSlug:TRAFFIC_SLUG};
-    const lessons=assessedFor(cohort).map(({id,titleEn,titleAr})=>({id,titleEn,titleAr,
+    const lessons=assessedFor(cohort).map(({id,titleEn,titleAr,kind})=>({id,titleEn,titleAr,kind,
       score:progress.screenScores?.[id]?.score??null,attempts:progress.screenScores?.[id]?.attempts||0}));
     const [feedback,certificate]=await Promise.all([
       db.collection('selfstudytrafficfeedback').findOne({enrollmentId,courseSlug:TRAFFIC_SLUG},

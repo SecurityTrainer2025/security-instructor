@@ -1,0 +1,240 @@
+[tm1s1]
+What decision belongs to the marshal at a staffed crossing?|ما القرار الذي يدخل ضمن مهام المنظم عند معبر مراقَب؟|Hold conflicting traffic under the site procedure|إيقاف الحركة المتعارضة وفق إجراء الموقع
+Who may authorize a departure from the approved traffic layout?|من يملك صلاحية تغيير التخطيط المروري المعتمد؟|The designated site authority|الجهة المخوّلة في الموقع
+Where should a driver stop to ask for detailed directions?|أين يتوقف السائق لطلب إرشادات مفصلة؟|At the designated pull-off|عند نقطة التوقف المخصصة
+What is the first coordination step when a queue reaches an adjacent intersection?|ما أول إجراء تنسيقي عندما يمتد الطابور إلى التقاطع المجاور؟|Alert the neighboring post and control|إبلاغ النقطة المجاورة وغرفة التحكم
+What must be checked before allowing a pedestrian crossing to proceed?|ماذا يراجع المنظم قبل السماح بعبور المشاة؟|Conflicting vehicles are held and enough crossing time is available|توقف المركبات المتعارضة وتوافر وقت كافٍ للعبور
+[tm1s2]
+Where should the current site movement plan be available?|أين يجب إتاحة النسخة السارية من خطة الحركة؟|In the control room and at relevant duty points|في غرفة التحكم وعند النقاط المعنية
+What part of the plan tells a driver whether a delivery entrance is open?|أي جزء من الخطة يحدد ما إذا كان مدخل التوريد مفتوحًا؟|The access schedule for each gate|جدول ساعات الدخول لكل بوابة
+What is the preferred observation post when a protected corner provides clear sightlines?|ما موضع المراقبة المفضل إذا أتاحت الزاوية المحمية رؤية واضحة؟|The protected corner outside turning paths|الزاوية المحمية خارج مسارات الانعطاف
+What additional step is required before considering a central position?|ما الخطوة الإضافية اللازمة قبل النظر في التمركز وسط التقاطع؟|Obtain express authorization after a site risk assessment|الحصول على تصريح صريح بعد تقييم مخاطر الموقع
+Which route must remain available to the marshal if a vehicle fails to stop?|أي مسار يجب أن يبقى متاحًا للمنظم إذا لم تتوقف مركبة؟|A clear withdrawal route away from vehicle movement|مسار انسحاب واضح بعيد عن حركة المركبات
+[tm1s3]
+What control removes exposure when deliveries can use another entrance?|أي إجراء يزيل التعرض للخطر عندما يمكن نقل التوريد إلى مدخل آخر؟|Eliminate vehicle movement at the shared entrance|إزالة حركة المركبات من المدخل المشترك
+What is an example of substitution in site transport?|ما مثال الاستبدال في وسائل النقل داخل الموقع؟|Replace a higher-risk handling method with a suitable safer one|استبدال أسلوب المناولة الأعلى خطورة ببديل مناسب أكثر أمانًا
+What provides physical separation between traffic and a walkway?|ما الذي يوفر فصلًا ماديًا بين المركبات وممر المشاة؟|A suitable engineered barrier|حاجز هندسي مناسب
+What class of control includes staggered delivery appointments?|إلى أي فئة تنتمي مواعيد التوريد المتباعدة؟|An administrative traffic control|ضابط إداري لحركة المرور
+What protection does high-visibility clothing primarily provide?|ما الفائدة الرئيسية للملابس عالية الوضوح؟|It helps drivers see the marshal|تساعد السائقين على رؤية المنظم
+[tm1s4]
+What happens between hazard recognition and the driver's first braking action?|ماذا يحدث بين إدراك الخطر وبدء الكبح؟|The vehicle travels the reaction distance|تقطع المركبة مسافة رد الفعل
+What is the approximate effect of doubling speed on braking distance under comparable conditions?|ما الأثر التقريبي لمضاعفة السرعة على مسافة الكبح في ظروف متماثلة؟|The braking distance becomes about four times greater|تصبح مسافة الكبح نحو أربعة أمثالها|It is unchanged|تبقى كما هي|It doubles|تتضاعف|It increases eightfold|تصبح ثمانية أمثالها
+What property of a wet road typically changes emergency braking?|ما خاصية السطح المبتل التي تؤثر عادة في الكبح الطارئ؟|Reduced grip at the tyres|انخفاض تماسك الإطارات مع السطح
+Where should a crossing be positioned relative to a blind bend?|أين يوضع المعبر بالنسبة إلى منعطف يحجب الرؤية؟|Where approaching drivers have enough distance to see and stop|حيث تتوافر للقادمين مسافة كافية للرؤية والتوقف
+What should be checked when a loaded vehicle approaches a downhill crossing?|ماذا يُراجع عند اقتراب مركبة محملة من معبر على منحدر؟|Whether slope and load leave adequate stopping margin|مدى كفاية هامش التوقف مع الانحدار والحمولة
+[tm1s5]
+What identifies the people who could be harmed by a site hazard?|ما الذي يحدد من قد يتضرر من خطر في الموقع؟|The exposure assessment in the risk record|تقييم الأشخاص المعرضين في سجل المخاطر
+Who follows up the corrective action for a failed barrier?|من يتابع الإجراء التصحيحي لحاجز معطل؟|The assigned action owner|المسؤول المكلّف بالإجراء
+What should the risk record specify for a temporary route?|ماذا يحدد سجل المخاطر لمسار مؤقت؟|When and under what conditions to review the controls|موعد مراجعة الضوابط والظروف التي تستدعيها
+What comes before reopening a route after its protective control fails?|ماذا يسبق فتح المسار بعد فشل ضابط الحماية؟|Verification and approval of a suitable replacement control|التحقق من ضابط بديل مناسب واعتماده
+What governs an immediate safety hold?|ما الذي يحكم قرار إيقاف العمل فورًا للسلامة؟|The site stop-work procedure|إجراء إيقاف العمل في الموقع
+[tm2s1]
+Which locations are excluded when choosing a gate-duty post?|ما المواقع المستبعدة عند اختيار موضع العمل على البوابة؟|Vehicle paths and the movement envelope of the barrier|مسارات المركبات ونطاق حركة الحاجز
+Who checks vehicle passes and identity documents?|من يفحص تصاريح المركبات ووثائق الهوية؟|Personnel authorized to perform the verification|الأفراد المخوّلون بالتحقق
+What must be confirmed before sending a vehicle into an inspection bay?|ماذا يؤكد المنظم قبل توجيه مركبة إلى باحة التفتيش؟|The bay is ready and the route to it is clear|جاهزية الباحة وخلو المسار إليها
+How should emergency vehicles be handled when inspection lanes are busy?|كيف تُدار مركبات الطوارئ عندما تكون حارات التفتيش مشغولة؟|Coordinate priority on a clear approved route|تنسيق الأولوية عبر مسار معتمد وخالٍ
+Where should rejected vehicles go after the authorized decision?|إلى أين تُوجّه المركبات المرفوضة بعد القرار المخوّل؟|To the designated rejection or exit area|إلى منطقة الرفض أو الخروج المخصصة
+[tm2s2]
+What route information must a driver receive at the site gate?|ما معلومات المسار التي يتلقاها السائق عند بوابة الموقع؟|Approved routes, crossings, limits and the assigned destination|المسارات والمعابر والحدود والوجهة المحددة
+How is unsafe refusal handled in a moving lane?|كيف يُتعامل مع رفض غير آمن في حارة حركة؟|Hold safely and escalate the decision to a supervisor|إيقاف الحركة بأمان وإحالة القرار للمشرف
+What must exist before a vehicle may be immobilized as an enforcement measure?|ما المطلوب قبل تثبيت مركبة كإجراء إنفاذ؟|Lawful authorization and an applicable written procedure|تفويض قانوني وإجراء مكتوب سارٍ
+Where should a marshal discuss a disputed direction with a driver?|أين يناقش المنظم توجيهًا محل خلاف مع السائق؟|At a protected point outside moving traffic|في نقطة محمية خارج مسار الحركة
+Which personal details should be used during the induction?|أي بيانات شخصية تُستخدم أثناء الإحاطة؟|Only details needed for the authorized purpose|البيانات اللازمة للغرض المخوّل فقط
+[tm2s3]
+When does a queue grow even if the inspection process works correctly?|متى يطول الطابور رغم عمل التفتيش بصورة صحيحة؟|When demand exceeds the processing rate|عندما يفوق الطلب معدل المعالجة
+What gives marshals an early cue before traffic reaches a public junction?|ما الذي ينبه المنظم قبل امتداد المركبات إلى تقاطع عام؟|An observable queue intervention marker|علامة ميدانية لحد التدخل في الطابور
+What option regulates a predictable delivery surge in advance?|أي إجراء ينظم ذروة توريد متوقعة مسبقًا؟|Timed arrival slots agreed with suppliers|مواعيد وصول متفق عليها مع الموردين
+Where are excess arrivals held when normal processing is full?|أين تنتظر المركبات الزائدة عند امتلاء نقاط المعالجة؟|In the approved overflow area|في منطقة الانتظار الاحتياطية المعتمدة
+What should be measured after opening another approved lane?|ماذا يُقاس بعد فتح حارة أخرى معتمدة؟|Whether queue length and spillback risk actually fall|مدى انخفاض طول الطابور وخطر امتداده
+[tm2s4]
+What material helps a first-time driver identify the correct destination?|ما المادة التي تساعد سائقًا جديدًا في تحديد وجهته الصحيحة؟|An up-to-date site map with the destination marked|خريطة موقع محدثة تبيّن الوجهة
+How can a marshal verify a driver understood the explanation?|كيف يتحقق المنظم من أن السائق فهم الشرح؟|Ask the driver to show or repeat the route and stopping point|طلب إعادة شرح أو تحديد المسار ونقطة الوقوف
+What should be offered if spoken instructions are not understood?|ماذا يُقدّم إذا تعذر فهم التعليمات الشفهية؟|An approved translated aid or interpreter|وسيلة ترجمة معتمدة أو مترجم
+Which point is included if a driver needs help after entering?|أي معلومة تُعطى للسائق إذا احتاج مساعدة بعد الدخول؟|The designated contact for an emergency or route problem|جهة الاتصال المحددة للطوارئ أو تعطل المسار
+When should a first-time driver be released from the entrance?|متى يسمح للسائق الجديد بمغادرة البوابة نحو الداخل؟|Once the required instructions are understood|بعد التحقق من فهم التعليمات اللازمة
+[tm2s5]
+What is the purpose of a holding bay during a disputed entry?|ما وظيفة باحة الانتظار عند وجود خلاف بشأن الدخول؟|Keep the vehicle safely away from active routes pending a decision|إبقاء المركبة بعيدًا عن المسارات النشطة ريثما يصدر القرار
+Who decides whether a disputed delivery can be admitted?|من يقرر إمكان إدخال توريد محل خلاف؟|The authorized supervisor or entry decision-maker|المشرف أو مسؤول قرار الدخول المخوّل
+How should the marshal tell a driver about the next step?|كيف يخبر المنظم السائق بالخطوة التالية؟|Clearly and calmly from a position outside the path|بوضوح وهدوء من موضع خارج المسار
+What belongs in the approved incident entry record?|ماذا يُسجّل في السجل المعتمد لحالة الدخول؟|The relevant facts and action taken|الحقائق ذات الصلة والإجراء المتخذ
+What should the marshal do if the vehicle moves unexpectedly?|ماذا يفعل المنظم إذا تحركت المركبة دون توقع؟|Withdraw to safety and notify control|الانسحاب إلى موضع آمن وإبلاغ غرفة التحكم
+[tm3s1]
+What maintains pedestrian separation along a busy road?|ما الذي يحافظ على فصل المشاة بمحاذاة طريق مزدحم؟|A continuous suitable protective barrier|حاجز حماية ملائم ومتصل
+What must be considered when extending a kerb at a crossing?|ما المطلوب مراعاته عند تمديد الرصيف عند المعبر؟|Sightlines and vehicle turning geometry|خطوط الرؤية وهندسة انعطاف المركبات
+What distinguishes a flat-topped speed table?|ما الذي يميز المطب طويل السطح المستوي؟|A raised platform with a flat top|منصة مرتفعة ذات سطح مستوٍ
+Why consult response teams before installing speed cushions?|لماذا تُستشار فرق الاستجابة قبل تركيب وسائد السرعة؟|To check fleet compatibility and response delay|للتحقق من ملاءمتها للمركبات وأثرها على زمن الاستجابة
+When can heavy and light vehicle routes be separated?|متى يمكن فصل مسارات المركبات الثقيلة والخفيفة؟|When the site layout permits safe independent routes|عندما يسمح التخطيط بمسارات مستقلة وآمنة
+[tm3s2]
+What is the preferred movement design at a loading bay?|ما تصميم الحركة المفضل في باحة التحميل؟|A layout allowing forward exit|تخطيط يتيح الخروج إلى الأمام
+What should a guide avoid while a vehicle reverses?|ماذا يتجنب الموجّه أثناء رجوع المركبة؟|Standing in the path of the moving vehicle|الوقوف في مسار المركبة المتحركة
+What reconciles a parking counter affected by closed bays?|ما الذي يصحّح عداد مواقف تأثر بإغلاق بعض الأماكن؟|Compare the count with actual usable spaces|مطابقة العد مع الأماكن المتاحة فعليًا
+Who should access automatic number-plate records?|من يطّلع على سجلات قراءة لوحات المركبات؟|Authorized users under the retention policy|المخوّلون وفق سياسة الاحتفاظ بالبيانات
+What must be kept clear when marked bays fill up?|ما الذي يجب أن يظل خاليًا عند امتلاء أماكن الوقوف؟|Loading and emergency lanes|حارات التحميل والطوارئ
+[tm3s3]
+Where should an accessible crossing connect?|إلى أين ينبغي أن يتصل المعبر الميسّر؟|To continuous pedestrian paths on both sides|بمسارات مشاة متصلة على الجانبين
+What makes an approach easier for drivers to perceive?|ما الذي يسهل على السائقين رؤية الاقتراب من المعبر؟|Unobstructed views of people approaching the crossing|رؤية واضحة للمشاة المقتربين
+What can reveal that a barrier forces pedestrians into traffic?|ما الذي يكشف أن الحاجز يدفع المشاة إلى طريق المركبات؟|Observations during actual peak use|الملاحظة خلال أوقات الاستخدام الفعلي في الذروة
+What must remain clear at an accessible ramp?|ما الذي يجب أن يبقى خاليًا عند منحدر ميسّر؟|The entire path to and across the ramp|المسار الكامل إلى المنحدر وعبره
+What should the route surface allow?|ما الذي ينبغي أن يتيحه سطح المسار؟|Stable and accessible pedestrian movement|حركة مشاة مستقرة وميسّرة
+[tm3s4]
+What stops exposure when a pedestrian enters the reversing area?|ما الذي يوقف التعرض للخطر إذا دخل أحد المشاة نطاق الرجوع؟|Bring the maneuver to a safe stop|إيقاف المناورة بأمان
+What should driver and guide agree before maneuvering?|على ماذا يتفق السائق والموجّه قبل المناورة؟|The authorized signal and loss-of-contact procedure|الإشارة المعتمدة وإجراء انقطاع التواصل
+Where should the assigned guide remain?|أين يبقى الموجّه المكلّف أثناء الرجوع؟|In a visible protected position outside the maneuver|في موضع محمي وواضح خارج نطاق المناورة
+When can a maneuver resume after losing sight of the guide?|متى تستأنف المناورة بعد فقدان رؤية الموجّه؟|After restoring contact and confirming the path is clear|بعد استعادة التواصل والتأكد من خلو المسار
+How can a site reduce the number of reversing moves?|كيف يخفض الموقع عدد مناورات الرجوع؟|Use a through-route where practicable|استخدام مسار نافذ حيثما أمكن
+[tm3s5]
+Which bays are excluded from space available to general traffic?|ما الأماكن المستثناة من المساحات المتاحة للمركبات العامة؟|Closed and reserved bays|الأماكن المغلقة والمحجوزة
+What indicates the need to divert incoming cars?|ما الذي يشير إلى ضرورة تحويل المركبات القادمة؟|Approaching usable capacity before aisles fill|الاقتراب من السعة الفعلية قبل انسداد الممرات
+What connects an accessible drop-off to the destination?|ما الذي يربط نقطة إنزال ميسّرة بالوجهة؟|An unobstructed accessible pedestrian path|مسار مشاة ميسّر وخالٍ من العوائق
+How should an emergency lane be treated when the car park is full?|كيف يُتعامل مع حارة الطوارئ عند امتلاء الموقف؟|Keep it clear under all occupancy conditions|إبقاؤها خالية مهما بلغ الإشغال
+What is the first data check before announcing available places?|ما أول تحقق قبل إعلان الأماكن الشاغرة؟|Compare live occupancy with actual available capacity|مقارنة الإشغال الفعلي بالسعة المتاحة
+[tm4s1]
+What helps protect a marshal from heat during a shift?|ما الذي يحمي المنظم من الحر أثناء المناوبة؟|Planned drinking water, shade, breaks and relief|ماء وظل وفترات راحة ومنظم بديل ضمن خطة
+When may a trained marshal provide first aid?|متى يقدم المنظم المدرّب الإسعافات الأولية؟|After confirming the scene is safe and within their training|بعد تأمين الموقع وفي حدود تدريبه
+What can help make visual signals visible at night when authorized?|ما الذي يساعد على إظهار الإشارات البصرية ليلًا عند اعتماده؟|An approved illuminated signal wand|عصا إشارة مضيئة معتمدة
+What should a marshal do when rain makes clothing unsuitable for duty?|ماذا يفعل المنظم عندما يجعل المطر ملابسه غير صالحة للعمل؟|Replace wet gear or request relief|استبدال الملابس المبتلة أو طلب بديل
+What conditions justify suspending movement according to the site plan?|ما الظروف التي تستدعي تعليق الحركة وفق الخطة؟|Visibility or traction below safe operating conditions|تدني الرؤية أو التماسك عن ظروف التشغيل الآمنة
+[tm4s2]
+What does S describe in the SCRIM memory aid?|ماذا يصف الحرف S في وسيلة التذكر SCRIM؟|The shape or body type of the vehicle|شكل المركبة أو نوع هيكلها
+What does R represent in SCRIM?|إلى ماذا يرمز الحرف R في SCRIM؟|The observed registration plate and its issuing region when visible|رقم اللوحة وجهة إصدارها إذا ظهرت
+What observation belongs under identifying marks?|ما الملاحظة التي تندرج تحت العلامات المميزة؟|A visible dent or unusual externally observable feature|انبعاج مرئي أو سمة خارجية مميزة
+What starts a chronological violation report?|بماذا يبدأ التقرير الزمني للمخالفة؟|Recorded time and exact location|الوقت المسجّل والموقع الدقيق
+How is uncertainty recorded about an observed vehicle?|كيف يُسجّل عدم اليقين بشأن مركبة شوهدت؟|Mark unconfirmed details as unconfirmed|تمييز التفاصيل غير المؤكدة بصراحة
+[tm4s3]
+Which weather factors together raise heat strain?|ما عوامل الطقس التي تزيد الإجهاد الحراري معًا؟|Heat, humidity and radiant load|الحرارة والرطوبة والإشعاع الحراري
+What is a warning sign requiring a medical response during a heat alert?|ما علامة الإنذار التي تتطلب استجابة طبية أثناء موجة حر؟|Dizziness or confusion in a worker|دوار أو ارتباك لدى العامل
+What must be arranged before a marshal leaves a live post for rest?|ماذا يرتب قبل مغادرة المنظم نقطة نشطة للراحة؟|Safe relief coverage|تغطية آمنة بمنظم بديل
+What should be evaluated separately from heat when it rains?|ما الذي يُقيّم بصورة مستقلة عن الحر عند هطول المطر؟|Sight distance and surface grip|مسافة الرؤية وتماسك السطح
+Which procedure defines the local exposure threshold?|أي إجراء يحدد حد التعرض المحلي؟|The site's applicable heat and weather plan|خطة الحر والطقس السارية في الموقع
+[tm4s4]
+Who must know promptly when a response route becomes blocked?|من يجب إبلاغه سريعًا عند انسداد مسار الاستجابة؟|The control room or incident coordination|غرفة التحكم أو تنسيق الحادث
+Which alternate route may be used for responders?|أي مسار بديل يُستخدم لفرق الاستجابة؟|An alternate approved by incident command|بديل معتمد من قيادة الحادث
+Where should an emergency traffic hold be directed from?|من أين يُدار إيقاف المرور في الطوارئ؟|A protected control point|نقطة تحكم محمية
+What should be checked physically before declaring a response lane available?|ما الذي يجب فحصه ميدانيًا قبل إعلان إتاحة حارة الاستجابة؟|Clearance along the entire affected route|خلو المسار المتأثر على امتداده
+What public traffic movement must be controlled for responders to pass?|أي حركة للجمهور تُضبط حتى تمر فرق الاستجابة؟|Movements that conflict with the approved response route|الحركات المتعارضة مع مسار الاستجابة المعتمد
+[tm4s5]
+Why record an event that narrowly avoided injury?|لماذا يوثّق حدث كاد يتسبب بإصابة؟|It reveals exposure and possible control failure|يكشف التعرض للخطر واحتمال فشل أحد الضوابط
+Which information should be separated from observations in a near-miss report?|ما المعلومات التي تُفصل عن المشاهدات في تقرير الحادث الوشيك؟|Assumptions about how or why the event happened|الافتراضات عن كيفية وقوع الحدث أو سببه
+What finding turns a report into an improvement action?|ما النتيجة التي تحول التقرير إلى إجراء تحسين؟|An identified control failure with a corrective owner|تحديد ضابط تعطّل وتعيين مسؤول عن تصحيحه
+What should be checked after a corrective measure is introduced?|ماذا يُراجع بعد تطبيق إجراء تصحيحي؟|Whether the same exposure persists or recurs|ما إذا كان التعرض نفسه مستمرًا أو متكررًا
+How should personal details in reports be distributed?|كيف تُوزع البيانات الشخصية الموجودة في البلاغ؟|Only through authorized reporting channels|عبر قنوات الإبلاغ المخوّلة فقط
+[tm5s1]
+What is the visual roadway stop example in the reference?|ما مثال التوقف على الطريق في العرض؟|Palm facing the selected driver|راحة اليد تجاه السائق المقصود|Point both arms to the exit|وجّه الذراعين إلى المخرج|Sweep both arms inward|حرّك الذراعين نحو الجسم|Signal a turn with one arm|أشر إلى الانعطاف بذراع واحدة
+What signal in the reference accompanies one long whistle blast?|أي إشارة ترافق نفخة صافرة طويلة في العرض؟|The approved visual stop|إشارة التوقف البصرية المعتمدة|The visual start signal|إشارة بدء الحركة البصرية|The turn instruction|إشارة الانعطاف|The exit instruction|إشارة السماح بالخروج
+How is the reference start supported by the whistle?|كيف تدعم الصافرة بدء الحركة في العرض؟|Two short blasts alongside the visual start|نفختان قصيرتان مع إشارة بدء الحركة البصرية|One long blast alone|نفخة طويلة وحدها|Two short blasts without the hand signal|نفختان قصيرتان بلا إشارة يد|Three short blasts with a turning gesture|ثلاث نفخات قصيرة مع إشارة انعطاف
+Which reference maneuver stop uses the arms above the head?|أي إشارة إيقاف مناورة في العرض ترفع الذراعين فوق الرأس؟|Normal maneuver stop with crossed arms|التوقف العادي للمناورة بتقاطع الذراعين|Roadway stop with one raised palm|إيقاف الطريق براحة يد مرفوعة|The gesture for slowly proceeding|إشارة التقدم ببطء|The visual instruction to exit|إشارة السماح بالخروج
+What distinguishes the emergency stop example from normal maneuver stop?|ما الذي يميّز مثال التوقف الطارئ عن إيقاف المناورة العادي؟|Repeated sweeping outward and downward from clasped hands overhead|تحريك الذراعين إلى الخارج والأسفل مرارًا بعد تشبيك اليدين فوق الرأس
+[tm5s2]
+What four pieces of information make a concise radio report?|ما المعلومات الأربع في البلاغ اللاسلكي الموجز؟|Call sign, location, observed hazard and requested action|رمز النداء والموقع والخطر المشاهد والإجراء المطلوب
+What confirms that a safety message was received as intended?|ما الذي يؤكد استقبال رسالة السلامة بالمعنى المقصود؟|The receiver repeats back the critical instruction|إعادة المتلقي للتعليمات الحرجة
+What should be handed over if the normal route has changed?|ماذا يُسلّم إذا تغيّر المسار المعتاد؟|The approved diversion, controls and pending checks|التحويلة المعتمدة وضوابطها والفحوص المعلّقة
+Where should trainees practice signaling before being assigned?|أين يتدرب المتدربون على الإشارات قبل التكليف؟|In a controlled area under a qualified instructor|في منطقة محكومة تحت إشراف مدرب مؤهل
+What does completion of the online course establish?|ماذا يثبت إكمال الدورة عبر الإنترنت؟|The knowledge result, with field competence assessed separately|نتيجة المعرفة مع تقييم الكفاءة الميدانية بصورة منفصلة
+[tm5s3]
+Who should give movement instructions in an agreed signaling arrangement?|من يعطي تعليمات الحركة ضمن ترتيب إشارات متفق عليه؟|One designated signaler|موجّه واحد مكلّف
+What should be confirmed about the guide before moving?|ماذا يجب التحقق منه بشأن الموجّه قبل الحركة؟|The driver can see the guide in a protected position|يستطيع السائق رؤية الموجّه في موضع محمي
+Which reference should both parties consult for locally authorized signals?|أي مرجع يرجع إليه الطرفان لمعرفة الإشارات المخوّلة محليًا؟|The current site signal chart|جدول الإشارات الساري في الموقع
+Which instruction takes priority if two incompatible gestures are given?|أي تعليمات لها الأولوية إذا ظهرت إشارتان متعارضتان؟|Hold movement until the instruction is resolved|إيقاف الحركة حتى توضيح التعليمات
+What must be understood before using a backup communication method?|ماذا يجب فهمه قبل استخدام وسيلة تواصل بديلة؟|The agreed stop and loss-of-contact procedure|إجراء التوقف وانقطاع التواصل المتفق عليه
+[tm5s4]
+How should the receiver confirm a safety-critical hold point?|كيف يؤكد المتلقي نقطة انتظار حرجة للسلامة؟|Repeat the exact location and hold requirement|إعادة تحديد الموقع بدقة وشرط الانتظار
+What should the sender do after a wrong read-back?|ماذا يفعل المرسل بعد إعادة تأكيد خاطئة؟|Correct the instruction and request another read-back|تصحيح التعليمات وطلب إعادة تأكيدها
+What is the first response when both primary and backup communication are lost?|ما الاستجابة الأولى عند تعطل وسيلتي الاتصال الأساسية والبديلة؟|Keep movement safely stopped under the site procedure|إبقاء الحركة متوقفة بأمان وفق إجراء الموقع
+What helps a message reach the intended radio recipient?|ما الذي يساعد في إيصال الرسالة إلى المتلقي المقصود؟|Beginning with the recipient's agreed call sign|بدء الرسالة برمز نداء المتلقي المتفق عليه
+How should multiple unrelated traffic instructions be transmitted?|كيف تُرسل تعليمات مرورية متعددة غير مترابطة؟|As separate clear instructions requiring the appropriate confirmation|كتعليمات واضحة منفصلة مع التأكيد المناسب لكل منها
+[tm5s5]
+Who owns an open corrective action after handover?|من يتولى إجراءً تصحيحيًا مفتوحًا بعد التسليم؟|The person identified in the handover as action owner|الشخص المحدد في التسليم مسؤولًا عن الإجراء
+What should the incoming marshal inspect at a changed route?|ماذا يفحص المنظم المستلم عند مسار تغيّر؟|Critical controls from safe positions|الضوابط الحرجة من مواضع آمنة
+What demonstrates understanding during handover?|ما الذي يثبت الفهم أثناء التسليم؟|The incoming marshal explains the current arrangements and exceptions|شرح المنظم المستلم للترتيبات الحالية والاستثناءات
+What tool is used during a supervised field assessment?|ما الأداة المستخدمة خلال التقييم الميداني تحت الإشراف؟|The approved practical observation checklist|قائمة الملاحظة العملية المعتمدة
+What should follow an equipment defect found before shift change?|ماذا يلي اكتشاف عطل في المعدات قبل تبديل المناوبة؟|Record it and confirm the interim control and owner|تسجيله وتأكيد الضابط المؤقت والمسؤول عنه
+[tm6s1]
+Why monitor vehicle dwell time at a terminal?|لماذا يراقب زمن توقف المركبات أمام مبنى الركاب؟|Longer stops reduce effective curbside capacity|التوقف الطويل يقلل سعة منطقة الإنزال الفعلية
+What should happen when short-stay bays fill after a flight arrives?|ماذا يحدث إذا امتلأت أماكن التوقف القصير بعد وصول رحلة؟|Direct new arrivals upstream to designated overflow|تحويل القادمين مبكرًا إلى المنطقة الاحتياطية
+Which access must remain available in a curbside surge?|أي وصول يبقى متاحًا عند ذروة الحركة أمام المطار؟|The accessible drop-off and emergency route|نقطة الإنزال الميسّرة ومسار الطوارئ
+What should remain separated in the public terminal area?|ما الذي يجب فصله في المنطقة العامة لمبنى الركاب؟|Passenger drop-off, taxis, buses and service vehicles|إنزال الركاب وسيارات الأجرة والحافلات ومركبات الخدمة
+What triggers an upstream diversion at the curb?|ما الذي يطلق التحويل المبكر عند الرصيف؟|The approved queue or occupancy threshold|حد الطابور أو الإشغال المعتمد
+[tm6s2]
+What prevents buses entering a bay already at capacity?|ما الذي يمنع دخول حافلة إلى باحة ممتلئة؟|Holding arriving buses at the assigned staging point|إبقاء الحافلات القادمة في نقطة الانتظار المخصصة
+Where should waiting passengers be kept during reversing?|أين ينتظر الركاب أثناء الرجوع؟|Outside protected maneuvering limits|خارج حدود منطقة المناورة المحمية
+How can heavy rain change boarding risk?|كيف يغيّر المطر الغزير خطر صعود الركاب؟|People may shelter in unsuitable areas beside bus paths|قد يحتمي الناس في أماكن غير مناسبة قرب مسارات الحافلات
+What is required before boarding resumes after a hold?|ما المطلوب قبل استئناف الصعود بعد الإيقاف؟|A usable protected boarding path|مسار صعود محمي صالح للاستخدام
+What should a marshal verify about the next bus allocation?|ماذا يتحقق بشأن تخصيص الباحة للحافلة التالية؟|The assigned bay is free and its approach is clear|الباحة المخصصة شاغرة ومدخلها خالٍ
+[tm6s3]
+Which plan governs vehicle movement on public airport roads?|أي خطة تحكم حركة المركبات على طرق المطار العامة؟|The approved landside traffic plan|خطة المرور المعتمدة للمنطقة العامة
+What is needed to direct vehicles on the airside?|ما اللازم لتوجيه المركبات في المنطقة الجوية؟|Separate authorization and training|تفويض وتدريب منفصلان
+Who is informed if a landside service route fails?|من يُبلَغ عند تعطل مسار خدمة في المنطقة العامة؟|The designated airport operations team|فريق عمليات المطار المختص
+What must be verified before using an alternate airport route?|ما المطلوب التحقق منه قبل استخدام مسار بديل في المطار؟|The route is approved for that movement|أن المسار معتمد لتلك الحركة
+Who decides when a closed airport traffic route can reopen?|من يقرر إعادة فتح مسار مروري مغلق في المطار؟|The authority named in the airport plan|الجهة المحددة في خطة المطار
+[tm6s4]
+What capacities are compared before stadium arrivals begin?|ما السعات التي تُقارن قبل بدء وصول جمهور الاستاد؟|Parking, shuttle and pedestrian route capacities|سعات المواقف والحافلات ومسارات المشاة
+Why phase vehicle arrivals instead of releasing them all at once?|لماذا يُوزّع وصول المركبات زمنيًا؟|To keep demand within the capacity of safe routes|لإبقاء الطلب ضمن سعة المسارات الآمنة
+Where should stadium wayfinding be verified?|أين تُراجع لوحات التوجيه في الاستاد؟|At points where drivers and pedestrians choose routes|عند نقاط اختيار المسار للسائقين والمشاة
+What requires a contingency response before a stadium lane blocks?|ما الذي يستدعي خطة بديلة قبل انسداد حارة قرب الاستاد؟|The queue reaching the pre-set trigger|بلوغ الطابور حد التدخل المحدد
+Which movement should be separated from natural pedestrian approach lines?|أي حركة تُفصل عن المسارات الطبيعية للمشاة القادمين؟|Turning vehicles entering or leaving parking areas|المركبات المنعطفة لدخول المواقف أو مغادرتها
+[tm6s5]
+What should govern post-match reopening?|ما الذي يحكم إعادة الفتح بعد المباراة؟|Observed conditions and event-control approval|الظروف المرصودة واعتماد غرفة التحكم
+Why hold parking exits while the main footway feeds a shuttle stop?|لماذا يُؤخّر خروج المركبات بينما يقود الممر الرئيسي الجمهور إلى الحافلات؟|To avoid conflict with concentrated pedestrian movement|لتجنب التعارض مع تدفق المشاة المركّز
+What must be checked beyond the parking exit before a release?|ماذا يُراجع بعد مخرج الموقف قبل السماح بالخروج؟|Downstream capacity to accept the next group|قدرة الطريق التالي على استيعاب الدفعة التالية
+What access stays protected throughout stadium departure?|أي وصول يبقى محميًا طوال انصراف جمهور الاستاد؟|The emergency response route|مسار استجابة الطوارئ
+Why stage departure in groups?|لماذا تنظّم المغادرة على دفعات؟|To recheck conditions between releases|لإعادة تقييم الظروف بين الدفعات
+[tm7s1]
+Which phases should the event traffic plan distinguish?|ما المراحل التي تميز بينها خطة مرور الفعالية؟|Arrival, peak, departure and dismantling|الوصول والذروة والانصراف والتفكيك
+Who approves changing a temporary event control?|من يعتمد تعديل ضابط مؤقت في فعالية؟|The decision owner named in the plan|صاحب الصلاحية المحدد في الخطة
+What should be done before opening the published diversion?|ما المطلوب قبل فتح التحويلة المعلنة؟|Walk the route and verify signs and barriers|تفقد المسار ميدانيًا والتحقق من اللوحات والحواجز
+When should contractor access be delayed?|متى يؤجّل دخول المقاولين؟|When dismantling conflicts with public departure and no approved separation exists|عند تعارض التفكيك مع خروج الجمهور دون فصل معتمد
+Where should public transport stops be shown for event staff?|أين تظهر محطات النقل العام للعاملين في الفعالية؟|On the approved temporary traffic map|في خريطة المرور المؤقتة المعتمدة
+[tm7s2]
+Which relationship predicts an expanding shuttle queue?|ما العلاقة التي تتنبأ بازدياد طابور الحافلات؟|Passenger arrivals exceed the boarding rate|يتجاوز وصول الركاب معدل الصعود
+When should the protected waiting overflow open?|متى تفتح منطقة الانتظار الاحتياطية المحمية؟|Before the primary queue reaches its capacity|قبل امتلاء منطقة الانتظار الرئيسية
+What must remain available at the shuttle boarding point?|ما الذي يبقى متاحًا عند نقطة صعود الحافلات؟|Accessible boarding space|مساحة صعود ميسّرة
+Where must the shuttle queue be kept clear of vehicles?|أين يُبعد طابور الحافلات عن المركبات؟|Outside the turning path of arriving buses|خارج مسار انعطاف الحافلات القادمة
+Who synchronizes vehicle dispatch with boarding capacity?|من ينسق إرسال الحافلات بحسب سعة الصعود؟|The event control team|فريق غرفة تحكم الفعالية
+[tm7s3]
+What is included in the first event closure announcement?|ماذا يتضمن أول بلاغ بإغلاق مسار في فعالية؟|Location, start time, diversion and next review|الموقع ووقت البدء والتحويلة والمراجعة التالية
+Which channel authorizes event route changes?|أي قناة تعتمد تغييرات المسارات في الفعالية؟|The single designated decision channel|قناة القرار المعتمدة المحددة
+What verifies that field posts interpret a diversion consistently?|ما الذي يتحقق من فهم نقاط العمل للتحويلة بصورة متسقة؟|Read-back from each affected post|إعادة تأكيد من كل نقطة متأثرة
+What is checked on the diversion after confirmation?|ماذا يُفحص في التحويلة بعد تأكيدها؟|Signs and staffing match the approved route|مطابقة اللوحات والتمركز للمسار المعتمد
+What precedes movement after conflicting route messages?|ماذا يسبق الحركة بعد تلقي رسائل متعارضة بشأن المسار؟|Hold and reconcile the route with event control|الإيقاف ومطابقة المسار مع غرفة التحكم
+[tm7s4]
+Which measurement warns that a retail car park is about to lose circulation?|أي قياس ينبه إلى قرب تعطل الحركة داخل موقف المجمع؟|Observed queue length and usable occupancy|طول الطابور المرصود والإشغال الفعلي
+Where near a trolley return must sightlines be protected?|أين يجب حماية خطوط الرؤية قرب إعادة العربات؟|At surrounding turns and pedestrian exits|عند المنعطفات ومخارج المشاة المحيطة
+Where should a marshal stand when diverting retail arrivals?|أين يقف المنظم عند تحويل مركبات المتسوقين؟|Outside vehicle paths with a clear withdrawal route|خارج مسارات المركبات مع مسار انسحاب واضح
+What should be measured after activating retail overflow?|ما الذي يقاس بعد فتح المنطقة الاحتياطية للمجمع؟|Whether queue and pedestrian conflicts actually decrease|ما إذا انخفض تعارض الطوابير والمشاة فعليًا
+What prevents a parking aisle becoming a holding queue?|ما الذي يمنع تحول ممر الموقف إلى طابور انتظار؟|Redirect arrivals before the aisle fills|تحويل المركبات القادمة قبل امتلاء الممر
+[tm7s5]
+What separates deliveries from customer movement when the layout is shared?|ما الذي يفصل التوريد عن حركة المتسوقين عند اشتراك الموقع؟|Approved separate delivery time windows|فترات زمنية منفصلة ومعتمدة للتوريد
+Which team confirms a retail dock is ready?|أي فريق يؤكد جاهزية رصيف تحميل المجمع؟|The dock staff responsible for receiving deliveries|فريق الرصيف المسؤول عن استلام التوريد
+What must remain open during delivery operations?|ما الذي يبقى مفتوحًا أثناء عمليات التوريد؟|The protected public walkway|ممر الجمهور المحمي
+When should maneuvering pause at a mall loading point?|متى تتوقف المناورة عند نقطة تحميل المجمع؟|When someone enters the vehicle maneuvering area|عند دخول شخص إلى نطاق مناورة المركبة
+What should follow a late delivery during holiday opening hours?|ماذا يلي وصول توريد متأخر خلال ساعات فتح المجمع في العطلات؟|Hold at the approved point and coordinate a revised slot|الانتظار في النقطة المعتمدة وتنسيق موعد بديل
+[tm8s1]
+Which three routes should an industrial yard distinguish?|ما المسارات الثلاثة التي يميز بينها تخطيط الساحة الصناعية؟|Pedestrian, forklift and heavy-vehicle routes|مسارات المشاة والرافعات الشوكية والمركبات الثقيلة
+Where should protection be installed near an industrial building?|أين تُركب الحماية قرب مبنى صناعي؟|At doors and vehicle-pedestrian crossing points|عند الأبواب ونقاط تقاطع المشاة والمركبات
+What can stored pallets change at a yard crossing?|ماذا قد تغيّر المنصات المخزّنة عند معبر الساحة؟|The sightline between drivers and pedestrians|خط الرؤية بين السائقين والمشاة
+How should forklift traffic be managed while staff enter at shift change?|كيف تدار حركة الرافعات الشوكية أثناء دخول العاملين عند تبديل المناوبة؟|Schedule or hold conflicting movement until the protected route is clear|جدولة الحركة المتعارضة أو إيقافها حتى يخلو المسار المحمي
+What should repeated informal crossings prompt?|ما الذي يستدعيه تكرار العبور خارج المعبر المحدد؟|Review of the routes and protective controls|مراجعة المسارات وضوابط الحماية
+[tm8s2]
+What does a dock restraint procedure prevent?|ماذا يمنع إجراء تثبيت المركبة عند الرصيف؟|Unexpected vehicle departure during loading|مغادرة المركبة دون توقع أثناء التحميل
+Who must know the release criteria at a dock?|من يجب أن يعرف معايير السماح بالمغادرة عند الرصيف؟|The dock team, driver and marshal|فريق الرصيف والسائق والمنظم
+What is checked before authorizing a dock departure?|ماذا يُفحص قبل التصريح بالمغادرة من الرصيف؟|People and equipment are clear of the vehicle|خلو نطاق المركبة من الأشخاص والمعدات
+What happens when a restraint or release signal fails?|ماذا يحدث عند تعطل جهاز التثبيت أو إشارة السماح بالمغادرة؟|Hold operation and report the fault pending a safe alternative|إيقاف العملية والإبلاغ عن العطل حتى يتوفر بديل آمن
+What authorizes the end of a dock hold?|ما الذي يُنهي حالة إيقاف المركبة عند الرصيف؟|Formal release by the person authorized under the procedure|تصريح رسمي من الشخص المخوّل وفق الإجراء
+[tm8s3]
+What geometric checks are needed for a temporary truck route?|ما الفحوص الهندسية اللازمة لمسار شاحنات مؤقت؟|Vehicle dimensions, clearance and turning space|أبعاد المركبة والخلوص ومساحة الانعطاف
+Which access must a temporary yard route preserve?|أي وصول يجب أن يحافظ عليه مسار مؤقت في الساحة؟|Protected pedestrian and emergency access|وصول المشاة المحمي ووصول الطوارئ
+What should happen to signs for the closed original route?|ماذا يحدث للوحات المسار الأصلي المغلق؟|Remove or cover them to prevent contradictory directions|إزالتها أو تغطيتها لتجنب التعليمات المتعارضة
+Which learning aid must be updated for visiting drivers?|أي وسيلة إرشاد يجب تحديثها للسائقين الزائرين؟|The induction route map|خريطة المسارات المستخدمة في الإحاطة
+What confirms a route change is ready to operate?|ما الذي يؤكد جاهزية تغيير المسار للتشغيل؟|Approval, updated controls and confirmation at affected posts|الاعتماد وتحديث الضوابط والتأكيد مع النقاط المتأثرة
+[tm8s4]
+What should be identified first in a compound near-miss scenario?|ما الذي يُحدد أولًا في سيناريو مركب لحادث وشيك؟|Who is exposed and to which movements|من يتعرض للخطر ولأي حركات
+What location should be chosen to hold traffic in reduced visibility?|ما الموقع المناسب لإيقاف الحركة عند ضعف الرؤية؟|A protected hold point outside the uncertain movement area|نقطة انتظار محمية خارج منطقة الحركة غير الواضحة
+What must a brief incident radio message state?|ماذا يذكر البلاغ اللاسلكي الموجز عن الحادث؟|The location, observed hazard and traffic action required|الموقع والخطر المشاهد وإجراء المرور المطلوب
+What is recorded before considering reopening?|ما الذي يوثّق قبل النظر في إعادة الفتح؟|Which controls must be verified and who verifies them|الضوابط المطلوب التحقق منها والمسؤول عن ذلك
+What is the purpose of a supervised debrief?|ما هدف مناقشة ما بعد التمرين تحت الإشراف؟|Compare decisions with the actual site procedure|مقارنة القرارات بإجراء الموقع الفعلي
+[tm8s5]
+What makes a competency criterion useful for an assessor?|ما الذي يجعل معيار الكفاءة مفيدًا للمقيّم؟|It describes observable field behavior|يصف سلوكًا ميدانيًا قابلًا للملاحظة
+What should an assessor record when safe positioning repeatedly fails?|ماذا يسجل المقيّم عند تكرار فقدان التموضع الآمن؟|The observed deficiency and required coaching|القصور المشاهد والتدريب التصحيحي المطلوب
+When can someone be authorized after additional coaching?|متى يمكن تفويض شخص بعد التدريب التصحيحي؟|After supervised reassessment confirms competence|بعد تأكيد الكفاءة في إعادة تقييم تحت الإشراف
+Which competency should be observed when a driver loses contact?|أي كفاءة تُلاحظ عند انقطاع تواصل السائق؟|The decision to stop movement safely|قرار إيقاف الحركة بأمان
+What evidence should support authorization to work independently?|ما الأدلة التي ينبغي أن تدعم تفويض العمل المستقل؟|Documented practical performance meeting the site requirements|أداء عملي موثّق يستوفي متطلبات الموقع

@@ -47,7 +47,7 @@ global.fetch=async(url,options)=>{
 async function request(route,{body,token,status=200,releaseCheck=false}={}){
   const r=await fetch(root+route,{
     method:body===undefined?'GET':'POST',
-    headers:{...(route.startsWith('/api/admin/')||releaseCheck?{'X-Forwarded-For':'192.0.2.10'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
+    headers:{...(route.startsWith('/api/admin/')||releaseCheck?{'X-Forwarded-For':'192.0.2.10'}:route.startsWith(api+'/screens/')?{'X-Forwarded-For':'192.0.2.11'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
     body:JSON.stringify(body)
   });
   const data=await r.text();
@@ -57,7 +57,7 @@ async function request(route,{body,token,status=200,releaseCheck=false}={}){
 
 const slugFire='fire-safety-emergency-response';
 const hash=value=>createHash('sha256').update(value).digest('hex');
-const bank=curriculum.assessmentPools.flat();
+const bank=curriculum.banks.final;
 const getAnswers=(items,questions)=>items.map(item=>{
   const expected=questions.find(q=>q.q===item.q);
   assert.ok(expected,item.q);
@@ -118,8 +118,18 @@ async function run(){
   assert.deepEqual(old.progress,oldProgress);
   await request(api+'/screens/tm1s3',{token:oldSession,status:404});
 
+  const v2Token=randomUUID();
+  await access.insertOne({enrollmentId:'QA-EXPANDED-LEGACY',courseSlug:TRAFFIC_SLUG,curriculumVersion:2,
+    accessStartsAt:new Date(),accessExpiresAt:new Date(Date.now()+120*3600000),status:'active',
+    sessionTokenHash:hash(v2Token),sessionExpiresAt:new Date(Date.now()+3600000),progress:oldProgress});
+  const existingExpanded=await request(api+'/me',{token:v2Token,releaseCheck:true});
+  assert.equal(existingExpanded.lessons.length,40);
+  assert.equal(existingExpanded.assessedScreens,35);
+  assert.deepEqual(existingExpanded.progress,oldProgress);
+
   const catalog=await request(api+'/courses/'+TRAFFIC_SLUG);
   assert.equal(catalog.screenCount,40);
+  assert.deepEqual(catalog.assessmentCounts,{diagnostic:10,lessons:200,units:80,final:30,feedback:10});
   assert.equal(catalog.modules.length,8);
   assert.ok(catalog.introduction.en&&catalog.introduction.ar);
   const fire=await request(api+'/courses/'+slugFire);
@@ -157,8 +167,9 @@ async function run(){
   assert.equal(mail.length,1);
 
   const me=await request(api+'/me',{token});
-  assert.equal(me.lessons.length,40);
-  assert.equal(me.assessedScreens,35);
+  assert.equal(me.lessons.filter(item=>!item.kind).length,40);
+  assert.equal(me.lessons.filter(item=>item.kind==='unit-assessment').length,8);
+  assert.equal(me.assessedScreens,48);
   assert.equal((await access.findOne({enrollmentId})).curriculumVersion,curriculum.CURRICULUM_VERSION);
   await request(api+'/screens/tm8s5',{token,status:403});
   await request(api+'/final-assessment',{token,status:403});
@@ -170,11 +181,9 @@ async function run(){
   await request(diagnosticRoute,{token:oldSession,status:404});
   const diagnostic=await request(diagnosticRoute,{token});
   assert.equal(diagnostic.questions.length,10);
-  for(const pool of curriculum.assessmentPools){
-    assert.ok(diagnostic.questions.some(question=>pool.some(q=>q.q===question.q)));
-  }
+  assert.deepEqual(new Set(diagnostic.questions.map(q=>q.q)),new Set(curriculum.banks.diagnostic.map(q=>q.q)));
   await request(diagnosticRoute,{token,body:{answers:Array(10).fill(null)},status:400});
-  const initial=await request(diagnosticRoute,{token,body:{answers:getAnswers(diagnostic.questions,bank)}});
+  const initial=await request(diagnosticRoute,{token,body:{answers:getAnswers(diagnostic.questions,curriculum.banks.diagnostic)}});
   assert.equal(initial.result.score,100);
   assert.deepEqual(await request(diagnosticRoute,{token,body:{answers:Array(10).fill(0)}}),initial);
   assert.deepEqual((await request(api+'/me',{token})).initialAssessment,initial.result);
@@ -184,7 +193,17 @@ async function run(){
     const route=api+'/screens/'+lesson.id;
     const screen=await request(route,{token});
     assert.equal(screen.id,lesson.id);
-    assert.ok(screen.bodyAr&&screen.bodyEn&&screen.diagram.length===3);
+    assert.ok(screen.bodyAr&&screen.bodyEn);
+    assert.equal(screen.questions.length,lesson.kind==='unit-assessment'?10:5);
+    if(lesson.kind==='unit-assessment'&&i+1<me.lessons.length){
+      await request(api+'/screens/'+me.lessons[i+1].id,{token,status:403});
+      const wrongUnit=getAnswers(screen.questions,curriculum.sequence[i].questions).map(a=>(a+1)%4);
+      const failedUnit=await request(route+'/assessment',{token,body:{answers:wrongUnit}});
+      assert.equal(failedUnit.passed,false);
+    }
+    if(!lesson.kind)assert.equal(screen.diagram.length,3);
+    if(screen.siteMap)assert.ok(fs.existsSync(path.join(frontend,screen.siteMap)));
+    if(screen.supplementalVideo)assert.ok(fs.existsSync(path.join(frontend,screen.supplementalVideo)));
     if(screen.approvedVideo){
       videos.add(screen.videoUrl);
       assert.ok(fs.existsSync(path.join(frontend,screen.videoUrl)));
@@ -192,7 +211,7 @@ async function run(){
       assert.ok(fs.existsSync(path.join(frontend,screen.imageUrl)));
     }
     if(!lesson.assessmentRequired)continue;
-    const questions=curriculum.screens[i].questions;
+    const questions=curriculum.sequence[i].questions;
     const answers=getAnswers(screen.questions,questions);
     const result=await request(route+'/assessment',{token,body:{answers}});
     assert.equal(result.score,100);
@@ -205,14 +224,18 @@ async function run(){
   }
   assert.equal(videos.size,10);
   assert.equal((await request(api+'/me',{token})).learningMastered,true);
+  const survey=await request(api+'/traffic-feedback',{token});
+  assert.equal(survey.questions.length,10);
+  assert.equal(new Set(survey.questions.map(q=>q.en)).size,10);
+  assert.equal(new Set(survey.questions.map(q=>q.ar)).size,10);
   await request(api+'/traffic-feedback',{token,body:{answers:Array(10).fill(5)}});
 
   const final=await request(api+'/final-assessment',{token});
   assert.equal(final.questions.length,30);
   assert.equal(new Set(final.questions.map(q=>q.q)).size,30);
-  for(const pool of curriculum.assessmentPools){
-    assert.ok(final.questions.filter(question=>pool.some(q=>q.q===question.q)).length>=3);
-  }
+  assert.deepEqual(new Set(final.questions.map(q=>q.q)),new Set(bank.map(q=>q.q)));
+  const learningStems=new Set(curriculum.sequence.flatMap(screen=>screen.questions.map(q=>q.q)));
+  assert.ok(final.questions.every(q=>!learningStems.has(q.q)));
   const examRoute=api+'/traffic-exam-window';
   const submit=api+'/final-assessment';
   await request(submit,{token,body:{attempt:0,answers:Array(30).fill(0)},status:409});
@@ -294,7 +317,8 @@ async function run(){
   await request('/api/admin/traffic-self-study/QA-OTHER-0',{token:admin.token,status:404});
   const results=await request('/api/admin/traffic-self-study/'+enrollmentId,{token:admin.token});
   assert.equal(results.initial.score,100);
-  assert.equal(results.lessons.length,35);
+  assert.equal(results.lessons.length,48);
+  assert.equal(results.lessons.filter(item=>item.kind==='unit-assessment').length,8);
   assert.ok(results.lessons.every(lesson=>lesson.score===100));
   assert.deepEqual(results.feedback.answers,Array(10).fill(5));
   assert.deepEqual(results.finalScores.map(x=>x.score),[3,0,100]);
